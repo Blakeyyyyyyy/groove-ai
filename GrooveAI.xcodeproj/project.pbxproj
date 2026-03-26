@@ -6,6 +6,83 @@
 	objectVersion = 56;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BF_CONTENTVIEW = {isa = PBXBuildFile; fileRef = FR_CONTENTVIEW; };
+		BF_GROOVEAIAPP = {isa = PBXBuildFile; fileRef = FR_GROOVEAIAPP; };
+		BF_DESIGNTOKENS = {isa = PBXBuildFile; fileRef = FR_DESIGNTOKENS; };
+		BF_APPSTATE = {isa = PBXBuildFile; fileRef = FR_APPSTATE; };
+		BF_DANCEPRESET = {isa = PBXBuildFile; fileRef = FR_DANCEPRESET; };
+		BF_GENERATEDVIDEO = {isa = PBXBuildFile; fileRef = FR_GENERATEDVIDEO; };
+		BF_CREDITSSERVICE = {isa = PBXBuildFile; fileRef = FR_CREDITSSERVICE; };
+		BF_GENERATIONSERVICE = {isa = PBXBuildFile; fileRef = FR_GENERATIONSERVICE; };
+		BF_NOTIFICATIONSERVICE = {isa = PBXBuildFile; fileRef = FR_NOTIFICATIONSERVICE; };
+		BF_PHOTOPICKER = {isa = PBXBuildFile; fileRef = FR_PHOTOPICKER; };
+		BF_CREDITSINFOROW = {isa = PBXBuildFile; fileRef = FR_CREDITSINFOROW; };
+		BF_EMPTYSTATEVIEW = {isa = PBXBuildFile; fileRef = FR_EMPTYSTATEVIEW; };
+		BF_GENERATINGPILL = {isa = PBXBuildFile; fileRef = FR_GENERATINGPILL; };
+		BF_GRADIENTCTABUTTON = {isa = PBXBuildFile; fileRef = FR_GRADIENTCTABUTTON; };
+		BF_NOTIFPERMVIEW = {isa = PBXBuildFile; fileRef = FR_NOTIFPERMVIEW; };
+		BF_ONBOARDINGCARD = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGCARD; };
+		BF_PAGEINDICATORDOTS = {isa = PBXBuildFile; fileRef = FR_PAGEINDICATORDOTS; };
+		BF_SETTINGSROW = {isa = PBXBuildFile; fileRef = FR_SETTINGSROW; };
+		BF_VIDEOTHUMBNAILCARD = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD; };
+		BF_DANCEPRESETCARD = {isa = PBXBuildFile; fileRef = FR_DANCEPRESETCARD; };
+		BF_HOMEVIEW = {isa = PBXBuildFile; fileRef = FR_HOMEVIEW; };
+		BF_MYVIDEOSVIEW = {isa = PBXBuildFile; fileRef = FR_MYVIDEOSVIEW; };
+		BF_ONBOARDINGFLOW = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGFLOW; };
+		BF_ONBOARDINGPAGE1 = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGPAGE1; };
+		BF_ONBOARDINGPAGE2 = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGPAGE2; };
+		BF_ONBOARDINGPAGE3 = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGPAGE3; };
+		BF_EXITPOPUPVIEW = {isa = PBXBuildFile; fileRef = FR_EXITPOPUPVIEW; };
+		BF_PAYWALLVIEW = {isa = PBXBuildFile; fileRef = FR_PAYWALLVIEW; };
+		BF_DANCEPREVIEWVIEW = {isa = PBXBuildFile; fileRef = FR_DANCEPREVIEWVIEW; };
+		BF_COMPLETEDVIDEOVIEW = {isa = PBXBuildFile; fileRef = FR_COMPLETEDVIDEOVIEW; };
+		BF_SETTINGSVIEW = {isa = PBXBuildFile; fileRef = FR_SETTINGSVIEW; };
+		BF_UPLOADVIEW = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		PRODUCT_REF = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = GrooveAI.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FR_CONTENTVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FR_GROOVEAIAPP = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveAIApp.swift; sourceTree = "<group>"; };
+		FR_DESIGNTOKENS = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		FR_APPSTATE = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		FR_DANCEPRESET = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePreset.swift; sourceTree = "<group>"; };
+		FR_GENERATEDVIDEO = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedVideo.swift; sourceTree = "<group>"; };
+		FR_CREDITSSERVICE = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsService.swift; sourceTree = "<group>"; };
+		FR_GENERATIONSERVICE = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationService.swift; sourceTree = "<group>"; };
+		FR_NOTIFICATIONSERVICE = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		FR_PHOTOPICKER = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPicker.swift; sourceTree = "<group>"; };
+		FR_CREDITSINFOROW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsInfoRow.swift; sourceTree = "<group>"; };
+		FR_EMPTYSTATEVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		FR_GENERATINGPILL = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPill.swift; sourceTree = "<group>"; };
+		FR_GRADIENTCTABUTTON = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientCTAButton.swift; sourceTree = "<group>"; };
+		FR_NOTIFPERMVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGCARD = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCard.swift; sourceTree = "<group>"; };
+		FR_PAGEINDICATORDOTS = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageIndicatorDots.swift; sourceTree = "<group>"; };
+		FR_SETTINGSROW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
+		FR_VIDEOTHUMBNAILCARD = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
+		FR_DANCEPRESETCARD = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePresetCard.swift; sourceTree = "<group>"; };
+		FR_HOMEVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		FR_MYVIDEOSVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVideosView.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGFLOW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGPAGE1 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage1.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGPAGE2 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage2.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGPAGE3 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage3.swift; sourceTree = "<group>"; };
+		FR_EXITPOPUPVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitPopupView.swift; sourceTree = "<group>"; };
+		FR_PAYWALLVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		FR_DANCEPREVIEWVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePreviewView.swift; sourceTree = "<group>"; };
+		FR_COMPLETEDVIDEOVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
+		FR_SETTINGSVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FR_UPLOADVIEW = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		ROOT_GROUP = {
 			isa = PBXGroup;
@@ -26,8 +103,160 @@
 		SOURCE_GROUP = {
 			isa = PBXGroup;
 			children = (
+				GRP_APP,
+				GRP_DESIGN,
+				GRP_MODELS,
+				GRP_SERVICES,
+				GRP_UTILITIES,
+				GRP_VIEWS,
 			);
 			path = GrooveAI;
+			sourceTree = "<group>";
+		};
+		GRP_APP = {
+			isa = PBXGroup;
+			children = (
+				FR_GROOVEAIAPP,
+				FR_CONTENTVIEW,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		GRP_DESIGN = {
+			isa = PBXGroup;
+			children = (
+				FR_DESIGNTOKENS,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		GRP_MODELS = {
+			isa = PBXGroup;
+			children = (
+				FR_APPSTATE,
+				FR_DANCEPRESET,
+				FR_GENERATEDVIDEO,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GRP_SERVICES = {
+			isa = PBXGroup;
+			children = (
+				FR_CREDITSSERVICE,
+				FR_GENERATIONSERVICE,
+				FR_NOTIFICATIONSERVICE,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GRP_UTILITIES = {
+			isa = PBXGroup;
+			children = (
+				FR_PHOTOPICKER,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		GRP_VIEWS = {
+			isa = PBXGroup;
+			children = (
+				GRP_COMPONENTS,
+				GRP_HOME,
+				GRP_MYVIDEOS,
+				GRP_ONBOARDING,
+				GRP_PAYWALL,
+				GRP_PREVIEW,
+				GRP_RESULT,
+				GRP_SETTINGS,
+				GRP_UPLOAD,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		GRP_COMPONENTS = {
+			isa = PBXGroup;
+			children = (
+				FR_CREDITSINFOROW,
+				FR_EMPTYSTATEVIEW,
+				FR_GENERATINGPILL,
+				FR_GRADIENTCTABUTTON,
+				FR_NOTIFPERMVIEW,
+				FR_ONBOARDINGCARD,
+				FR_PAGEINDICATORDOTS,
+				FR_SETTINGSROW,
+				FR_VIDEOTHUMBNAILCARD,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		GRP_HOME = {
+			isa = PBXGroup;
+			children = (
+				FR_DANCEPRESETCARD,
+				FR_HOMEVIEW,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		GRP_MYVIDEOS = {
+			isa = PBXGroup;
+			children = (
+				FR_MYVIDEOSVIEW,
+			);
+			path = MyVideos;
+			sourceTree = "<group>";
+		};
+		GRP_ONBOARDING = {
+			isa = PBXGroup;
+			children = (
+				FR_ONBOARDINGFLOW,
+				FR_ONBOARDINGPAGE1,
+				FR_ONBOARDINGPAGE2,
+				FR_ONBOARDINGPAGE3,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		GRP_PAYWALL = {
+			isa = PBXGroup;
+			children = (
+				FR_EXITPOPUPVIEW,
+				FR_PAYWALLVIEW,
+			);
+			path = Paywall;
+			sourceTree = "<group>";
+		};
+		GRP_PREVIEW = {
+			isa = PBXGroup;
+			children = (
+				FR_DANCEPREVIEWVIEW,
+			);
+			path = Preview;
+			sourceTree = "<group>";
+		};
+		GRP_RESULT = {
+			isa = PBXGroup;
+			children = (
+				FR_COMPLETEDVIDEOVIEW,
+			);
+			path = Result;
+			sourceTree = "<group>";
+		};
+		GRP_SETTINGS = {
+			isa = PBXGroup;
+			children = (
+				FR_SETTINGSVIEW,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		GRP_UPLOAD = {
+			isa = PBXGroup;
+			children = (
+				FR_UPLOADVIEW,
+			);
+			path = Upload;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,6 +312,38 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF_GROOVEAIAPP,
+				BF_CONTENTVIEW,
+				BF_DESIGNTOKENS,
+				BF_APPSTATE,
+				BF_DANCEPRESET,
+				BF_GENERATEDVIDEO,
+				BF_CREDITSSERVICE,
+				BF_GENERATIONSERVICE,
+				BF_NOTIFICATIONSERVICE,
+				BF_PHOTOPICKER,
+				BF_CREDITSINFOROW,
+				BF_EMPTYSTATEVIEW,
+				BF_GENERATINGPILL,
+				BF_GRADIENTCTABUTTON,
+				BF_NOTIFPERMVIEW,
+				BF_ONBOARDINGCARD,
+				BF_PAGEINDICATORDOTS,
+				BF_SETTINGSROW,
+				BF_VIDEOTHUMBNAILCARD,
+				BF_DANCEPRESETCARD,
+				BF_HOMEVIEW,
+				BF_MYVIDEOSVIEW,
+				BF_ONBOARDINGFLOW,
+				BF_ONBOARDINGPAGE1,
+				BF_ONBOARDINGPAGE2,
+				BF_ONBOARDINGPAGE3,
+				BF_EXITPOPUPVIEW,
+				BF_PAYWALLVIEW,
+				BF_DANCEPREVIEWVIEW,
+				BF_COMPLETEDVIDEOVIEW,
+				BF_SETTINGSVIEW,
+				BF_UPLOADVIEW,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,16 +368,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXFileReference section */
-		PRODUCT_REF = {
-			isa = PBXFileReference;
-			explicitFileType = wrapper.application;
-			includeInIndex = 0;
-			path = GrooveAI.app;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXFileReference section */
 
 /* Begin XCBuildConfiguration section */
 		DEBUG_PROJECT = {
