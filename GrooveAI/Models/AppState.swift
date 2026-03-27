@@ -21,6 +21,11 @@ final class AppState {
         set { UserDefaults.standard.set(newValue, forKey: "isSubscribed") }
     }
 
+    // MARK: - Server-Synced Coins
+
+    /// Server-authoritative coin balance. Falls back to local if not synced yet.
+    var serverCoins: Int? = nil
+
     var coinsUsed: Int {
         get { UserDefaults.standard.integer(forKey: "creditsUsed") }
         set { UserDefaults.standard.set(newValue, forKey: "creditsUsed") }
@@ -29,12 +34,21 @@ final class AppState {
     let coinsTotal: Int = 150
     let coinCostPerGeneration: Int = 60
 
+    /// Use server coins if available, otherwise local calculation
     var coinsRemaining: Int {
-        max(0, coinsTotal - coinsUsed)
+        if let server = serverCoins { return server }
+        return max(0, coinsTotal - coinsUsed)
     }
 
     var hasEnoughCoins: Bool {
         coinsRemaining >= coinCostPerGeneration
+    }
+
+    // MARK: - User ID (from Supabase Auth)
+
+    var userId: String? {
+        get { UserDefaults.standard.string(forKey: "userId") }
+        set { UserDefaults.standard.set(newValue, forKey: "userId") }
     }
 
     // Generation state — state-driven flow (BUG-004 fix)
@@ -73,7 +87,7 @@ final class AppState {
         set { UserDefaults.standard.set(newValue, forKey: "hasRequestedNotificationPermission") }
     }
 
-    // MARK: - Coins
+    // MARK: - Coins (local fallback — server is authoritative)
 
     func useCoins() {
         coinsUsed += coinCostPerGeneration
@@ -81,6 +95,22 @@ final class AppState {
 
     func refundCoins() {
         coinsUsed = max(0, coinsUsed - coinCostPerGeneration)
+    }
+
+    // MARK: - Sync with Server
+
+    func syncWithServer() async {
+        do {
+            let profile = try await SupabaseService.shared.getUser()
+            await MainActor.run {
+                self.serverCoins = profile.coins
+                self.userId = profile.id
+                self.isSubscribed = profile.subscriptionStatus != "free"
+            }
+        } catch {
+            // Offline or not authenticated — use local state
+            print("[AppState] Server sync failed: \(error)")
+        }
     }
 
     // MARK: - Generation Flow
@@ -95,7 +125,8 @@ final class AppState {
 
     func failGeneration(message: String = "Something went wrong") {
         generationPhase = .failed(message: message)
-        refundCoins()
+        // Server handles refund — just refresh balance
+        Task { await syncWithServer() }
     }
 
     func resetGeneration() {

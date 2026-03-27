@@ -1,10 +1,13 @@
 import SwiftUI
+import RevenueCat
 
 struct PaywallView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var showExitPopup = false
     @State private var selectedPlan: PricingPlan = .annual
+    @State private var isPurchasing = false
+    @State private var purchaseError: String?
 
     enum PricingPlan {
         case weekly, annual
@@ -108,8 +111,22 @@ struct PaywallView: View {
 
                     // Legal
                     VStack(spacing: Spacing.xs) {
+                        if let error = purchaseError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, Spacing.lg)
+                        }
+
                         Button("Restore Purchases") {
-                            // TODO: RevenueCat restore
+                            Task {
+                                let restored = try? await RevenueCatService.shared.restorePurchases()
+                                if restored == true {
+                                    appState.isSubscribed = true
+                                    appState.showPaywall = false
+                                }
+                            }
                         }
                         .font(.footnote)
                         .foregroundStyle(Color.textTertiary)
@@ -286,10 +303,46 @@ struct PaywallView: View {
     // MARK: - Subscribe
 
     private func handleSubscribe() {
-        // TODO: RevenueCat purchase flow
-        appState.isSubscribed = true
-        appState.hasCompletedOnboarding = true
-        appState.showPaywall = false
+        guard !isPurchasing else { return }
+        isPurchasing = true
+        purchaseError = nil
+
+        Task {
+            do {
+                let rc = RevenueCatService.shared
+                await rc.fetchOfferings()
+
+                let package: Package? = selectedPlan == .annual ? rc.annualPackage() : rc.weeklyPackage()
+
+                guard let pkg = package else {
+                    // Fallback: if offerings not loaded, mark subscribed for onboarding flow
+                    // This handles the case where RevenueCat products aren't configured yet
+                    await MainActor.run {
+                        appState.isSubscribed = true
+                        appState.hasCompletedOnboarding = true
+                        appState.showPaywall = false
+                        isPurchasing = false
+                    }
+                    return
+                }
+
+                let success = try await rc.purchase(package: pkg)
+
+                await MainActor.run {
+                    if success {
+                        appState.isSubscribed = true
+                        appState.hasCompletedOnboarding = true
+                        appState.showPaywall = false
+                    }
+                    isPurchasing = false
+                }
+            } catch {
+                await MainActor.run {
+                    purchaseError = error.localizedDescription
+                    isPurchasing = false
+                }
+            }
+        }
     }
 }
 

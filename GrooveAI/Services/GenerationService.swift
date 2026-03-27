@@ -4,14 +4,15 @@ import UserNotifications
 
 @Observable
 final class GenerationService {
-    /// Start a generation: upload photo, trigger backend, start polling
+
+    /// Start a generation: upload photo to R2, trigger backend, poll for completion
     func startGeneration(
         preset: DancePreset,
         photoData: Data,
         appState: AppState,
         modelContext: ModelContext
     ) async {
-        // Create video record
+        // Create local video record for UI
         let video = GeneratedVideo(
             dancePresetID: preset.id,
             danceName: preset.name,
@@ -21,57 +22,112 @@ final class GenerationService {
         modelContext.insert(video)
         try? modelContext.save()
 
-        // BUG-004 fix: state-driven generation flow
+        // State-driven generation flow
         appState.startGeneration(jobId: video.id)
 
-        // TODO: Real backend flow:
-        // 1. Upload photo to R2 (presigned URL)
-        // 2. POST to /api/generate with photo_url + dance_preset_id
-        // 3. Start polling /api/status/{video_id}
+        do {
+            // 1. Upload photo to R2
+            let imageURL = try await R2Service.shared.uploadPhoto(
+                data: photoData,
+                userId: appState.userId ?? "anonymous"
+            )
 
-        // Simulated completion after 10 minutes (replace with real polling)
-        startPolling(appState: appState, videoID: video.id, modelContext: modelContext)
-    }
+            // 2. Trigger generation via Edge Function
+            // Server handles: credit deduction, Gemini classification, Kling generation
+            let response = try await SupabaseService.shared.generateVideo(
+                imageURL: imageURL,
+                danceStyle: preset.id,
+                dancePrompt: preset.name
+            )
 
-    /// Poll for completion (replace with real Supabase polling)
-    private func startPolling(appState: AppState, videoID: String, modelContext: ModelContext) {
-        Task { @MainActor in
-            // In production: poll /api/status/{videoID} every 30s
-            // For demo: wait 10 minutes then complete
-            try? await Task.sleep(for: .seconds(600))
+            guard response.success, let serverVideoId = response.videoId else {
+                throw GenerationError.serverError(response.error ?? "Unknown error")
+            }
 
-            guard appState.isGenerating else { return }
-            completeGeneration(appState: appState, videoID: videoID, modelContext: modelContext)
+            // Update coins from server response
+            if let remaining = response.coinsRemaining {
+                await MainActor.run {
+                    appState.serverCoins = remaining
+                }
+            }
+
+            // 3. Poll for completion via Kling service
+            let videoUrl = try await KlingService.shared.pollForCompletion(
+                videoId: serverVideoId,
+                onStatusUpdate: { status in
+                    // Could update UI with status text
+                }
+            )
+
+            // 4. Complete — update local record
+            await MainActor.run {
+                video.status = "completed"
+                video.completedAt = .now
+                video.videoURL = videoUrl
+                try? modelContext.save()
+                appState.completeGeneration(videoID: video.id)
+            }
+
+            sendCompletionNotification()
+
+            // Auto-reset after brief delay
+            try? await Task.sleep(for: .seconds(3))
+            await MainActor.run {
+                appState.resetGeneration()
+            }
+
+        } catch is CancellationError {
+            // Task cancelled — no action needed
+        } catch {
+            await MainActor.run {
+                video.status = "failed"
+                try? modelContext.save()
+                appState.failGeneration(message: error.localizedDescription)
+            }
         }
     }
 
-    @MainActor
-    func completeGeneration(appState: AppState, videoID: String, modelContext: ModelContext) {
-        appState.completeGeneration(videoID: videoID)
-
-        // Update video record
-        let descriptor = FetchDescriptor<GeneratedVideo>(
-            predicate: #Predicate { $0.id == videoID }
+    /// Fallback: simulated generation for development/testing
+    func startSimulatedGeneration(
+        preset: DancePreset,
+        photoData: Data,
+        appState: AppState,
+        modelContext: ModelContext
+    ) async {
+        let video = GeneratedVideo(
+            dancePresetID: preset.id,
+            danceName: preset.name,
+            photoData: photoData,
+            status: "generating"
         )
-        if let video = try? modelContext.fetch(descriptor).first {
+        modelContext.insert(video)
+        try? modelContext.save()
+
+        appState.startGeneration(jobId: video.id)
+
+        // Simulated 10-minute wait
+        try? await Task.sleep(for: .seconds(600))
+
+        guard appState.isGenerating else { return }
+
+        await MainActor.run {
             video.status = "completed"
             video.completedAt = .now
             try? modelContext.save()
+            appState.completeGeneration(videoID: video.id)
         }
 
-        // Send local notification
         sendCompletionNotification()
 
-        // Auto-reset to idle after a brief delay (so UI can show success)
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .seconds(3))
+        await MainActor.run {
             appState.resetGeneration()
         }
     }
 
     @MainActor
     func handleGenerationFailure(appState: AppState) {
-        appState.failGeneration(message: "Something went wrong — coins refunded. Tap to retry.")
+        appState.failGeneration(message: "Something went wrong. Coins refunded. Tap to retry.")
     }
 
     private func sendCompletionNotification() {
@@ -88,5 +144,19 @@ final class GenerationService {
         )
 
         UNUserNotificationCenter.current().add(request)
+    }
+}
+
+// MARK: - Errors
+
+enum GenerationError: LocalizedError {
+    case serverError(String)
+    case uploadFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .serverError(let msg): return msg
+        case .uploadFailed: return "Failed to upload your photo. Try again."
+        }
     }
 }
