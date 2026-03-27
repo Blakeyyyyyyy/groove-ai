@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var showContent = false
+    @State private var navigateToPreset: DancePreset?
 
     private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.38
 
@@ -11,6 +12,20 @@ struct HomeView: View {
             ScrollView(showsIndicators: false) {
                 if showContent {
                     LazyVStack(alignment: .leading, spacing: Spacing.xl) {
+                        // Hero Banner — top of home, above presets
+                        HStack {
+                            Spacer()
+                            HeroBannerView {
+                                // Navigate to first trending preset
+                                if let first = DancePreset.allPresets.first {
+                                    navigateToPreset = first
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, Spacing.sm)
+
+                        // Category rows
                         ForEach(DancePreset.categories) { category in
                             categoryRow(category)
                         }
@@ -21,7 +36,6 @@ struct HomeView: View {
                     .padding(.top, Spacing.sm)
                     .transition(.opacity)
                 } else {
-                    // Skeleton shimmer while loading
                     skeletonRows
                 }
             }
@@ -41,19 +55,24 @@ struct HomeView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationDestination(for: DancePreset.self) { preset in
                 DancePreviewView(preset: preset)
+                    .toolbar(.hidden, for: .tabBar) // Hide tab bar on preview
             }
             .navigationDestination(for: String.self) { value in
                 if value.hasPrefix("upload-") {
                     let presetID = String(value.dropFirst(7))
                     if let preset = DancePreset.allPresets.first(where: { $0.id == presetID }) {
                         UploadView(preset: preset)
+                            .toolbar(.hidden, for: .tabBar) // Hide tab bar on upload
                     }
                 }
             }
+            .navigationDestination(item: $navigateToPreset) { preset in
+                DancePreviewView(preset: preset)
+                    .toolbar(.hidden, for: .tabBar)
+            }
         }
         .task {
-            // BUG-001 fix: use .task instead of .onAppear for reliable state init
-            // Small delay so skeleton shimmer is visible briefly
+            // BUG-001 fix: use .task for reliable state init
             try? await Task.sleep(for: .milliseconds(200))
             withAnimation(AppAnimation.cardTransition) {
                 showContent = true
@@ -66,7 +85,6 @@ struct HomeView: View {
     @ViewBuilder
     private func categoryRow(_ category: DancePreset.CategoryGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            // Header
             HStack {
                 Text(category.name)
                     .font(.headline)
@@ -84,7 +102,6 @@ struct HomeView: View {
             }
             .padding(.horizontal, Spacing.lg)
 
-            // Horizontal scroll of cards
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(category.presets) { preset in
@@ -110,6 +127,16 @@ struct HomeView: View {
 
     private var skeletonRows: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Hero banner skeleton
+            HStack {
+                Spacer()
+                RoundedRectangle(cornerRadius: Radius.xl)
+                    .fill(Color.bgSecondary)
+                    .frame(width: UIScreen.main.bounds.width * 0.75, height: 160)
+                    .shimmer()
+                Spacer()
+            }
+
             ForEach(0..<3, id: \.self) { _ in
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     RoundedRectangle(cornerRadius: Radius.sm)

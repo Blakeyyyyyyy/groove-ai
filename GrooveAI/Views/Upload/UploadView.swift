@@ -6,20 +6,19 @@ struct UploadView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedImage: UIImage?
     @State private var showPhotoPicker = false
-    @State private var showInsufficientCoinsAlert = false
+    @State private var showCoinsPurchasePaywall = false
     @State private var showNotificationModal = false
 
     var body: some View {
-        VStack(spacing: Spacing.xl) {
-            // Dance name reminder
+        VStack(spacing: 0) {
+            // Preset name header — compact
             Text(preset.name)
-                .font(.subheadline)
-                .foregroundStyle(Color.textSecondary)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(Color.textPrimary)
                 .padding(.top, Spacing.lg)
+                .padding(.bottom, Spacing.md)
 
-            Spacer()
-
-            // Upload card — no dashed borders (lessons.md rule)
+            // Upload card — BIGGER: fills from just under preset name to above generate button
             Button {
                 showPhotoPicker = true
             } label: {
@@ -28,24 +27,31 @@ struct UploadView: View {
             .buttonStyle(ScaleButtonStyle())
             .padding(.horizontal, Spacing.lg)
 
-            // Coins info
-            CoinsInfoRow(
-                used: appState.coinsUsed,
-                total: appState.coinsTotal,
-                costPerGeneration: appState.coinCostPerGeneration,
-                resetDay: "Monday"
-            )
-            .padding(.horizontal, Spacing.lg)
-
             Spacer()
+
+            // Coins cost — only shown AFTER photo is selected, ABOVE Generate button
+            if selectedImage != nil {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "circle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Color.coinGold)
+                    Text("This will use \(appState.coinCostPerGeneration) coins")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .padding(.bottom, Spacing.md)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                .animation(AppAnimation.gentle, value: selectedImage != nil)
+            }
 
             // Generate button
             GradientCTAButton(
                 selectedImage != nil ? "Generate" : "Select a Photo First",
-                isEnabled: selectedImage != nil && appState.hasEnoughCoins
+                isEnabled: selectedImage != nil
             ) {
                 if !appState.hasEnoughCoins {
-                    showInsufficientCoinsAlert = true
+                    // Take them to COINS PURCHASE paywall (not subscription)
+                    showCoinsPurchasePaywall = true
                 } else {
                     startGeneration()
                 }
@@ -84,13 +90,13 @@ struct UploadView: View {
             .presentationDragIndicator(.hidden)
             .presentationBackground(Color.bgSecondary)
         }
-        .alert("Not Enough Coins", isPresented: $showInsufficientCoinsAlert) {
-            Button("Manage Subscription") {
-                // TODO: RevenueCat management
+        .sheet(isPresented: $showCoinsPurchasePaywall) {
+            CoinsPurchasePaywallView {
+                showCoinsPurchasePaywall = false
             }
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Your coins reset Monday. Come back then or manage your subscription.")
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color.bgPrimary)
         }
     }
 
@@ -102,7 +108,6 @@ struct UploadView: View {
                 Image(uiImage: selectedImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 260)
                     .clipped()
                     .overlay(alignment: .bottom) {
                         Text("Change Photo")
@@ -115,14 +120,15 @@ struct UploadView: View {
                             .padding(.bottom, Spacing.md)
                     }
             } else {
-                // Empty state — solid card, no dashed border
+                // Empty state — camera icon, clear input symbol
                 VStack(spacing: Spacing.lg) {
-                    Image(systemName: "figure.dance")
-                        .font(.system(size: 48))
+                    // Camera icon — clear input indicator
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 56))
                         .foregroundStyle(Color.accentStart)
 
                     VStack(spacing: Spacing.xs) {
-                        Text("Drop your photo here")
+                        Text("Tap to add photo")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(Color.textPrimary)
 
@@ -132,11 +138,11 @@ struct UploadView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 200)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity)
+        .frame(maxHeight: .infinity) // Fill available space — BIGGER input area
         .background(Color.bgSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
         .overlay(
@@ -158,9 +164,111 @@ struct UploadView: View {
     }
 
     private func finishGeneration() {
-        // Pop back to Home — the generating pill will be visible
         appState.selectedTab = .home
         dismiss()
+    }
+}
+
+// MARK: - Coins Purchase Paywall (NOT subscription paywall)
+struct CoinsPurchasePaywallView: View {
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(spacing: Spacing.xl) {
+            Spacer().frame(height: Spacing.xl)
+
+            Image(systemName: "circle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(Color.coinGold)
+
+            Text("Need More Coins")
+                .font(.title2.bold())
+                .foregroundStyle(Color.textPrimary)
+
+            Text("Get more coins to keep creating amazing dance videos.")
+                .font(.subheadline)
+                .foregroundStyle(Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Spacing.xxl)
+
+            // Coin packages
+            VStack(spacing: Spacing.md) {
+                coinPackage(coins: 60, price: "$2.99", label: "1 Video")
+                coinPackage(coins: 180, price: "$6.99", label: "3 Videos", badge: "Popular")
+                coinPackage(coins: 600, price: "$19.99", label: "10 Videos", badge: "Best Value")
+            }
+            .padding(.horizontal, Spacing.lg)
+
+            // Or upgrade
+            VStack(spacing: Spacing.sm) {
+                Text("or")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+
+                Button("Upgrade to Pro — Unlimited") {
+                    // TODO: Navigate to subscription paywall
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.accentStart)
+                .frame(minHeight: 44)
+            }
+
+            Spacer()
+
+            Button("Not Now") {
+                onDismiss()
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.textTertiary)
+            .frame(minHeight: 44)
+            .padding(.bottom, Spacing.xxl)
+        }
+        .background(Color.bgPrimary)
+    }
+
+    @ViewBuilder
+    private func coinPackage(coins: Int, price: String, label: String, badge: String? = nil) -> some View {
+        Button {
+            // TODO: IAP purchase
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    HStack(spacing: Spacing.sm) {
+                        Text("🪙 \(coins)")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Color.textPrimary)
+
+                        if let badge {
+                            Text(badge)
+                                .font(.caption2.bold())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(LinearGradient.accent)
+                                .clipShape(Capsule())
+                        }
+                    }
+
+                    Text(label)
+                        .font(.caption)
+                        .foregroundStyle(Color.textSecondary)
+                }
+
+                Spacer()
+
+                Text(price)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .padding(Spacing.lg)
+            .background(Color.bgSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+            .overlay(
+                RoundedRectangle(cornerRadius: Radius.lg)
+                    .stroke(Color.bgElevated, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
