@@ -40,16 +40,12 @@ struct ContentView: View {
         }
         .tint(Color.accentStart)
         .safeAreaInset(edge: .bottom) {
-            // Generating pill — sits ABOVE tab bar, persists across all tabs
+            // BUG-002 fix: generating pill sits ABOVE tab bar via safeAreaInset
             if appState.isGenerating {
                 GeneratingPill(
-                    minutesRemaining: appState.minutesRemaining,
-                    isFailed: appState.generationFailed,
                     onTap: {
                         if appState.generationFailed {
-                            // Navigate back to upload to retry
-                            appState.generationFailed = false
-                            appState.isGenerating = false
+                            appState.resetGeneration()
                             appState.selectedTab = .home
                         }
                     }

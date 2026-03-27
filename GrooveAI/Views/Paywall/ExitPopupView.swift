@@ -17,11 +17,11 @@ struct ExitPopupView: View {
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text("You're one tap away. $9.99 gets you instant access — your video generates in minutes.")
+            // v3 copy — simplified, price only in CTA
+            Text("You're one tap away.")
                 .font(.body)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, Spacing.lg)
 
             GradientCTAButton("Start Dancing — $9.99 →", action: onSubscribe)

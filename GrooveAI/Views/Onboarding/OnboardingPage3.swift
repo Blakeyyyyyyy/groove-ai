@@ -61,8 +61,8 @@ struct OnboardingPage3: View {
             PageIndicatorDots(count: 3, current: 2)
                 .padding(.bottom, Spacing.lg)
 
-            // CTA
-            GradientCTAButton("Let's Make It Dance →", action: onContinue)
+            // v3 CTA: "Make It Dance" (was "Let's Make It Dance →")
+            GradientCTAButton("Make It Dance", action: onContinue)
                 .padding(.bottom, Spacing.xxl)
         }
         .background(Color.bgPrimary)

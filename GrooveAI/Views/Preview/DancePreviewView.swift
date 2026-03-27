@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DancePreviewView: View {
     let preset: DancePreset
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToUpload = false
 
@@ -35,7 +36,13 @@ struct DancePreviewView: View {
             // Main video preview card
             ZStack {
                 RoundedRectangle(cornerRadius: Radius.xxl)
-                    .fill(Color.bgSecondary)
+                    .fill(
+                        LinearGradient(
+                            colors: [preset.placeholderGradientTop, preset.placeholderGradientBottom],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
 
                 VStack(spacing: Spacing.md) {
                     Image(systemName: "play.circle.fill")
@@ -52,12 +59,13 @@ struct DancePreviewView: View {
 
             Spacer().frame(height: Spacing.xl)
 
-            // Validation line
+            // Coins cost
             HStack(spacing: Spacing.sm) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.success)
+                Image(systemName: "circle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(Color.coinGold)
 
-                Text("Works great with your photo")
+                Text("Uses \(preset.coinCost) coins")
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
             }
@@ -67,7 +75,7 @@ struct DancePreviewView: View {
 
             // CTA
             NavigationLink(value: "upload-\(preset.id)") {
-                Text("Use This Dance →")
+                Text("Use This Dance")
                     .font(.headline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -96,5 +104,6 @@ struct DancePreviewView: View {
 #Preview {
     NavigationStack {
         DancePreviewView(preset: DancePreset.allPresets[0])
+            .environment(AppState())
     }
 }

@@ -2,52 +2,39 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
-    @State private var showCards = false
+    @State private var showContent = false
+
+    private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.38
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: Spacing.lg) {
-                    ForEach(Array(DancePreset.allPresets.enumerated()), id: \.element.id) { index, preset in
-                        if preset.id == "coming-soon" {
-                            DancePresetCard(preset: preset)
-                                .opacity(0.5)
-                                .offset(y: showCards ? 0 : 30)
-                                .opacity(showCards ? 1 : 0)
-                                .animation(
-                                    AppAnimation.cardTransition.delay(Double(index) * 0.05),
-                                    value: showCards
-                                )
-                        } else {
-                            NavigationLink(value: preset) {
-                                DancePresetCard(preset: preset)
-                            }
-                            .buttonStyle(ScaleButtonStyle())
-                            .offset(y: showCards ? 0 : 30)
-                            .opacity(showCards ? 1 : 0)
-                            .animation(
-                                AppAnimation.cardTransition.delay(Double(index) * 0.05),
-                                value: showCards
-                            )
+                if showContent {
+                    LazyVStack(alignment: .leading, spacing: Spacing.xl) {
+                        ForEach(DancePreset.categories) { category in
+                            categoryRow(category)
                         }
-                    }
 
-                    // Bottom padding for tab bar + generating pill
-                    Spacer().frame(height: 100)
+                        // Bottom padding for tab bar + generating pill
+                        Spacer().frame(height: 100)
+                    }
+                    .padding(.top, Spacing.sm)
+                    .transition(.opacity)
+                } else {
+                    // Skeleton shimmer while loading
+                    skeletonRows
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
             }
             .background(Color.bgPrimary)
-            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .principal) {
                     Text("Groove AI")
-                        .font(.title2.bold())
+                        .font(.title3.bold())
                         .foregroundStyle(Color.textPrimary)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    creditsBadge
+                    CoinsPillView(count: appState.coinsRemaining)
                 }
             }
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)
@@ -64,21 +51,141 @@ struct HomeView: View {
                 }
             }
         }
-        .onAppear {
-            withAnimation(AppAnimation.cardTransition.delay(0.1)) {
-                showCards = true
+        .task {
+            // BUG-001 fix: use .task instead of .onAppear for reliable state init
+            // Small delay so skeleton shimmer is visible briefly
+            try? await Task.sleep(for: .milliseconds(200))
+            withAnimation(AppAnimation.cardTransition) {
+                showContent = true
             }
         }
     }
 
-    private var creditsBadge: some View {
-        Text("\(appState.creditsRemaining) credits")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.textSecondary)
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-            .background(Color.bgElevated)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.full))
+    // MARK: - Category Row
+
+    @ViewBuilder
+    private func categoryRow(_ category: DancePreset.CategoryGroup) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Header
+            HStack {
+                Text(category.name)
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+
+                if category.id == "Trending Now" {
+                    Text("🔥")
+                }
+
+                Spacer()
+
+                Text("See all →")
+                    .font(.caption)
+                    .foregroundStyle(Color.accentStart)
+            }
+            .padding(.horizontal, Spacing.lg)
+
+            // Horizontal scroll of cards
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(category.presets) { preset in
+                        if preset.id == "coming-soon" {
+                            DancePresetCard(preset: preset)
+                                .frame(width: cardWidth)
+                                .opacity(0.5)
+                        } else {
+                            NavigationLink(value: preset) {
+                                DancePresetCard(preset: preset)
+                                    .frame(width: cardWidth)
+                            }
+                            .buttonStyle(ScaleButtonStyle())
+                        }
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+            }
+        }
+    }
+
+    // MARK: - Skeleton Shimmer
+
+    private var skeletonRows: some View {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            ForEach(0..<3, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    RoundedRectangle(cornerRadius: Radius.sm)
+                        .fill(Color.bgSecondary)
+                        .frame(width: 120, height: 20)
+                        .padding(.horizontal, Spacing.lg)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(0..<4, id: \.self) { _ in
+                                RoundedRectangle(cornerRadius: Radius.md)
+                                    .fill(Color.bgSecondary)
+                                    .frame(width: cardWidth, height: 180)
+                                    .shimmer()
+                            }
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                    }
+                }
+            }
+        }
+        .padding(.top, Spacing.sm)
+    }
+}
+
+// MARK: - Shimmer Effect
+
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        Color.bgElevated.opacity(0.4),
+                        .clear
+                    ],
+                    startPoint: .init(x: phase - 0.5, y: 0.5),
+                    endPoint: .init(x: phase + 0.5, y: 0.5)
+                )
+                .clipped()
+            }
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 2
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
+    }
+}
+
+// MARK: - Coins Pill
+
+struct CoinsPillView: View {
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "circle.fill")
+                .font(.caption2)
+                .foregroundStyle(Color.coinGold)
+            Text("\(count)")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.bgSecondary)
+        .clipShape(Capsule())
     }
 }
 

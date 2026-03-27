@@ -2,19 +2,22 @@ import SwiftUI
 
 // MARK: - Colors
 extension Color {
-    // Backgrounds — NEVER pure black or pure white
-    static let bgPrimary = Color(red: 0.06, green: 0.09, blue: 0.16)     // #0F172A
-    static let bgSecondary = Color(red: 0.12, green: 0.16, blue: 0.23)   // #1E293B
-    static let bgElevated = Color(red: 0.17, green: 0.22, blue: 0.30)    // #2B3750
+    // Backgrounds — near-black premium (was navy)
+    static let bgPrimary = Color(red: 0.04, green: 0.04, blue: 0.04)     // #0A0A0A
+    static let bgSecondary = Color(red: 0.10, green: 0.10, blue: 0.10)   // #1A1A1A
+    static let bgElevated = Color(red: 0.15, green: 0.15, blue: 0.15)    // #252525
 
     // Text
-    static let textPrimary = Color(red: 0.95, green: 0.96, blue: 0.98)   // #F1F5F9
+    static let textPrimary = Color(red: 0.97, green: 0.98, blue: 0.99)   // #F8FAFC
     static let textSecondary = Color(red: 0.58, green: 0.64, blue: 0.72) // #94A3B8
     static let textTertiary = Color(red: 0.40, green: 0.45, blue: 0.53)  // #64748B
 
-    // Accent gradient
-    static let accentStart = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6 violet
-    static let accentEnd = Color(red: 0.925, green: 0.282, blue: 0.600)   // #EC4899 hot pink
+    // Accent gradient — blue → purple (matches Dance AI)
+    static let accentStart = Color(red: 0.23, green: 0.51, blue: 0.96)   // #3B82F6 blue
+    static let accentEnd = Color(red: 0.55, green: 0.36, blue: 0.96)     // #8B5CF6 purple
+
+    // Coins
+    static let coinGold = Color(red: 0.96, green: 0.62, blue: 0.04)      // #F59E0B
 
     // Feedback
     static let success = Color(red: 0.13, green: 0.77, blue: 0.37)       // #22C55E

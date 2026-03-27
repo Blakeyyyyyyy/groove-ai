@@ -113,8 +113,8 @@ struct OnboardingPage2: View {
             PageIndicatorDots(count: 3, current: 1)
                 .padding(.bottom, Spacing.lg)
 
-            // CTA
-            GradientCTAButton("Looks Good →", action: onContinue)
+            // v3 CTA: "Keep Going" (was "Looks Good →")
+            GradientCTAButton("Keep Going", action: onContinue)
                 .padding(.bottom, Spacing.xxl)
         }
         .background(Color.bgPrimary)

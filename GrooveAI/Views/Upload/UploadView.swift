@@ -6,9 +6,8 @@ struct UploadView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedImage: UIImage?
     @State private var showPhotoPicker = false
-    @State private var showInsufficientCreditsAlert = false
+    @State private var showInsufficientCoinsAlert = false
     @State private var showNotificationModal = false
-    @State private var navigateToHome = false
 
     var body: some View {
         VStack(spacing: Spacing.xl) {
@@ -20,7 +19,7 @@ struct UploadView: View {
 
             Spacer()
 
-            // Upload card
+            // Upload card — no dashed borders (lessons.md rule)
             Button {
                 showPhotoPicker = true
             } label: {
@@ -29,11 +28,11 @@ struct UploadView: View {
             .buttonStyle(ScaleButtonStyle())
             .padding(.horizontal, Spacing.lg)
 
-            // Credits info
-            CreditsInfoRow(
-                used: appState.creditsUsed,
-                total: appState.creditsTotal,
-                costPerGeneration: appState.creditCostPerGeneration,
+            // Coins info
+            CoinsInfoRow(
+                used: appState.coinsUsed,
+                total: appState.coinsTotal,
+                costPerGeneration: appState.coinCostPerGeneration,
                 resetDay: "Monday"
             )
             .padding(.horizontal, Spacing.lg)
@@ -43,10 +42,10 @@ struct UploadView: View {
             // Generate button
             GradientCTAButton(
                 selectedImage != nil ? "Generate" : "Select a Photo First",
-                isEnabled: selectedImage != nil && appState.hasEnoughCredits
+                isEnabled: selectedImage != nil && appState.hasEnoughCoins
             ) {
-                if !appState.hasEnoughCredits {
-                    showInsufficientCreditsAlert = true
+                if !appState.hasEnoughCoins {
+                    showInsufficientCoinsAlert = true
                 } else {
                     startGeneration()
                 }
@@ -85,13 +84,13 @@ struct UploadView: View {
             .presentationDragIndicator(.hidden)
             .presentationBackground(Color.bgSecondary)
         }
-        .alert("Not Enough Credits", isPresented: $showInsufficientCreditsAlert) {
+        .alert("Not Enough Coins", isPresented: $showInsufficientCoinsAlert) {
             Button("Manage Subscription") {
                 // TODO: RevenueCat management
             }
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Your credits reset Monday. Come back then or manage your subscription.")
+            Text("Your coins reset Monday. Come back then or manage your subscription.")
         }
     }
 
@@ -99,7 +98,7 @@ struct UploadView: View {
     private var uploadCard: some View {
         ZStack {
             if let selectedImage {
-                // Photo selected
+                // Photo selected — fills card
                 Image(uiImage: selectedImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -116,18 +115,18 @@ struct UploadView: View {
                             .padding(.bottom, Spacing.md)
                     }
             } else {
-                // Empty state
+                // Empty state — solid card, no dashed border
                 VStack(spacing: Spacing.lg) {
-                    Image(systemName: "person.crop.rectangle.badge.plus")
+                    Image(systemName: "figure.dance")
                         .font(.system(size: 48))
-                        .foregroundStyle(LinearGradient.accent)
+                        .foregroundStyle(Color.accentStart)
 
                     VStack(spacing: Spacing.xs) {
-                        Text("Upload Your Photo")
-                            .font(.headline.weight(.semibold))
+                        Text("Drop your photo here")
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(Color.textPrimary)
 
-                        Text("Tap to choose from your Camera Roll")
+                        Text("Person, pet, or baby — any photo works")
                             .font(.subheadline)
                             .foregroundStyle(Color.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -147,14 +146,9 @@ struct UploadView: View {
     }
 
     private func startGeneration() {
-        appState.useCredits()
-        appState.isGenerating = true
-        appState.generationFailed = false
-        appState.minutesRemaining = 10
-        appState.generatingVideoID = UUID().uuidString
-
-        // Save photo data for the video record
-        // In a real app, this would upload to R2 and trigger backend
+        appState.useCoins()
+        let jobId = UUID().uuidString
+        appState.startGeneration(jobId: jobId)
 
         if !appState.hasRequestedNotificationPermission {
             showNotificationModal = true
@@ -164,7 +158,7 @@ struct UploadView: View {
     }
 
     private func finishGeneration() {
-        // Pop back to Home - the generating pill will be visible
+        // Pop back to Home — the generating pill will be visible
         appState.selectedTab = .home
         dismiss()
     }

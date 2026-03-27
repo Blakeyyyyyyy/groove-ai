@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CreditsInfoRow: View {
+struct CoinsInfoRow: View {
     let used: Int
     let total: Int
     let costPerGeneration: Int
@@ -12,15 +12,16 @@ struct CreditsInfoRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
-                Image(systemName: "creditcard.fill")
-                    .foregroundStyle(hasEnough ? Color.accentStart : Color.error)
+                Image(systemName: "circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(hasEnough ? Color.coinGold : Color.error)
 
                 if hasEnough {
-                    Text("This generation uses \(costPerGeneration) credits")
+                    Text("This generation uses \(costPerGeneration) coins")
                         .font(.subheadline)
                         .foregroundStyle(Color.textPrimary)
                 } else {
-                    Text("Not enough credits — resets \(resetDay)")
+                    Text("Not enough coins — resets \(resetDay)")
                         .font(.subheadline)
                         .foregroundStyle(Color.error)
                 }
@@ -39,8 +40,8 @@ struct CreditsInfoRow: View {
 
 #Preview {
     VStack(spacing: Spacing.lg) {
-        CreditsInfoRow(used: 60, total: 150, costPerGeneration: 60, resetDay: "Monday")
-        CreditsInfoRow(used: 150, total: 150, costPerGeneration: 60, resetDay: "Monday")
+        CoinsInfoRow(used: 60, total: 150, costPerGeneration: 60, resetDay: "Monday")
+        CoinsInfoRow(used: 150, total: 150, costPerGeneration: 60, resetDay: "Monday")
     }
     .padding()
     .background(Color.bgPrimary)

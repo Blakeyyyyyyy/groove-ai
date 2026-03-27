@@ -4,8 +4,6 @@ import UserNotifications
 
 @Observable
 final class GenerationService {
-    private var pollingTimer: Timer?
-
     /// Start a generation: upload photo, trigger backend, start polling
     func startGeneration(
         preset: DancePreset,
@@ -23,38 +21,33 @@ final class GenerationService {
         modelContext.insert(video)
         try? modelContext.save()
 
-        appState.generatingVideoID = video.id
-        appState.isGenerating = true
-        appState.generationFailed = false
-        appState.minutesRemaining = 10
+        // BUG-004 fix: state-driven generation flow
+        appState.startGeneration(jobId: video.id)
 
         // TODO: Real backend flow:
         // 1. Upload photo to R2 (presigned URL)
         // 2. POST to /api/generate with photo_url + dance_preset_id
         // 3. Start polling /api/status/{video_id}
 
-        // Simulated countdown
-        startCountdown(appState: appState, videoID: video.id, modelContext: modelContext)
+        // Simulated completion after 10 minutes (replace with real polling)
+        startPolling(appState: appState, videoID: video.id, modelContext: modelContext)
     }
 
-    /// Simulate countdown for demo (replace with real polling)
-    private func startCountdown(appState: AppState, videoID: String, modelContext: ModelContext) {
+    /// Poll for completion (replace with real Supabase polling)
+    private func startPolling(appState: AppState, videoID: String, modelContext: ModelContext) {
         Task { @MainActor in
-            for minute in stride(from: 9, through: 0, by: -1) {
-                try? await Task.sleep(for: .seconds(60)) // Real: poll every 60s
-                if !appState.isGenerating { return }
-                appState.minutesRemaining = minute
-            }
+            // In production: poll /api/status/{videoID} every 30s
+            // For demo: wait 10 minutes then complete
+            try? await Task.sleep(for: .seconds(600))
 
-            // Complete
+            guard appState.isGenerating else { return }
             completeGeneration(appState: appState, videoID: videoID, modelContext: modelContext)
         }
     }
 
     @MainActor
     func completeGeneration(appState: AppState, videoID: String, modelContext: ModelContext) {
-        appState.isGenerating = false
-        appState.generatingVideoID = nil
+        appState.completeGeneration(videoID: videoID)
 
         // Update video record
         let descriptor = FetchDescriptor<GeneratedVideo>(
@@ -63,18 +56,22 @@ final class GenerationService {
         if let video = try? modelContext.fetch(descriptor).first {
             video.status = "completed"
             video.completedAt = .now
-            // video.videoURL = response.video_url // from backend
             try? modelContext.save()
         }
 
         // Send local notification
         sendCompletionNotification()
+
+        // Auto-reset to idle after a brief delay (so UI can show success)
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            appState.resetGeneration()
+        }
     }
 
     @MainActor
     func handleGenerationFailure(appState: AppState) {
-        appState.generationFailed = true
-        appState.refundCredits()
+        appState.failGeneration(message: "Something went wrong — coins refunded. Tap to retry.")
     }
 
     private func sendCompletionNotification() {

@@ -7,8 +7,8 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Spacing.xl) {
-                    // Credits Card
-                    creditsCard
+                    // Coins Card
+                    coinsCard
                         .padding(.top, Spacing.sm)
 
                     // Subscription Card
@@ -41,15 +41,26 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Credits Card
-    private var creditsCard: some View {
+    // MARK: - Coins Card
+    private var coinsCard: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
-                Text("💳")
-                Text("Credits")
+                Image(systemName: "circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(Color.coinGold)
+                Text("Coins")
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(Color.textPrimary)
             }
+
+            // Large coin counter
+            Text("🪙 \(appState.coinsRemaining) coins remaining")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color.textPrimary)
+
+            Text("Resets Monday · 150 coins/week")
+                .font(.caption)
+                .foregroundStyle(Color.textSecondary)
 
             // Progress bar
             GeometryReader { geo in
@@ -70,21 +81,11 @@ struct SettingsView: View {
             }
             .frame(height: 8)
 
-            HStack {
-                if appState.creditsRemaining < 20 {
-                    Text("⚠️ Low credits — \(appState.creditsUsed) / \(appState.creditsTotal) used")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.warning)
-                } else {
-                    Text("\(appState.creditsUsed) / \(appState.creditsTotal) credits used this week")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.textPrimary)
-                }
+            if appState.coinsRemaining < 20 {
+                Text("⚠️ Low coins — \(appState.coinsUsed) / \(appState.coinsTotal) used")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.warning)
             }
-
-            Text("Resets Monday")
-                .font(.caption)
-                .foregroundStyle(Color.textTertiary)
         }
         .padding(Spacing.lg)
         .background(Color.bgSecondary)
@@ -92,12 +93,12 @@ struct SettingsView: View {
     }
 
     private var progressFraction: CGFloat {
-        guard appState.creditsTotal > 0 else { return 0 }
-        return min(1.0, CGFloat(appState.creditsUsed) / CGFloat(appState.creditsTotal))
+        guard appState.coinsTotal > 0 else { return 0 }
+        return min(1.0, CGFloat(appState.coinsUsed) / CGFloat(appState.coinsTotal))
     }
 
     private var progressGradient: LinearGradient {
-        if appState.creditsRemaining < 20 {
+        if appState.coinsRemaining < 20 {
             return LinearGradient(colors: [Color.error, Color.error], startPoint: .leading, endPoint: .trailing)
         }
         return LinearGradient.accent

@@ -26,7 +26,8 @@ struct OnboardingPage1: View {
                     .font(.largeTitle.bold())
                     .foregroundStyle(Color.textPrimary)
 
-                Text("Pick a style. Upload a photo. AI does the rest.")
+                // v3 copy: outcome statement, not instructional
+                Text("Any photo. Instant dance video.")
                     .font(.body)
                     .foregroundStyle(Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -50,8 +51,8 @@ struct OnboardingPage1: View {
             PageIndicatorDots(count: 3, current: 0)
                 .padding(.bottom, Spacing.lg)
 
-            // CTA
-            GradientCTAButton("See What's Possible →", action: onContinue)
+            // v3 CTA: "Get Started" (was "See What's Possible →")
+            GradientCTAButton("Get Started", action: onContinue)
                 .padding(.bottom, Spacing.xxl)
         }
         .background(Color.bgPrimary)
