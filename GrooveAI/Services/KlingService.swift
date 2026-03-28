@@ -44,20 +44,21 @@ final class KlingService {
 
             onStatusUpdate?(status)
 
+            // Check for completion — Kling uses "succeed" not "completed"
             switch status {
-            case "completed":
+            case "succeed", "completed", "success":
                 guard let url = videoUrl, !url.isEmpty else {
-                    print("[Kling] ❌ Status is completed but no video URL in response")
+                    print("[Kling] ❌ Status is \(status) but no video URL in response")
                     throw KlingError.noVideoURL
                 }
                 print("[Kling] ✅ Generation complete after \(pollCount) polls (\(Int(elapsed))s). URL: \(url)")
                 return url
 
-            case "failed":
+            case "failed", "error":
                 print("[Kling] ❌ Generation failed (server reported failure)")
                 throw KlingError.generationFailed
 
-            case "processing", "pending":
+            case "processing", "pending", "submitted":
                 print("[Kling] ⏳ Status: \(status) — continuing to poll...")
                 continue
 
