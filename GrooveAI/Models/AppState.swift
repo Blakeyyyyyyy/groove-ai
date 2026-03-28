@@ -44,10 +44,19 @@ final class AppState {
         coinsRemaining >= coinCostPerGeneration
     }
 
-    // MARK: - User ID (from Supabase Auth)
+    // MARK: - User ID (auto-generated on first access, persisted)
 
     var userId: String? {
-        get { UserDefaults.standard.string(forKey: "userId") }
+        get {
+            if let existing = UserDefaults.standard.string(forKey: "userId") {
+                return existing
+            }
+            // Auto-generate a stable userId on first access
+            let newId = UUID().uuidString
+            UserDefaults.standard.set(newId, forKey: "userId")
+            print("[AppState] 🆔 Generated new userId: \(newId)")
+            return newId
+        }
         set { UserDefaults.standard.set(newValue, forKey: "userId") }
     }
 
@@ -100,16 +109,20 @@ final class AppState {
     // MARK: - Sync with Server
 
     func syncWithServer() async {
-        guard let userId = userId else { return }
+        guard let userId = userId else {
+            print("[AppState] ⚠️ syncWithServer skipped: no userId")
+            return
+        }
+        print("[AppState] 🔄 Syncing with server for userId: \(userId)")
         do {
             let profile = try await SupabaseService.shared.getUser(id: userId)
             await MainActor.run {
                 self.serverCoins = profile["coins"] as? Int
                 self.isSubscribed = (profile["subscription_status"] as? String ?? "free") != "free"
+                print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed)")
             }
         } catch {
-            // Offline or not authenticated — use local state
-            print("[AppState] Server sync failed: \(error)")
+            print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
         }
     }
 

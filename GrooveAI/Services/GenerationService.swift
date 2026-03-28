@@ -5,14 +5,23 @@ import UserNotifications
 @Observable
 final class GenerationService {
 
-    /// Start a generation: upload photo to R2, trigger backend, poll for completion
+    /// Active generation task — retained to prevent premature cancellation
+    private var activeTask: Task<Void, Never>?
+
+    /// Start a generation from the UI layer.
+    /// Creates the local record on MainActor, then kicks off background work.
+    /// The modelContext work is done on MainActor to avoid SwiftData threading issues.
+    @MainActor
     func startGeneration(
         preset: DancePreset,
         photoData: Data,
         appState: AppState,
         modelContext: ModelContext
-    ) async {
-        // Create local video record for UI
+    ) {
+        print("[Generation] ▶️ startGeneration called for preset: \(preset.id) (\(preset.name))")
+        print("[Generation] 📸 Photo data size: \(photoData.count) bytes")
+
+        // Create local video record ON MAIN ACTOR (SwiftData requirement)
         let video = GeneratedVideo(
             dancePresetID: preset.id,
             danceName: preset.name,
@@ -20,63 +29,120 @@ final class GenerationService {
             status: "generating"
         )
         modelContext.insert(video)
-        try? modelContext.save()
-
-        // State-driven generation flow
-        appState.startGeneration(jobId: video.id)
-
-        let userId = appState.userId ?? "anonymous"
-
         do {
-            // 1. Upload photo to R2 via presigned URL
+            try modelContext.save()
+            print("[Generation] 💾 Local video record saved: \(video.id)")
+        } catch {
+            print("[Generation] ❌ Failed to save local record: \(error)")
+        }
+
+        // Update generation state
+        appState.startGeneration(jobId: video.id)
+        print("[Generation] 🔄 Generation phase set to .generating")
+
+        let videoId = video.id
+        let userId = appState.userId ?? "anonymous"
+        print("[Generation] 👤 Using userId: \(userId)")
+
+        // Launch background generation task — retained so it survives view dismissal
+        activeTask = Task.detached { [weak self] in
+            await self?.runGenerationPipeline(
+                videoId: videoId,
+                preset: preset,
+                photoData: photoData,
+                userId: userId,
+                appState: appState,
+                modelContext: modelContext
+            )
+        }
+    }
+
+    /// The actual generation pipeline — runs in background.
+    /// All ModelContext writes go through MainActor.
+    private func runGenerationPipeline(
+        videoId: String,
+        preset: DancePreset,
+        photoData: Data,
+        userId: String,
+        appState: AppState,
+        modelContext: ModelContext
+    ) async {
+        do {
+            // ── Step 1: Upload photo to R2 ──
+            print("[Generation] ☁️ Step 1: Uploading photo to R2...")
             let imageURL = try await R2Service.shared.uploadPhoto(
                 data: photoData,
                 userId: userId
             )
+            print("[Generation] ✅ Photo uploaded to R2: \(imageURL)")
 
-            // 2. Classify image via backend (server re-classifies anyway, this is for UX)
+            // ── Step 2: Classify image ──
+            print("[Generation] 🔍 Step 2: Classifying image...")
             let classification = try await SupabaseService.shared.classifyImage(imageURL: imageURL)
             let subjectType = classification["subject_type"] as? String ?? "HUMAN"
+            print("[Generation] ✅ Image classified as: \(subjectType) (raw: \(classification))")
 
-            // 3. Generate video via backend
-            // Server handles: credit deduction, Kling generation
+            // ── Step 3: Generate video via backend ──
+            print("[Generation] 🎬 Step 3: Requesting video generation...")
+            print("[Generation]    → userId: \(userId)")
+            print("[Generation]    → imageURL: \(imageURL)")
+            print("[Generation]    → danceStyle: \(preset.id)")
+            print("[Generation]    → subjectType: \(subjectType)")
+
             let response = try await SupabaseService.shared.generateVideo(
                 userId: userId,
                 imageURL: imageURL,
                 danceStyle: preset.id,
                 subjectType: subjectType
             )
+            print("[Generation] ✅ Backend response: \(response)")
 
             guard let taskId = response["task_id"] as? String ?? response["taskId"] as? String else {
-                let errorMsg = response["error"] as? String ?? "Unknown error"
+                let errorMsg = response["error"] as? String ?? "No task_id in response"
+                print("[Generation] ❌ No task_id found. Full response: \(response)")
                 throw GenerationError.serverError(errorMsg)
             }
+            print("[Generation] 🎫 Task ID received: \(taskId)")
 
             // Update coins from server response
             if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
                 await MainActor.run {
                     appState.serverCoins = remaining
+                    print("[Generation] 🪙 Coins remaining: \(remaining)")
                 }
             }
 
-            // 4. Poll for completion via Kling service
+            // ── Step 4: Poll for completion ──
+            print("[Generation] ⏳ Step 4: Starting polling for taskId: \(taskId)...")
             let videoUrl = try await KlingService.shared.pollForCompletion(
                 taskId: taskId,
                 onStatusUpdate: { status in
-                    // Could update UI with status text
+                    print("[Generation] 📊 Poll status update: \(status)")
                 }
             )
+            print("[Generation] ✅ Video generation complete! URL: \(videoUrl)")
 
-            // 5. Save completed video to backend
+            // ── Step 5: Save to backend ──
+            print("[Generation] 💾 Step 5: Saving video to backend...")
             _ = try? await SupabaseService.shared.saveVideo(videoId: taskId, videoURL: videoUrl)
 
-            // 6. Complete — update local record
+            // ── Step 6: Update local record on MainActor ──
             await MainActor.run {
-                video.status = "completed"
-                video.completedAt = .now
-                video.videoURL = videoUrl
-                try? modelContext.save()
-                appState.completeGeneration(videoID: video.id)
+                // Fetch the video from context to update it
+                let descriptor = FetchDescriptor<GeneratedVideo>(
+                    predicate: #Predicate { $0.id == videoId }
+                )
+                if let video = try? modelContext.fetch(descriptor).first {
+                    video.status = "completed"
+                    video.completedAt = .now
+                    video.videoURL = videoUrl
+                    try? modelContext.save()
+                    print("[Generation] ✅ Local record updated to completed")
+                } else {
+                    print("[Generation] ⚠️ Could not find local video record to update")
+                }
+                appState.completeGeneration(videoID: videoId)
+                print("[Generation] 🎉 Generation complete! Phase set to .complete")
             }
 
             sendCompletionNotification()
@@ -85,55 +151,35 @@ final class GenerationService {
             try? await Task.sleep(for: .seconds(3))
             await MainActor.run {
                 appState.resetGeneration()
+                print("[Generation] 🔄 Generation phase reset to .idle")
             }
 
         } catch is CancellationError {
-            // Task cancelled — no action needed
+            print("[Generation] ⚠️ Generation task was cancelled")
         } catch {
+            print("[Generation] ❌ GENERATION FAILED: \(error)")
+            print("[Generation] ❌ Error type: \(type(of: error))")
+            print("[Generation] ❌ Localized: \(error.localizedDescription)")
+
             await MainActor.run {
-                video.status = "failed"
-                try? modelContext.save()
+                let descriptor = FetchDescriptor<GeneratedVideo>(
+                    predicate: #Predicate { $0.id == videoId }
+                )
+                if let video = try? modelContext.fetch(descriptor).first {
+                    video.status = "failed"
+                    try? modelContext.save()
+                }
                 appState.failGeneration(message: error.localizedDescription)
+                print("[Generation] 🔴 Generation phase set to .failed")
             }
         }
     }
 
-    /// Fallback: simulated generation for development/testing
-    func startSimulatedGeneration(
-        preset: DancePreset,
-        photoData: Data,
-        appState: AppState,
-        modelContext: ModelContext
-    ) async {
-        let video = GeneratedVideo(
-            dancePresetID: preset.id,
-            danceName: preset.name,
-            photoData: photoData,
-            status: "generating"
-        )
-        modelContext.insert(video)
-        try? modelContext.save()
-
-        appState.startGeneration(jobId: video.id)
-
-        // Simulated 10-minute wait
-        try? await Task.sleep(for: .seconds(600))
-
-        guard appState.isGenerating else { return }
-
-        await MainActor.run {
-            video.status = "completed"
-            video.completedAt = .now
-            try? modelContext.save()
-            appState.completeGeneration(videoID: video.id)
-        }
-
-        sendCompletionNotification()
-
-        try? await Task.sleep(for: .seconds(3))
-        await MainActor.run {
-            appState.resetGeneration()
-        }
+    /// Cancel any active generation
+    func cancelGeneration() {
+        activeTask?.cancel()
+        activeTask = nil
+        print("[Generation] 🛑 Active generation task cancelled")
     }
 
     @MainActor
@@ -155,6 +201,7 @@ final class GenerationService {
         )
 
         UNUserNotificationCenter.current().add(request)
+        print("[Generation] 🔔 Completion notification scheduled")
     }
 }
 

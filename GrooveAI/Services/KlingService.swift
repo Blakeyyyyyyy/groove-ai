@@ -20,17 +20,24 @@ final class KlingService {
         onStatusUpdate: ((String) -> Void)? = nil
     ) async throws -> String {
         let startTime = Date()
+        var pollCount = 0
+
+        print("[Kling] ⏳ Starting poll for taskId: \(taskId) (interval: \(pollInterval)s, max: \(maxPollDuration)s)")
 
         while true {
             // Check timeout
-            if Date().timeIntervalSince(startTime) > maxPollDuration {
+            let elapsed = Date().timeIntervalSince(startTime)
+            if elapsed > maxPollDuration {
+                print("[Kling] ❌ Polling timed out after \(Int(elapsed))s (\(pollCount) polls)")
                 throw KlingError.timeout
             }
 
             // Wait between polls
             try await Task.sleep(for: .seconds(pollInterval))
+            pollCount += 1
 
             // Check status via backend
+            print("[Kling] 📊 Poll #\(pollCount) (elapsed: \(Int(elapsed))s)...")
             let statusDict = try await SupabaseService.shared.checkVideoStatus(taskId: taskId)
             let status = statusDict["status"] as? String ?? "unknown"
             let videoUrl = statusDict["video_url"] as? String
@@ -40,17 +47,22 @@ final class KlingService {
             switch status {
             case "completed":
                 guard let url = videoUrl, !url.isEmpty else {
+                    print("[Kling] ❌ Status is completed but no video URL in response")
                     throw KlingError.noVideoURL
                 }
+                print("[Kling] ✅ Generation complete after \(pollCount) polls (\(Int(elapsed))s). URL: \(url)")
                 return url
 
             case "failed":
+                print("[Kling] ❌ Generation failed (server reported failure)")
                 throw KlingError.generationFailed
 
             case "processing", "pending":
+                print("[Kling] ⏳ Status: \(status) — continuing to poll...")
                 continue
 
             default:
+                print("[Kling] ⚠️ Unknown status: \(status) — continuing to poll...")
                 continue
             }
         }

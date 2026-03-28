@@ -154,11 +154,20 @@ struct UploadView: View {
     }
 
     private func startGeneration() {
-        guard let image = selectedImage,
-              let photoData = image.jpegData(compressionQuality: 0.85) else { return }
+        print("[UploadView] 🟢 Generate button tapped")
+        guard let image = selectedImage else {
+            print("[UploadView] ❌ No image selected")
+            return
+        }
+        guard let photoData = image.jpegData(compressionQuality: 0.85) else {
+            print("[UploadView] ❌ Failed to convert image to JPEG data")
+            return
+        }
+        print("[UploadView] 📸 Image converted to JPEG: \(photoData.count) bytes")
 
         // Ask for notification permission first if needed, then fire generation
         if !appState.hasRequestedNotificationPermission {
+            print("[UploadView] 🔔 Showing notification permission modal first")
             showNotificationModal = true
         } else {
             fireGeneration(photoData: photoData)
@@ -166,24 +175,28 @@ struct UploadView: View {
     }
 
     private func fireGeneration(photoData: Data) {
-        // Navigate away immediately — generation runs in background
+        print("[UploadView] 🚀 fireGeneration called — starting real generation")
+
+        // Start generation ON MAIN ACTOR before navigating away
+        // This ensures modelContext operations happen on the main queue
+        generationService.startGeneration(
+            preset: preset,
+            photoData: photoData,
+            appState: appState,
+            modelContext: modelContext
+        )
+
+        print("[UploadView] ✅ Generation started, navigating to home")
+        // Navigate away — generation continues in background via detached Task
         appState.selectedTab = .home
         dismiss()
-
-        // Fire real generation in background task
-        Task {
-            await generationService.startGeneration(
-                preset: preset,
-                photoData: photoData,
-                appState: appState,
-                modelContext: modelContext
-            )
-        }
     }
 
     private func finishGeneration() {
+        print("[UploadView] 🔔 Notification modal dismissed, finishing generation")
         guard let image = selectedImage,
               let photoData = image.jpegData(compressionQuality: 0.85) else {
+            print("[UploadView] ❌ No image available after notification modal")
             appState.selectedTab = .home
             dismiss()
             return
