@@ -16,7 +16,7 @@ class SupabaseService {
     }
     
     func deductCoins(userId: String, amount: Int) async throws -> [String: Any] {
-        var request = URLRequest(string: "\(baseURL)/deduct-credits")!
+        var request = URLRequest(url: URL(string: "\(baseURL)/deduct-credits")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "amount": amount])
@@ -24,6 +24,19 @@ class SupabaseService {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
             throw NSError(domain: "SupabaseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to deduct coins"])
+        }
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+    }
+    
+    func addCoins(userId: String, amount: Int, type: String) async throws -> [String: Any] {
+        var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "amount": amount, "type": type])
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(domain: "SupabaseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to add coins"])
         }
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
@@ -44,29 +57,27 @@ class SupabaseService {
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
     
-    func uploadImage(userId: String, filename: String, imageData: Data) async throws -> [String: Any] {
-        let boundary = UUID().uuidString
-        var request = URLRequest(string: "\(baseURL)/upload-presigned")!
+    /// Request a presigned upload URL from the backend (JSON, not multipart).
+    /// Returns dictionary with: uploadUrl, key, publicUrl
+    func getPresignedUploadURL(userId: String, filename: String, contentType: String) async throws -> [String: Any] {
+        var request = URLRequest(url: URL(string: "\(baseURL)/upload-presigned")!)
         request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "user_id": userId,
+            "filename": filename,
+            "contentType": contentType
+        ])
         
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(userId)\r\n".data(using: .utf8)!)
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"filename\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(filename)\r\n".data(using: .utf8)!)
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
-        request.httpBody = body
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(domain: "SupabaseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to get presigned URL"])
+        }
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
     
     func classifyImage(imageURL: String) async throws -> [String: Any] {
-        var request = URLRequest(string: "\(baseURL)/classify-image")!
+        var request = URLRequest(url: URL(string: "\(baseURL)/classify-image")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["image_url": imageURL])
@@ -76,7 +87,7 @@ class SupabaseService {
     }
     
     func generateVideo(userId: String, imageURL: String, danceStyle: String, subjectType: String) async throws -> [String: Any] {
-        var request = URLRequest(string: "\(baseURL)/generate-video")!
+        var request = URLRequest(url: URL(string: "\(baseURL)/generate-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
@@ -86,7 +97,11 @@ class SupabaseService {
             "subject_type": subjectType
         ])
         
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw NSError(domain: "SupabaseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Generation failed: \(errorBody)"])
+        }
         return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
     
@@ -97,7 +112,7 @@ class SupabaseService {
     }
     
     func saveVideo(videoId: String, videoURL: String) async throws -> [String: Any] {
-        var request = URLRequest(string: "\(baseURL)/save-video")!
+        var request = URLRequest(url: URL(string: "\(baseURL)/save-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["video_id": videoId, "video_url": videoURL])

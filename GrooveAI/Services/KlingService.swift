@@ -1,7 +1,7 @@
 import Foundation
 
 /// Kling AI video generation service — client-side polling wrapper
-/// Actual generation is triggered by the generate-video Edge Function.
+/// Actual generation is triggered via the backend.
 /// This service handles polling the video-status endpoint from the client.
 final class KlingService {
     static let shared = KlingService()
@@ -16,7 +16,7 @@ final class KlingService {
     /// Poll video status until completed, failed, or timeout
     /// Returns the final video URL on success
     func pollForCompletion(
-        videoId: String,
+        taskId: String,
         onStatusUpdate: ((String) -> Void)? = nil
     ) async throws -> String {
         let startTime = Date()
@@ -30,16 +30,19 @@ final class KlingService {
             // Wait between polls
             try await Task.sleep(for: .seconds(pollInterval))
 
-            // Check status
-            let status = try await SupabaseService.shared.checkVideoStatus(videoId: videoId)
-            onStatusUpdate?(status.status)
+            // Check status via backend
+            let statusDict = try await SupabaseService.shared.checkVideoStatus(taskId: taskId)
+            let status = statusDict["status"] as? String ?? "unknown"
+            let videoUrl = statusDict["video_url"] as? String
 
-            switch status.status {
+            onStatusUpdate?(status)
+
+            switch status {
             case "completed":
-                guard let videoUrl = status.videoUrl, !videoUrl.isEmpty else {
+                guard let url = videoUrl, !url.isEmpty else {
                     throw KlingError.noVideoURL
                 }
-                return videoUrl
+                return url
 
             case "failed":
                 throw KlingError.generationFailed

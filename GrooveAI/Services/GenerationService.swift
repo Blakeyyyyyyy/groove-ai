@@ -25,41 +25,52 @@ final class GenerationService {
         // State-driven generation flow
         appState.startGeneration(jobId: video.id)
 
+        let userId = appState.userId ?? "anonymous"
+
         do {
-            // 1. Upload photo to R2
+            // 1. Upload photo to R2 via presigned URL
             let imageURL = try await R2Service.shared.uploadPhoto(
                 data: photoData,
-                userId: appState.userId ?? "anonymous"
+                userId: userId
             )
 
-            // 2. Trigger generation via Edge Function
-            // Server handles: credit deduction, Gemini classification, Kling generation
+            // 2. Classify image via backend (server re-classifies anyway, this is for UX)
+            let classification = try await SupabaseService.shared.classifyImage(imageURL: imageURL)
+            let subjectType = classification["subject_type"] as? String ?? "HUMAN"
+
+            // 3. Generate video via backend
+            // Server handles: credit deduction, Kling generation
             let response = try await SupabaseService.shared.generateVideo(
+                userId: userId,
                 imageURL: imageURL,
                 danceStyle: preset.id,
-                dancePrompt: preset.name
+                subjectType: subjectType
             )
 
-            guard response.success, let serverVideoId = response.videoId else {
-                throw GenerationError.serverError(response.error ?? "Unknown error")
+            guard let taskId = response["task_id"] as? String ?? response["taskId"] as? String else {
+                let errorMsg = response["error"] as? String ?? "Unknown error"
+                throw GenerationError.serverError(errorMsg)
             }
 
             // Update coins from server response
-            if let remaining = response.coinsRemaining {
+            if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
                 await MainActor.run {
                     appState.serverCoins = remaining
                 }
             }
 
-            // 3. Poll for completion via Kling service
+            // 4. Poll for completion via Kling service
             let videoUrl = try await KlingService.shared.pollForCompletion(
-                videoId: serverVideoId,
+                taskId: taskId,
                 onStatusUpdate: { status in
                     // Could update UI with status text
                 }
             )
 
-            // 4. Complete — update local record
+            // 5. Save completed video to backend
+            _ = try? await SupabaseService.shared.saveVideo(videoId: taskId, videoURL: videoUrl)
+
+            // 6. Complete — update local record
             await MainActor.run {
                 video.status = "completed"
                 video.completedAt = .now

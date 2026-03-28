@@ -1,29 +1,31 @@
 import Foundation
 
-/// Manages coin balance. In production, syncs with Supabase.
-/// For now, uses UserDefaults with weekly reset logic.
+/// Manages coin balance via the backend.
+/// All coin operations go through SupabaseService → Render backend.
 enum CoinsService {
-    static let weeklyAllowance = 150
     static let costPerGeneration = 60
 
-    /// Check if coins should reset (every Monday)
+    /// Legacy: weekly reset is now handled server-side.
+    /// Kept as no-op so existing callers compile.
     static func checkWeeklyReset() {
-        let lastReset = UserDefaults.standard.object(forKey: "lastCreditsReset") as? Date ?? .distantPast
-        let calendar = Calendar.current
+        // No-op — coin resets are managed by the backend
+    }
 
-        // Find the most recent Monday
-        let now = Date()
-        guard let thisWeekMonday = calendar.nextDate(
-            after: now,
-            matching: DateComponents(weekday: 2),
-            matchingPolicy: .previousTimePreservingSmallerComponents,
-            direction: .backward
-        ) else { return }
+    /// Fetch current coin balance from backend
+    static func getBalance(userId: String) async throws -> Int {
+        let user = try await SupabaseService.shared.getUser(id: userId)
+        return user["coins"] as? Int ?? 0
+    }
 
-        if lastReset < thisWeekMonday {
-            // Reset coins
-            UserDefaults.standard.set(0, forKey: "creditsUsed")
-            UserDefaults.standard.set(now, forKey: "lastCreditsReset")
-        }
+    /// Deduct coins for a generation via backend
+    static func deductForGeneration(userId: String) async throws -> Int {
+        let result = try await SupabaseService.shared.deductCoins(userId: userId, amount: costPerGeneration)
+        return result["remaining"] as? Int ?? 0
+    }
+
+    /// Add coins via backend (e.g., after purchase or weekly reset)
+    static func addCoins(userId: String, amount: Int, type: String = "purchase") async throws -> Int {
+        let result = try await SupabaseService.shared.addCoins(userId: userId, amount: amount, type: type)
+        return result["coins"] as? Int ?? 0
     }
 }
