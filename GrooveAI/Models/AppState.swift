@@ -100,12 +100,12 @@ final class AppState {
     // MARK: - Sync with Server
 
     func syncWithServer() async {
+        guard let userId = userId else { return }
         do {
-            let profile = try await SupabaseService.shared.getUser()
+            let profile = try await SupabaseService.shared.getUser(id: userId)
             await MainActor.run {
-                self.serverCoins = profile.coins
-                self.userId = profile.id
-                self.isSubscribed = profile.subscriptionStatus != "free"
+                self.serverCoins = profile["coins"] as? Int
+                self.isSubscribed = (profile["subscription_status"] as? String ?? "free") != "free"
             }
         } catch {
             // Offline or not authenticated — use local state
