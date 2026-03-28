@@ -1,22 +1,13 @@
 // swift-tools-version: 5.9
+// This Package.swift exists ONLY for SPM dependency resolution.
+// The actual app target is defined in GrooveAI.xcodeproj.
+// DO NOT define library/executable products here — they conflict with the .xcodeproj app target.
 import PackageDescription
 
 let package = Package(
-    name: "GrooveAI",
+    name: "GrooveAIDeps",
     platforms: [.iOS(.v17)],
-    products: [
-        .library(name: "GrooveAI", targets: ["GrooveAI"]),
-    ],
     dependencies: [
-        .package(url: "https://github.com/RevenueCat/purchases-ios-spm.git", from: "5.0.0"),
-    ],
-    targets: [
-        .target(
-            name: "GrooveAI",
-            dependencies: [
-                .product(name: "RevenueCat", package: "purchases-ios-spm"),
-            ],
-            path: "GrooveAI"
-        ),
+        .package(url: "https://github.com/RevenueCat/purchases-ios.git", from: "5.0.0"),
     ]
 )
