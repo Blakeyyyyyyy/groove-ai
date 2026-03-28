@@ -68,19 +68,15 @@ final class GenerationService {
         modelContext: ModelContext
     ) async {
         do {
-            // ── Step 1: Upload photo to R2 ──
-            print("[Generation] ☁️ Step 1: Uploading photo to R2...")
-            let imageURL = try await R2Service.shared.uploadPhoto(
-                data: photoData,
-                userId: userId
-            )
-            print("[Generation] ✅ Photo uploaded to R2: \(imageURL)")
-
-            // ── Step 2: Classify image ──
-            print("[Generation] 🔍 Step 2: Classifying image...")
-            let classification = try await SupabaseService.shared.classifyImage(imageURL: imageURL)
-            let subjectType = classification["subject_type"] as? String ?? "HUMAN"
-            print("[Generation] ✅ Image classified as: \(subjectType) (raw: \(classification))")
+            // ── Step 1: Process image (classify + upload in one call) ──
+            print("[Generation] 🔄 Step 1: Processing image (classify + upload)...")
+            let processResult = try await SupabaseService.shared.processImage(userId: userId, imageData: photoData)
+            guard let imageURL = processResult["image_url"] as? String,
+                  let subjectType = processResult["subject_type"] as? String else {
+                throw GenerationError.serverError("processImage returned invalid data: \(processResult)")
+            }
+            let wasTransformed = processResult["transformed"] as? Bool ?? false
+            print("[Generation] ✅ Image processed — URL: \(imageURL), type: \(subjectType), transformed: \(wasTransformed)")
 
             // ── Step 3: Generate video via backend ──
             print("[Generation] 🎬 Step 3: Requesting video generation...")

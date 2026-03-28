@@ -87,6 +87,40 @@ class SupabaseService {
         return result
     }
     
+    /// Unified image processing: upload + classify + optional transform in one call.
+    /// Returns: { image_url, subject_type, transformed }
+    func processImage(userId: String, imageData: Data) async throws -> [String: Any] {
+        print("[Supabase] 📡 POST /process-image userId=\(userId) imageSize=\(imageData.count)")
+        let url = URL(string: "\(baseURL)/process-image")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 60
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        // user_id field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(userId)\r\n".data(using: .utf8)!)
+        // image field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try checkHTTPResponse(response, data: data, context: "processImage")
+        let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        print("[Supabase] ✅ processImage response: \(result)")
+        return result
+    }
+    
     func classifyImage(imageURL: String) async throws -> [String: Any] {
         print("[Supabase] 📡 POST /classify-image imageURL=\(imageURL)")
         var request = URLRequest(url: URL(string: "\(baseURL)/classify-image")!)
