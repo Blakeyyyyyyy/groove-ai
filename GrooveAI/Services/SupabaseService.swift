@@ -1,254 +1,108 @@
 import Foundation
 
-/// Supabase client for Edge Function calls and auth
-/// All API keys stay server-side. This only talks to Edge Functions.
-final class SupabaseService {
+class SupabaseService {
     static let shared = SupabaseService()
-
-    private let baseURL: String
-    private let anonKey: String
-
-    private init() {
-        // These are safe to include in the app — they're public anon keys
-        // All sensitive operations go through Edge Functions with service role
-        self.baseURL = "https://tfbcdcrlhsxvlufmnzdr.supabase.co"
-        self.anonKey = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String
-            ?? ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"]
-            ?? ""
+    
+    private let baseURL = "https://groove-ai-backend-1.onrender.com/api"
+    
+    private init() {}
+    
+    // MARK: - User
+    
+    func getUser(id: String) async throws -> [String: Any] {
+        let url = URL(string: "\(baseURL)/user/\(id)")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
-
-    // MARK: - Auth Token
-
-    /// Get the current auth token. In production, use Supabase Auth SDK.
-    /// For now, returns the session token from secure storage.
-    private var authToken: String? {
-        get { KeychainHelper.get(key: "supabase_auth_token") }
-        set {
-            if let value = newValue {
-                KeychainHelper.set(key: "supabase_auth_token", value: value)
-            } else {
-                KeychainHelper.delete(key: "supabase_auth_token")
-            }
-        }
-    }
-
-    var isAuthenticated: Bool { authToken != nil }
-
-    func setAuthToken(_ token: String) {
-        authToken = token
-    }
-
-    func clearAuth() {
-        authToken = nil
-    }
-
-    // MARK: - Edge Function Calls
-
-    func callFunction<T: Decodable>(
-        _ name: String,
-        body: [String: Any]? = nil
-    ) async throws -> T {
-        let url = URL(string: "\(baseURL)/functions/v1/\(name)")!
-        var request = URLRequest(url: url)
+    
+    func deductCoins(userId: String, amount: Int) async throws -> [String: Any] {
+        var request = URLRequest(string: "\(baseURL)/deduct-credits")!
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(anonKey)", forHTTPHeaderField: "apikey")
-
-        if let token = authToken {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        if let body = body {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        }
-
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "amount": amount])
+        
         let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw SupabaseError.networkError
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(domain: "SupabaseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to deduct coins"])
         }
-
-        if httpResponse.statusCode == 429 {
-            let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-            throw SupabaseError.rateLimited(errorResponse?.error ?? "Rate limited")
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-            throw SupabaseError.serverError(
-                httpResponse.statusCode,
-                errorResponse?.error ?? "Unknown error"
-            )
-        }
-
-        return try JSONDecoder().decode(T.self, from: data)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
-
-    // MARK: - User
-
-    func getUser() async throws -> UserProfile {
-        let response: GetUserResponse = try await callFunction("get-user")
-        return response.user
+    
+    // MARK: - Videos
+    
+    func getVideos(userId: String) async throws -> [[String: Any]] {
+        let url = URL(string: "\(baseURL)/videos/\(userId)")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
-
-    // MARK: - Credits
-
-    func deductCredits(amount: Int, videoId: String? = nil) async throws -> DeductCreditsResponse {
-        var body: [String: Any] = ["amount": amount]
-        if let videoId = videoId {
-            body["video_id"] = videoId
-        }
-        return try await callFunction("deduct-credits", body: body)
+    
+    // MARK: - Generation
+    
+    func getPresets() async throws -> [[String: Any]] {
+        let url = URL(string: "\(baseURL)/presets")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
-
-    // MARK: - Video Generation
-
-    func generateVideo(imageURL: String, danceStyle: String, dancePrompt: String?) async throws -> GenerateVideoResponse {
-        var body: [String: Any] = [
+    
+    func uploadImage(userId: String, filename: String, imageData: Data) async throws -> [String: Any] {
+        let boundary = UUID().uuidString
+        var request = URLRequest(string: "\(baseURL)/upload-presigned")!
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(userId)\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"filename\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(filename)\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+    }
+    
+    func classifyImage(imageURL: String) async throws -> [String: Any] {
+        var request = URLRequest(string: "\(baseURL)/classify-image")!
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["image_url": imageURL])
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+    }
+    
+    func generateVideo(userId: String, imageURL: String, danceStyle: String, subjectType: String) async throws -> [String: Any] {
+        var request = URLRequest(string: "\(baseURL)/generate-video")!
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "user_id": userId,
             "image_url": imageURL,
             "dance_style": danceStyle,
-        ]
-        if let prompt = dancePrompt {
-            body["dance_prompt"] = prompt
-        }
-        return try await callFunction("generate-video", body: body)
+            "subject_type": subjectType
+        ])
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
-
-    func checkVideoStatus(videoId: String) async throws -> VideoStatusResponse {
-        return try await callFunction("video-status", body: ["video_id": videoId])
+    
+    func checkVideoStatus(taskId: String) async throws -> [String: Any] {
+        let url = URL(string: "\(baseURL)/video-status/\(taskId)")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
-}
-
-// MARK: - Response Types
-
-struct GetUserResponse: Decodable {
-    let user: UserProfile
-}
-
-struct UserProfile: Decodable {
-    let id: String
-    let coins: Int
-    let subscriptionStatus: String
-    let subscriptionExpiresAt: String?
-    let r2UserFolder: String?
-    let createdAt: String
-
-    enum CodingKeys: String, CodingKey {
-        case id, coins
-        case subscriptionStatus = "subscription_status"
-        case subscriptionExpiresAt = "subscription_expires_at"
-        case r2UserFolder = "r2_user_folder"
-        case createdAt = "created_at"
-    }
-}
-
-struct DeductCreditsResponse: Decodable {
-    let success: Bool
-    let coinsRemaining: Int?
-    let error: String?
-
-    enum CodingKeys: String, CodingKey {
-        case success
-        case coinsRemaining = "coins_remaining"
-        case error
-    }
-}
-
-struct GenerateVideoResponse: Decodable {
-    let success: Bool
-    let videoId: String?
-    let subjectType: String?
-    let coinsRemaining: Int?
-    let message: String?
-    let error: String?
-
-    enum CodingKeys: String, CodingKey {
-        case success
-        case videoId = "video_id"
-        case subjectType = "subject_type"
-        case coinsRemaining = "coins_remaining"
-        case message, error
-    }
-}
-
-struct VideoStatusResponse: Decodable {
-    let videoId: String
-    let status: String
-    let videoUrl: String?
-    let thumbnailUrl: String?
-    let danceStyle: String?
-    let subjectType: String?
-    let createdAt: String?
-
-    enum CodingKeys: String, CodingKey {
-        case videoId = "video_id"
-        case status
-        case videoUrl = "video_url"
-        case thumbnailUrl = "thumbnail_url"
-        case danceStyle = "dance_style"
-        case subjectType = "subject_type"
-        case createdAt = "created_at"
-    }
-}
-
-struct ErrorResponse: Decodable {
-    let error: String
-}
-
-// MARK: - Errors
-
-enum SupabaseError: LocalizedError {
-    case networkError
-    case rateLimited(String)
-    case serverError(Int, String)
-    case notAuthenticated
-
-    var errorDescription: String? {
-        switch self {
-        case .networkError:
-            return "Network error. Check your connection."
-        case .rateLimited(let msg):
-            return msg
-        case .serverError(_, let msg):
-            return msg
-        case .notAuthenticated:
-            return "Please sign in to continue."
-        }
-    }
-}
-
-// MARK: - Keychain Helper
-
-enum KeychainHelper {
-    static func set(key: String, value: String) {
-        let data = value.data(using: .utf8)!
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecValueData as String: data,
-        ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
-    }
-
-    static func get(key: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    static func delete(key: String) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-        ]
-        SecItemDelete(query as CFDictionary)
+    
+    func saveVideo(videoId: String, videoURL: String) async throws -> [String: Any] {
+        var request = URLRequest(string: "\(baseURL)/save-video")!
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["video_id": videoId, "video_url": videoURL])
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
     }
 }

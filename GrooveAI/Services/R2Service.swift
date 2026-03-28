@@ -1,93 +1,65 @@
 import Foundation
 import CryptoKit
 
-/// Cloudflare R2 storage service for uploading photos and serving videos
-/// Uses S3-compatible API with presigned URLs
-/// API keys are in Edge Functions — this service uses presigned URLs from backend
+/// Cloudflare R2 storage service
+/// Now uses Render backend for presigned URLs - keys stay server-side
 final class R2Service {
     static let shared = R2Service()
 
-    // R2 public URLs (configured via Cloudflare dashboard)
-    private let imagesBaseURL = "https://groove-ai-images.r2.dev"
-    private let videosBaseURL = "https://groove-ai-videos.r2.dev"
+    // R2 public URLs (via R2's native public URL format)
+    private let baseURL = "https://groove-ai-backend-1.onrender.com/api"
 
     private init() {}
 
-    // MARK: - Upload Photo via Supabase Edge Function
+    // MARK: - Upload via Backend Presigned URL
 
-    /// Upload photo data to R2 via backend (keys stay server-side)
+    /// Upload photo to R2 - backend provides presigned URL
     func uploadPhoto(data: Data, userId: String, filename: String? = nil) async throws -> String {
         let name = filename ?? "\(UUID().uuidString).jpg"
-        let path = "uploads/\(userId)/\(name)"
-
-        // Upload via Supabase Edge Function that handles R2 auth
-        let url = URL(string: "https://tfbcdcrlhsxvlufmnzdr.supabase.co/functions/v1/upload-image")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        // Multipart form data
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        if let token = KeychainHelper.get(key: "supabase_auth_token") {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        // Get presigned URL from backend
+        let presignedResponse = try await SupabaseService.shared.uploadImage(userId: userId, filename: name, imageData: data)
+        
+        guard let uploadUrl = presignedResponse["uploadUrl"] as? String,
+              let publicUrl = presignedResponse["publicUrl"] as? String else {
+            throw NSError(domain: "R2Service", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to get presigned URL"])
         }
-
-        var body = Data()
-
-        // Path field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"path\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(path)\r\n".data(using: .utf8)!)
-
-        // File field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(name)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(data)
-        body.append("\r\n".data(using: .utf8)!)
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-
-        request.httpBody = body
-
-        let (responseData, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw R2Error.uploadFailed
+        
+        // Upload directly to R2 using presigned URL
+        var request = URLRequest(url: URL(string: uploadUrl)!)
+        request.httpMethod = "PUT"
+        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
+        
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(domain: "R2Service", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to upload to R2"])
         }
-
-        // Parse response for the public URL
-        if let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
-           let publicURL = json["url"] as? String {
-            return publicURL
-        }
-
-        // Fallback: construct URL from path
-        return "\(imagesBaseURL)/\(path)"
+        
+        return publicUrl
     }
 
-    // MARK: - Public URLs
+    // MARK: - Get Presigned Upload URL Only
 
-    func imageURL(path: String) -> URL? {
-        URL(string: "\(imagesBaseURL)/\(path)")
+    /// Get just the presigned URL (for direct upload from iOS)
+    func getPresignedUploadURL(userId: String, filename: String) async throws -> (uploadUrl: String, publicUrl: String) {
+        // Use backend to generate presigned URL
+        // This would require adding a new endpoint, for now use uploadPhoto
+        throw NSError(domain: "R2Service", code: 501, userInfo: [NSLocalizedDescriptionKey: "Use uploadPhoto for now"])
     }
 
-    func videoURL(path: String) -> URL? {
-        URL(string: "\(videosBaseURL)/\(path)")
+    // MARK: - Generate Public URL
+
+    /// Generate public URL for a stored file
+    func getPublicURL(for key: String, type: MediaType) -> String {
+        let bucket = type == .image ? 
+            "\(process.env.R2_BUCKET_NAME_IMAGES ?? "groove-ai-images").\(process.env.R2_ACCOUNT_ID ?? "").r2.cloudflarestorage.com" :
+            "\(process.env.R2_BUCKET_NAME_VIDEOS ?? "groove-ai-videos").\(process.env.R2_ACCOUNT_ID ?? "").r2.cloudflarestorage.com"
+        return "https://\(bucket)/\(key)"
     }
-}
-
-// MARK: - Errors
-
-enum R2Error: LocalizedError {
-    case uploadFailed
-    case invalidResponse
-
-    var errorDescription: String? {
-        switch self {
-        case .uploadFailed: return "Failed to upload image. Try again."
-        case .invalidResponse: return "Invalid response from storage."
-        }
+    
+    enum MediaType {
+        case image
+        case video
     }
 }
