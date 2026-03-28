@@ -3,11 +3,13 @@ import SwiftUI
 struct UploadView: View {
     let preset: DancePreset
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var selectedImage: UIImage?
     @State private var showPhotoPicker = false
     @State private var showCoinsPurchasePaywall = false
     @State private var showNotificationModal = false
+    private let generationService = GenerationService()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -152,20 +154,41 @@ struct UploadView: View {
     }
 
     private func startGeneration() {
-        appState.useCoins()
-        let jobId = UUID().uuidString
-        appState.startGeneration(jobId: jobId)
+        guard let image = selectedImage,
+              let photoData = image.jpegData(compressionQuality: 0.85) else { return }
 
+        // Ask for notification permission first if needed, then fire generation
         if !appState.hasRequestedNotificationPermission {
             showNotificationModal = true
         } else {
-            finishGeneration()
+            fireGeneration(photoData: photoData)
+        }
+    }
+
+    private func fireGeneration(photoData: Data) {
+        // Navigate away immediately — generation runs in background
+        appState.selectedTab = .home
+        dismiss()
+
+        // Fire real generation in background task
+        Task {
+            await generationService.startGeneration(
+                preset: preset,
+                photoData: photoData,
+                appState: appState,
+                modelContext: modelContext
+            )
         }
     }
 
     private func finishGeneration() {
-        appState.selectedTab = .home
-        dismiss()
+        guard let image = selectedImage,
+              let photoData = image.jpegData(compressionQuality: 0.85) else {
+            appState.selectedTab = .home
+            dismiss()
+            return
+        }
+        fireGeneration(photoData: photoData)
     }
 }
 

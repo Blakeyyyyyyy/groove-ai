@@ -10,6 +10,8 @@ struct DancePreset: Identifiable, Hashable {
     let pillTags: [String]
     let placeholderGradientTop: Color
     let placeholderGradientBottom: Color
+    let videoURL: String?
+    let thumbnailURL: String?
 
     enum DanceBadge: String {
         case trending = "🔥 Trending"
@@ -18,108 +20,160 @@ struct DancePreset: Identifiable, Hashable {
         case newDance = "✨ New"
     }
 
-    // MARK: - All Presets
+    // MARK: - R2 Base URL
+    private static let r2Base = "https://pub-7ff4cf5f3d0d431db23366638a4128e0.r2.dev/presets"
+
+    // MARK: - All Presets (matches backend IDs)
 
     static let allPresets: [DancePreset] = [
+        // TRENDING (5)
         DancePreset(
-            id: "hip-hop",
-            name: "Hip Hop",
-            shortDescription: "Feel the beat",
-            category: "Trending Now",
+            id: "big-guy",
+            name: "Big Guy",
+            shortDescription: "The big guy dance",
+            category: "Trending",
             badge: .trending,
             coinCost: 60,
-            pillTags: ["🎵 Hip Hop", "👤 All Faces"],
+            pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18)
+            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
+            videoURL: "\(r2Base)/Big%20guy%20video.mp4",
+            thumbnailURL: nil
         ),
         DancePreset(
-            id: "viral-tiktok",
-            name: "Viral TikTok",
-            shortDescription: "Everyone's doing this one",
-            category: "Trending Now",
+            id: "coco-channel",
+            name: "Coco Channel",
+            shortDescription: "Iconic moves",
+            category: "Trending",
             badge: .trending,
             coinCost: 60,
-            pillTags: ["🎵 Viral", "👤 All Faces"],
+            pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18)
+            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
+            videoURL: "\(r2Base)/Coco-Channel.mp4",
+            thumbnailURL: nil
         ),
         DancePreset(
-            id: "boombastic",
-            name: "Boombastic",
-            shortDescription: "Face dance magic",
-            category: "Trending Now",
+            id: "trag",
+            name: "Trag",
+            shortDescription: "Trag dance vibes",
+            category: "Trending",
             badge: .hot,
             coinCost: 60,
-            pillTags: ["🎭 Face Dance", "👤 All Faces"],
+            pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04)
+            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
+            videoURL: "\(r2Base)/Trag%20dance.mp4",
+            thumbnailURL: nil
+        ),
+        DancePreset(
+            id: "ophelia",
+            name: "Ophelia",
+            shortDescription: "Ophelia dance",
+            category: "Trending",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
+            videoURL: "\(r2Base)/ophelia%20Dance.mp4",
+            thumbnailURL: nil
+        ),
+        DancePreset(
+            id: "jenny",
+            name: "Jenny",
+            shortDescription: "Jenny dance groove",
+            category: "Trending",
+            badge: .hot,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.10, green: 0.18, blue: 0.10),
+            videoURL: "\(r2Base)/jenny%20Dance.mp4",
+            thumbnailURL: nil
+        ),
+
+        // CLASSIC (3)
+        DancePreset(
+            id: "macarena",
+            name: "Macarena",
+            shortDescription: "The classic everyone knows",
+            category: "Classic",
+            badge: .fanFave,
+            coinCost: 60,
+            pillTags: ["🎵 Classic", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
+            videoURL: "\(r2Base)/macarena%20dance.mp4",
+            thumbnailURL: nil
+        ),
+        DancePreset(
+            id: "milkshake",
+            name: "Milkshake",
+            shortDescription: "Smooth moves only",
+            category: "Classic",
+            badge: nil,
+            coinCost: 60,
+            pillTags: ["🎵 Classic", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
+            videoURL: "\(r2Base)/Milkshake%20Dance.mp4",
+            thumbnailURL: nil
         ),
         DancePreset(
             id: "c-walk",
             name: "C Walk",
             shortDescription: "West Coast classic",
-            category: "Hip Hop",
+            category: "Classic",
             badge: nil,
             coinCost: 60,
-            pillTags: ["🎵 C Walk", "👤 All Faces"],
+            pillTags: ["🎵 Classic", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18)
+            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
+            videoURL: "\(r2Base)/C%20walk%20%28dance%29.mp4",
+            thumbnailURL: nil
         ),
+
+        // FACE DANCE (3)
         DancePreset(
-            id: "milkshake-dance",
-            name: "Milkshake Dance",
-            shortDescription: "Smooth moves only",
-            category: "Hip Hop",
-            badge: nil,
+            id: "boombastic",
+            name: "Boombastic",
+            shortDescription: "Face dance magic",
+            category: "Face Dance",
+            badge: .hot,
             coinCost: 60,
-            pillTags: ["🎵 Pop", "👤 All Faces"],
+            pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18)
-        ),
-        DancePreset(
-            id: "cotton-eye-joe",
-            name: "Cotton Eye Joe",
-            shortDescription: "The one everyone knows",
-            category: "Fun & Viral",
-            badge: .fanFave,
-            coinCost: 60,
-            pillTags: ["🎵 Country", "👤 All Faces"],
-            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04)
+            placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
+            videoURL: "\(r2Base)/Face%20Dance%20-%20She%20Call%20Me%20Mr.%20Boombastic%28new%29.mp4",
+            thumbnailURL: nil
         ),
         DancePreset(
             id: "witch-doctor",
             name: "Witch Doctor",
             shortDescription: "Face dance chaos",
-            category: "Fun & Viral",
+            category: "Face Dance",
             badge: .fanFave,
             coinCost: 60,
             pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04)
+            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
+            videoURL: "\(r2Base)/Face%20Dance%20-%20Witch%20Doctor%20%282%29.mp4",
+            thumbnailURL: nil
         ),
         DancePreset(
-            id: "salsa",
-            name: "Salsa",
-            shortDescription: "Latin heat",
-            category: "Latin",
-            badge: nil,
+            id: "cotton-eye-joe",
+            name: "Cotton Eye Joe",
+            shortDescription: "The one everyone knows",
+            category: "Face Dance",
+            badge: .fanFave,
             coinCost: 60,
-            pillTags: ["🎵 Salsa", "👤 All Faces"],
+            pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04)
+            placeholderGradientBottom: Color(red: 0.10, green: 0.04, blue: 0.10),
+            videoURL: "\(r2Base)/cotten%20eye%20joe%20%28face%20dance%29.mp4",
+            thumbnailURL: nil
         ),
-        DancePreset(
-            id: "coming-soon",
-            name: "More Coming...",
-            shortDescription: "Stay tuned",
-            category: "Latin",
-            badge: .newDance,
-            coinCost: 60,
-            pillTags: ["🆕 Coming Soon"],
-            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
-            placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.10)
-        )
     ]
 
     // MARK: - Grouped by Category
@@ -131,7 +185,7 @@ struct DancePreset: Identifiable, Hashable {
     }
 
     static var categories: [CategoryGroup] {
-        let order = ["Trending Now", "Hip Hop", "Fun & Viral", "Latin"]
+        let order = ["Trending", "Classic", "Face Dance"]
         var grouped: [String: [DancePreset]] = [:]
         for preset in allPresets {
             grouped[preset.category, default: []].append(preset)

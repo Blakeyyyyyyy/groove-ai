@@ -90,7 +90,7 @@ struct HomeView: View {
                     .font(.headline)
                     .foregroundStyle(Color.textPrimary)
 
-                if category.id == "Trending Now" {
+                if category.id == "Trending" {
                     Text("🔥")
                 }
 
@@ -105,17 +105,11 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(category.presets) { preset in
-                        if preset.id == "coming-soon" {
+                        NavigationLink(value: preset) {
                             DancePresetCard(preset: preset)
                                 .frame(width: cardWidth)
-                                .opacity(0.5)
-                        } else {
-                            NavigationLink(value: preset) {
-                                DancePresetCard(preset: preset)
-                                    .frame(width: cardWidth)
-                            }
-                            .buttonStyle(ScaleButtonStyle())
                         }
+                        .buttonStyle(ScaleButtonStyle())
                     }
                 }
                 .padding(.horizontal, Spacing.lg)

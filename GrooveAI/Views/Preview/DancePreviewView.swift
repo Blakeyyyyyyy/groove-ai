@@ -1,10 +1,12 @@
 import SwiftUI
+import AVKit
 
 struct DancePreviewView: View {
     let preset: DancePreset
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToUpload = false
+    @State private var player: AVPlayer?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -44,14 +46,19 @@ struct DancePreviewView: View {
                         )
                     )
 
-                VStack(spacing: Spacing.md) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(LinearGradient.accent)
+                if let player {
+                    VideoPlayer(player: player)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
+                } else {
+                    // Fallback placeholder while loading
+                    VStack(spacing: Spacing.md) {
+                        ProgressView()
+                            .tint(.white)
 
-                    Text(preset.name)
-                        .font(.headline)
-                        .foregroundStyle(Color.textPrimary)
+                        Text(preset.name)
+                            .font(.headline)
+                            .foregroundStyle(Color.textPrimary)
+                    }
                 }
             }
             .aspectRatio(9/16, contentMode: .fit)
@@ -97,6 +104,32 @@ struct DancePreviewView: View {
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(Color.textPrimary)
             }
+        }
+        .onAppear {
+            setupPlayer()
+        }
+        .onDisappear {
+            player?.pause()
+            player = nil
+        }
+    }
+
+    private func setupPlayer() {
+        guard let urlString = preset.videoURL,
+              let url = URL(string: urlString) else { return }
+        let avPlayer = AVPlayer(url: url)
+        avPlayer.isMuted = false
+        self.player = avPlayer
+        avPlayer.play()
+
+        // Loop the video
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: avPlayer.currentItem,
+            queue: .main
+        ) { _ in
+            avPlayer.seek(to: .zero)
+            avPlayer.play()
         }
     }
 }
