@@ -75,8 +75,13 @@ final class GenerationService {
                   let subjectType = processResult["subject_type"] as? String else {
                 throw GenerationError.serverError("processImage returned invalid data: \(processResult)")
             }
-            let wasTransformed = processResult["transformed"] as? Bool ?? false
+            let wasTransformed = Self.parseTransformedFlag(processResult["transformed"])
             print("[Generation] ✅ Image processed — URL: \(imageURL), type: \(subjectType), transformed: \(wasTransformed)")
+
+            if subjectType != "HUMAN" && !wasTransformed {
+                print("[Generation] ❌ Preprocessing incomplete for subjectType=\(subjectType). Refusing to call generate-video.")
+                throw GenerationError.preprocessingRequired(subjectType: subjectType)
+            }
 
             // ── Step 3: Generate video via backend ──
             print("[Generation] 🎬 Step 3: Requesting video generation...")
@@ -93,12 +98,18 @@ final class GenerationService {
             )
             print("[Generation] ✅ Backend response: \(response)")
 
-            guard let taskId = response["task_id"] as? String ?? response["taskId"] as? String else {
+            guard let taskId = Self.parseIdentifier(response["task_id"] ?? response["taskId"]) else {
                 let errorMsg = response["error"] as? String ?? "No task_id in response"
                 print("[Generation] ❌ No task_id found. Full response: \(response)")
                 throw GenerationError.serverError(errorMsg)
             }
+            guard let backendVideoId = Self.parseIdentifier(response["video_id"] ?? response["videoId"]) else {
+                let errorMsg = response["error"] as? String ?? "No video_id in response"
+                print("[Generation] ❌ No video_id found. Full response: \(response)")
+                throw GenerationError.serverError(errorMsg)
+            }
             print("[Generation] 🎫 Task ID received: \(taskId)")
+            print("[Generation] 🧾 Backend video ID received: \(backendVideoId)")
 
             // Update coins from server response
             if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
@@ -120,7 +131,7 @@ final class GenerationService {
 
             // ── Step 5: Save to backend ──
             print("[Generation] 💾 Step 5: Saving video to backend...")
-            _ = try? await SupabaseService.shared.saveVideo(videoId: taskId, videoURL: videoUrl)
+            _ = try await SupabaseService.shared.saveVideo(videoId: backendVideoId, videoURL: videoUrl)
 
             // ── Step 6: Update local record on MainActor ──
             await MainActor.run {
@@ -199,6 +210,35 @@ final class GenerationService {
         UNUserNotificationCenter.current().add(request)
         print("[Generation] 🔔 Completion notification scheduled")
     }
+
+    private static func parseIdentifier(_ value: Any?) -> String? {
+        switch value {
+        case let string as String:
+            return string
+        case let int as Int:
+            return String(int)
+        case let number as NSNumber:
+            return number.stringValue
+        default:
+            return nil
+        }
+    }
+
+    private static func parseTransformedFlag(_ value: Any?) -> Bool {
+        switch value {
+        case let bool as Bool:
+            return bool
+        case let int as Int:
+            return int != 0
+        case let number as NSNumber:
+            return number.boolValue
+        case let string as String:
+            let normalized = string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            return normalized == "true" || normalized == "1" || normalized == "yes"
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - Errors
@@ -206,11 +246,14 @@ final class GenerationService {
 enum GenerationError: LocalizedError {
     case serverError(String)
     case uploadFailed
+    case preprocessingRequired(subjectType: String)
 
     var errorDescription: String? {
         switch self {
         case .serverError(let msg): return msg
         case .uploadFailed: return "Failed to upload your photo. Try again."
+        case .preprocessingRequired(let subjectType):
+            return "The \(subjectType.lowercased()) photo could not be prepared for animation. Try a clearer, full-body image or retry in a moment."
         }
     }
 }
