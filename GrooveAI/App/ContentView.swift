@@ -68,25 +68,27 @@ struct ContentView: View {
             }
             .tint(.white)
             .safeAreaInset(edge: .bottom) {
-                // BUG-002 fix: generating pill sits ABOVE tab bar via safeAreaInset
-                if appState.isGenerating {
-                    GeneratingPill(
-                        onTap: {
-                            if appState.generationFailed {
-                                appState.resetGeneration()
-                                appState.selectedTab = .home
+                Group {
+                    if appState.isGenerating {
+                        GeneratingPill(
+                            onTap: {
+                                if appState.generationFailed {
+                                    appState.resetGeneration()
+                                    appState.selectedTab = .home
+                                }
                             }
-                        }
-                    )
-                    .transition(
-                        .asymmetric(
-                            insertion: .offset(y: 80).combined(with: .opacity),
-                            removal: .offset(y: 80).combined(with: .opacity)
                         )
-                    )
-                    .animation(AppAnimation.bouncy, value: appState.isGenerating)
-                    .padding(.bottom, Spacing.sm)
+                        .transition(
+                            .asymmetric(
+                                insertion: .offset(y: 80).combined(with: .opacity),
+                                removal: .offset(y: 80).combined(with: .opacity)
+                            )
+                        )
+                        .animation(AppAnimation.bouncy, value: appState.isGenerating)
+                    }
                 }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.sm)
             }
 
             // In-app "Video Ready" popup — slides in from top

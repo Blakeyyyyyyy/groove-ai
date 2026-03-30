@@ -56,14 +56,14 @@ struct HomeView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationDestination(for: DancePreset.self) { preset in
                 DancePreviewView(preset: preset)
-                    .toolbar(.hidden, for: .tabBar) // Hide tab bar on preview
+                    .toolbar(.hidden, for: .tabBar)
             }
             .navigationDestination(for: String.self) { value in
                 if value.hasPrefix("upload-") {
                     let presetID = String(value.dropFirst(7))
                     if let preset = DancePreset.allPresets.first(where: { $0.id == presetID }) {
                         UploadView(preset: preset)
-                            .toolbar(.hidden, for: .tabBar) // Hide tab bar on upload
+                            .toolbar(.hidden, for: .tabBar)
                     }
                 }
             }

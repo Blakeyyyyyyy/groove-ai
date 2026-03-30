@@ -1,0 +1,11 @@
+appId: com.grooveai.app
+---
+# Flow 01: Onboarding
+# Tests that onboarding displays without crash
+
+- launchApp
+- assertVisible: "Groove AI"
+- assertVisible: "Let's Begin"
+- tapOn: "Let's Begin"
+- assertVisible: "Dog"
+- assertVisible: "Person"

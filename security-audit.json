@@ -1,0 +1,44 @@
+{
+  "verdict": "PASS",
+  "audited_at": "2026-03-30T17:55:00+10:00",
+  "risk_level": "low",
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "info",
+      "category": "privacy",
+      "title": "Limited camera/photo permissions declared",
+      "file": "GrooveAI.xcodeproj/project.pbxproj",
+      "line": 0,
+      "description": "App only declares NSPhotoLibraryAddUsageDescription (save to Photos). This is intentional - app uses PHPicker which doesn't require camera/library access. Only needs add permission to save outputs.",
+      "fix": "No fix needed - this is correct for the app's functionality."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "info",
+      "category": "data_storage",
+      "title": "UserDefaults used for subscription state",
+      "file": "GrooveAI/Models/AppState.swift",
+      "line": 14,
+      "description": "hasCompletedOnboarding and isSubscribed are stored in UserDefaults. While not ideal for security-sensitive data, these are low-risk as they only control UI flow, not actual access to paid features (server validates subscription).",
+      "fix": "Could migrate to Keychain for extra security, but not critical since server validates access."
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 2
+  },
+  "checks_passed": [
+    "No hardcoded production API keys (RevenueCat test key only)",
+    "All external services (Kling, Gemini, R2, Supabase) called via backend edge functions",
+    "No exposed secrets in Swift source",
+    "No debug bypass flags in production code",
+    "No HTTP URLs found (HTTPS only)",
+    "No App Transport Security exceptions",
+    "Subscription state validated server-side",
+    "Proper RevenueCat test key (test_ prefix)"
+  ]
+}

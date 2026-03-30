@@ -116,27 +116,18 @@ struct UploadView: View {
 
     @ViewBuilder
     private var uploadCard: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: Radius.xl)
+                .fill(Color.bgSecondary)
+
             if let selectedImage {
-                // Photo selected — fills card
                 Image(uiImage: selectedImage)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .overlay(alignment: .bottom) {
-                        Text("Change Photo")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(Color.textPrimary)
-                            .padding(.vertical, Spacing.sm)
-                            .padding(.horizontal, Spacing.lg)
-                            .background(Color.bgElevated.opacity(0.8))
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
-                            .padding(.bottom, Spacing.md)
-                    }
             } else {
-                // Empty state — camera icon, clear input symbol
                 VStack(spacing: Spacing.lg) {
-                    // Camera icon — clear input indicator
                     Image(systemName: "camera.fill")
                         .font(.system(size: 56))
                         .foregroundStyle(Color.accentStart)
@@ -152,17 +143,32 @@ struct UploadView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, Spacing.xl)
+            }
+
+            if selectedImage != nil {
+                Text("Change Photo")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(.vertical, Spacing.sm)
+                    .padding(.horizontal, Spacing.lg)
+                    .background(Color.bgElevated.opacity(0.92))
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+                    .padding(.bottom, Spacing.md)
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(maxHeight: .infinity) // Fill available space — BIGGER input area
-        .background(Color.bgSecondary)
+        .frame(height: heroCardHeight)
         .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.xl)
                 .stroke(Color.bgElevated, lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.18), radius: 18, y: 10)
+    }
+
+    private var heroCardHeight: CGFloat {
+        min(UIScreen.main.bounds.height * 0.42, 330)
     }
 
     private func startGeneration() {

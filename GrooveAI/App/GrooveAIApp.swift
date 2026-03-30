@@ -38,8 +38,8 @@ struct GrooveAIApp: App {
         let appearance = UITabBarAppearance()
         appearance.configureWithTransparentBackground()
         appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
-        appearance.backgroundColor = UIColor.white.withAlphaComponent(0.04)
-        appearance.shadowColor = UIColor.white.withAlphaComponent(0.08)
+        appearance.backgroundColor = UIColor.clear
+        appearance.shadowColor = UIColor.clear
 
         let selectedAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.white
@@ -66,61 +66,8 @@ struct GrooveAIApp: App {
         compactInline.normal.iconColor = UIColor.white.withAlphaComponent(0.58)
         compactInline.normal.titleTextAttributes = normalAttributes
 
-        appearance.selectionIndicatorImage = tabSelectionIndicatorImage()
-
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
         UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.58)
-    }
-
-    private static func tabSelectionIndicatorImage() -> UIImage? {
-        let size = CGSize(width: 84, height: 34)
-        let renderer = UIGraphicsImageRenderer(size: size)
-
-        return renderer.image { context in
-            let rect = CGRect(origin: .zero, size: size)
-            let path = UIBezierPath(roundedRect: rect, cornerRadius: 17)
-
-            context.cgContext.saveGState()
-            context.cgContext.setShadow(
-                offset: CGSize(width: 0, height: 6),
-                blur: 16,
-                color: UIColor.black.withAlphaComponent(0.18).cgColor
-            )
-            UIColor.white.withAlphaComponent(0.12).setFill()
-            path.fill()
-            context.cgContext.restoreGState()
-
-            let highlightRect = CGRect(x: 1.5, y: 1.5, width: size.width - 3, height: 13)
-            let highlightPath = UIBezierPath(roundedRect: highlightRect, cornerRadius: 11)
-            UIColor.white.withAlphaComponent(0.09).setFill()
-            highlightPath.fill()
-
-            let glossColors = [
-                UIColor.white.withAlphaComponent(0.12).cgColor,
-                UIColor.white.withAlphaComponent(0.02).cgColor,
-                UIColor.black.withAlphaComponent(0.08).cgColor
-            ] as CFArray
-            if let gradient = CGGradient(
-                colorsSpace: CGColorSpaceCreateDeviceRGB(),
-                colors: glossColors,
-                locations: [0.0, 0.42, 1.0]
-            ) {
-                context.cgContext.saveGState()
-                path.addClip()
-                context.cgContext.drawLinearGradient(
-                    gradient,
-                    start: CGPoint(x: rect.midX, y: rect.minY),
-                    end: CGPoint(x: rect.midX, y: rect.maxY),
-                    options: []
-                )
-                context.cgContext.restoreGState()
-            }
-
-            UIColor.white.withAlphaComponent(0.12).setStroke()
-            path.lineWidth = 0.75
-            path.stroke()
-        }
-        .resizableImage(withCapInsets: UIEdgeInsets(top: 17, left: 42, bottom: 17, right: 42))
     }
 }

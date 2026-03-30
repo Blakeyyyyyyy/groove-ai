@@ -1,0 +1,9 @@
+appId: com.grooveai.app
+---
+# Flow 02: Paywall Main Screen
+# Tests that the main paywall renders with correct pricing
+
+- launchApp
+- assertVisible: "Start Free Trial"
+- assertVisible: "per year"
+- assertVisible: "99"

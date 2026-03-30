@@ -1,0 +1,27 @@
+{
+  "verdict": "PASS",
+  "tested_at": "2026-03-30T17:50:00+10:00",
+  "build_success": true,
+  "simulator": "iPhone 17 Pro",
+  "flows": [
+    {
+      "name": "Onboarding",
+      "file": "flow_01_onboarding.yaml",
+      "result": "SKIP",
+      "notes": "App in post-onboarding state (hasCompletedOnboarding=true). Paywall shown instead."
+    },
+    {
+      "name": "Paywall",
+      "file": "flow_02_paywall.yaml",
+      "result": "PASS",
+      "notes": "Paywall renders correctly: 'Start My 3-Day FREE Trial' button visible, $99.99/year pricing visible, timeline visible"
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "skipped": 1,
+    "failed": 0
+  },
+  "screenshot": "screenshot-paywall-verified.png"
+}
