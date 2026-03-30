@@ -3,10 +3,11 @@
 // Drop this in as the onboarding entry point (replacing OnboardingView.swift).
 //
 // Flow:
-//   1. GrooveHeroScrollView  — dual scroll rows + CTA
-//   2. GrooveSubjectSelectView — Dog / Person cards
-//   3. GrooveDanceSelectView   — pick dance, typewriter, generation
-//   4. GrooveResultView        — share / create another
+//   1. GrooveHeroScrollView      — dual scroll rows + CTA
+//   2. GrooveSubjectSelectView   — Dog / Person cards
+//   3. GrooveDanceSelectView     — pick dance, typewriter, generation
+//   4. GrooveResultView          — share / create another
+//   5. GroovePaywallScreen       — RevenueCat paywall (yearly + weekly)
 //
 // Progress dots (matching Glow AI style) are rendered inside each page.
 
@@ -22,13 +23,15 @@ struct GrooveOnboardingView: View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
-            // Progress dots — rendered above all pages
-            VStack {
-                ProgressDots(current: currentPage, total: 4)
-                    .padding(.top, 54)
-                Spacer()
+            // Progress dots — rendered above all pages (hidden on paywall/reassurance)
+            if currentPage <= 4 {
+                VStack {
+                    ProgressDots(current: currentPage, total: 4)
+                        .padding(.top, 54)
+                    Spacer()
+                }
+                .zIndex(10)
             }
-            .zIndex(10)
 
             // Pages
             switch currentPage {
@@ -56,7 +59,7 @@ struct GrooveOnboardingView: View {
             case 4:
                 GrooveResultView(
                     state: state,
-                    onComplete: onComplete,
+                    onComplete: { advance() },
                     onCreateAnother: {
                         withAnimation(.easeInOut(duration: 0.35)) {
                             currentPage = 2
@@ -67,6 +70,13 @@ struct GrooveOnboardingView: View {
                     insertion: .move(edge: .trailing),
                     removal:   .move(edge: .leading)
                 ))
+
+            case 5:
+                GroovePaywallScreen(onComplete: onComplete)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal:   .move(edge: .leading)
+                    ))
 
             default:
                 EmptyView()
