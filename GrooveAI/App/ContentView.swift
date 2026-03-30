@@ -68,7 +68,7 @@ struct ContentView: View {
                     .tag(AppTab.settings)
             }
             .tint(Color.accentStart)
-            .animation(.easeInOut(duration: 0.12), value: state.selectedTab)
+            .animation(.easeOut(duration: 0.08), value: state.selectedTab)
             .safeAreaInset(edge: .bottom) {
                 // BUG-002 fix: generating pill sits ABOVE tab bar via safeAreaInset
                 if appState.isGenerating {
