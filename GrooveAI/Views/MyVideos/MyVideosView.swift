@@ -7,22 +7,43 @@ struct MyVideosView: View {
     @State private var showCards = false
     @State private var selectedVideo: GeneratedVideo?
 
+    // 3 columns for ~25% smaller thumbnails
     private let columns = [
+        GridItem(.flexible(), spacing: Spacing.sm),
         GridItem(.flexible(), spacing: Spacing.sm),
         GridItem(.flexible(), spacing: Spacing.sm)
     ]
 
     var body: some View {
         NavigationStack {
-            Group {
-                if videos.filter({ $0.status == "completed" }).isEmpty {
+            VStack(spacing: 0) {
+                // Fixed header — always visible
+                HStack {
+                    Text("My Videos")
+                        .font(.title2.bold())
+                        .foregroundStyle(Color.textPrimary)
+                    Spacer()
+                    if !completedVideos.isEmpty {
+                        Text("\(completedVideos.count)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.textSecondary)
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.xs)
+                            .background(Color.bgSecondary)
+                            .clipShape(Capsule())
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.sm)
+
+                if completedVideos.isEmpty {
                     emptyState
                 } else {
                     videoGrid
                 }
             }
             .background(Color.bgPrimary)
-            .navigationTitle("My Videos")
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .fullScreenCover(item: $selectedVideo) { video in
@@ -34,10 +55,14 @@ struct MyVideosView: View {
         }
     }
 
+    private var completedVideos: [GeneratedVideo] {
+        videos.filter { $0.status == "completed" }
+    }
+
     private var videoGrid: some View {
         ScrollView(showsIndicators: false) {
             LazyVGrid(columns: columns, spacing: Spacing.sm) {
-                ForEach(Array(videos.filter({ $0.status == "completed" }).enumerated()), id: \.element.id) { index, video in
+                ForEach(Array(completedVideos.enumerated()), id: \.element.id) { index, video in
                     VideoThumbnailCard(
                         danceName: video.danceName,
                         date: video.createdAt,
@@ -63,10 +88,10 @@ struct MyVideosView: View {
                             Label("Delete", systemImage: "trash")
                         }
                     }
-                    .offset(y: showCards ? 0 : 20)
+                    .offset(y: showCards ? 0 : 12)
                     .opacity(showCards ? 1 : 0)
                     .animation(
-                        AppAnimation.cardTransition.delay(Double(index) * 0.04),
+                        AppAnimation.snappy.delay(Double(index) * 0.02),
                         value: showCards
                     )
                 }
@@ -76,7 +101,7 @@ struct MyVideosView: View {
             .padding(.bottom, 100) // tab bar + pill
         }
         .onAppear {
-            withAnimation(AppAnimation.cardTransition.delay(0.1)) {
+            withAnimation(AppAnimation.snappy.delay(0.05)) {
                 showCards = true
             }
         }

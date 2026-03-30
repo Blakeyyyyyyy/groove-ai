@@ -31,18 +31,27 @@ struct CompletedVideoView: View {
             Color.bgPrimary
                 .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: Spacing.xl) {
-                    header
-                    mediaCard
-                    detailsCard
-                    primaryActions
-                    secondaryActions
+            VStack(spacing: Spacing.xl) {
+                header
+
+                // 4:5 video container — clean, no overlay
+                videoContainer
+                    .padding(.horizontal, Spacing.lg)
+
+                // Horizontal action row: Play | Share | Save | Delete
+                actionRow
+                    .padding(.horizontal, Spacing.lg)
+
+                Spacer()
+
+                // Make Another CTA
+                GradientCTAButton("Make Another") {
+                    cleanupPlayer()
+                    onMakeAnother()
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.lg)
-                .padding(.bottom, Spacing.xxxl)
+                .padding(.bottom, Spacing.xxl)
             }
+            .padding(.top, Spacing.lg)
         }
         .navigationBarBackButtonHidden(true)
         .preferredColorScheme(.dark)
@@ -58,13 +67,13 @@ struct CompletedVideoView: View {
                     .presentationDetents([.medium, .large])
             }
         }
-        .confirmationDialog("Delete this video?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
+        .alert("Delete this video?", isPresented: $showDeleteConfirm) {
+            Button("Delete Forever", role: .destructive) {
                 deleteVideo()
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Keep It", role: .cancel) {}
         } message: {
-            Text("This can't be undone.")
+            Text("Delete this video and it's gone forever.")
         }
         .alert(alertMessage, isPresented: $showAlert) {
             Button("OK") {}
@@ -74,8 +83,10 @@ struct CompletedVideoView: View {
         }
     }
 
+    // MARK: - Header
+
     private var header: some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .center) {
             Button {
                 cleanupPlayer()
                 dismiss()
@@ -91,96 +102,53 @@ struct CompletedVideoView: View {
 
             Spacer()
 
-            VStack(spacing: Spacing.xs) {
-                Text("Your Video")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(Color.textPrimary)
-
-                Text(video.danceName)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textSecondary)
-            }
+            Text(video.danceName)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(Color.textPrimary)
 
             Spacer()
 
-            statusPill
+            // Invisible spacer for centering
+            Color.clear.frame(width: 40, height: 40)
         }
+        .padding(.horizontal, Spacing.lg)
     }
 
-    private var statusPill: some View {
-        Text(hasVideoURL ? "Ready" : "Unavailable")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(hasVideoURL ? Color.success : Color.warning)
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-            .background((hasVideoURL ? Color.success : Color.warning).opacity(0.12))
-            .clipShape(Capsule())
-    }
+    // MARK: - Video Container (4:5, rounded, no dark overlay)
 
-    private var mediaCard: some View {
-        ZStack(alignment: .bottom) {
+    private var videoContainer: some View {
+        ZStack {
             RoundedRectangle(cornerRadius: Radius.xxl)
                 .fill(Color.bgSecondary)
 
             mediaContent
                 .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
 
-            LinearGradient(
-                colors: [Color.clear, Color.bgPrimary.opacity(0.88)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
-
-            VStack(spacing: Spacing.sm) {
-                if player != nil {
-                    Button {
-                        togglePlayback()
-                    } label: {
-                        HStack(spacing: Spacing.sm) {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                            Text(isPlaying ? "Pause Preview" : "Play Preview")
-                        }
+            // Loading state only (no dark overlay on video)
+            if player == nil && hasVideoURL {
+                VStack(spacing: Spacing.xs) {
+                    ProgressView()
+                        .tint(.white)
+                    Text("Loading...")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+            } else if !hasVideoURL {
+                VStack(spacing: Spacing.xs) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.warning)
+                    Text("Video file missing")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.md)
-                        .background(Color.black.opacity(0.45))
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                } else if hasVideoURL {
-                    VStack(spacing: Spacing.xs) {
-                        ProgressView()
-                            .tint(.white)
-                        Text("Loading video preview...")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                } else {
-                    VStack(spacing: Spacing.xs) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.title3)
-                            .foregroundStyle(Color.warning)
-                        Text("Video file missing")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.textPrimary)
-                        Text("This result was saved without a playable URL.")
-                            .font(.caption)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(Color.textSecondary)
-                    }
-                    .padding(.horizontal, Spacing.xl)
+                        .foregroundStyle(Color.textPrimary)
                 }
             }
-            .padding(.bottom, Spacing.xl)
         }
-        .aspectRatio(9 / 16, contentMode: .fit)
+        .aspectRatio(4.0 / 5.0, contentMode: .fit)
         .overlay(
             RoundedRectangle(cornerRadius: Radius.xxl)
                 .stroke(Color.bgElevated, lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.3), radius: 20, y: 10)
     }
 
     @ViewBuilder
@@ -202,118 +170,76 @@ struct CompletedVideoView: View {
         }
     }
 
-    private var detailsCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Ready to share")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(Color.textPrimary)
+    // MARK: - Horizontal Action Row
 
-            Text(hasVideoURL
-                 ? "Preview, share, or save your finished dance clip."
-                 : "This result screen loaded, but the video URL is missing. Share and save actions need a valid file URL.")
-                .font(.subheadline)
-                .foregroundStyle(Color.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(Spacing.lg)
-        .background(Color.bgSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.lg)
-                .stroke(Color.bgElevated, lineWidth: 1)
-        )
-    }
+    private var actionRow: some View {
+        HStack(spacing: Spacing.md) {
+            actionIcon(
+                icon: isPlaying ? "pause.fill" : "play.fill",
+                label: isPlaying ? "Pause" : "Play",
+                enabled: player != nil
+            ) {
+                togglePlayback()
+            }
 
-    private var primaryActions: some View {
-        VStack(spacing: Spacing.md) {
-            GradientCTAButton(primaryShareLabel, isEnabled: hasVideoURL && !isDownloading) {
+            actionIcon(
+                icon: "square.and.arrow.up.fill",
+                label: "Share",
+                enabled: hasVideoURL && !isDownloading
+            ) {
                 Task { await shareVideo() }
             }
 
-            actionButton(
-                title: isSaving ? "Saving..." : "Save to Photos",
-                systemImage: "arrow.down.to.line",
-                isDestructive: false,
-                isEnabled: hasVideoURL && !isSaving
+            actionIcon(
+                icon: "arrow.down.to.line.compact",
+                label: isSaving ? "Saving" : "Save",
+                enabled: hasVideoURL && !isSaving
             ) {
                 Task { await saveToPhotos() }
             }
 
-            actionButton(
-                title: "Make Another",
-                systemImage: "sparkles",
-                isDestructive: false,
-                isEnabled: true
-            ) {
-                cleanupPlayer()
-                onMakeAnother()
-            }
-        }
-    }
-
-    private var secondaryActions: some View {
-        VStack(spacing: Spacing.md) {
-            actionButton(
-                title: "Delete Video",
-                systemImage: "trash",
+            actionIcon(
+                icon: "trash.fill",
+                label: "Delete",
                 isDestructive: true,
-                isEnabled: true
+                enabled: true
             ) {
                 showDeleteConfirm = true
             }
-
-            Button {
-                cleanupPlayer()
-                dismiss()
-            } label: {
-                Text("Back to My Videos")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.textTertiary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-            }
-            .buttonStyle(.plain)
         }
     }
 
-    private var primaryShareLabel: String {
-        if isDownloading { return "Preparing..." }
-        return "Share Video"
-    }
-
-    private func actionButton(
-        title: String,
-        systemImage: String,
-        isDestructive: Bool,
-        isEnabled: Bool,
+    private func actionIcon(
+        icon: String,
+        label: String,
+        isDestructive: Bool = false,
+        enabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: Spacing.md) {
-                Image(systemName: systemImage)
-                    .font(.subheadline.weight(.semibold))
+            VStack(spacing: Spacing.sm) {
+                Image(systemName: icon)
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 48, height: 48)
+                    .background(Color.bgSecondary)
+                    .clipShape(Circle())
 
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-
-                Spacer()
+                Text(label)
+                    .font(.caption2.weight(.medium))
             }
-            .foregroundStyle(isDestructive ? Color.error : Color.textPrimary)
-            .padding(.horizontal, Spacing.lg)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(Color.bgSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.lg)
-                    .stroke(isDestructive ? Color.error.opacity(0.35) : Color.bgElevated, lineWidth: 1)
+            .foregroundStyle(
+                isDestructive
+                    ? Color.error
+                    : (enabled ? Color.textPrimary : Color.textTertiary)
             )
-            .opacity(isEnabled ? 1 : 0.45)
+            .frame(maxWidth: .infinity)
+            .opacity(enabled ? 1 : 0.45)
         }
-        .buttonStyle(ScaleButtonStyle())
-        .disabled(!isEnabled)
+        .buttonStyle(.plain)
+        .disabled(!enabled)
     }
+
+    // MARK: - Player
 
     private func setupPlayer() {
         guard let urlString = video.videoURL,
@@ -350,6 +276,8 @@ struct CompletedVideoView: View {
         player = nil
         playerLooper = nil
     }
+
+    // MARK: - Actions
 
     private func shareVideo() async {
         guard let urlString = video.videoURL, let url = URL(string: urlString) else {

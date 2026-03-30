@@ -4,6 +4,7 @@ struct HomeView: View {
     @Environment(AppState.self) private var appState
     @State private var showContent = false
     @State private var navigateToPreset: DancePreset?
+    @State private var navigateToCategory: CategoryNavItem?
 
     private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.38
 
@@ -70,6 +71,13 @@ struct HomeView: View {
                 DancePreviewView(preset: preset)
                     .toolbar(.hidden, for: .tabBar)
             }
+            .navigationDestination(item: $navigateToCategory) { item in
+                CategorySwipeView(
+                    category: item.category,
+                    initialPreset: item.initialPreset
+                )
+                .toolbar(.hidden, for: .tabBar)
+            }
         }
         .task {
             // BUG-001 fix: use .task for reliable state init
@@ -96,9 +104,19 @@ struct HomeView: View {
 
                 Spacer()
 
-                Text("See all →")
-                    .font(.caption)
-                    .foregroundStyle(Color.accentStart)
+                Button {
+                    if let first = category.presets.first {
+                        navigateToCategory = CategoryNavItem(
+                            category: category,
+                            initialPreset: first
+                        )
+                    }
+                } label: {
+                    Text("See all →")
+                        .font(.caption)
+                        .foregroundStyle(Color.accentStart)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, Spacing.lg)
 
@@ -207,6 +225,28 @@ struct CoinsPillView: View {
         .padding(.vertical, 6)
         .background(Color.bgSecondary)
         .clipShape(Capsule())
+    }
+}
+
+// MARK: - Category Navigation Item
+
+struct CategoryNavItem: Identifiable, Hashable {
+    let id: String
+    let category: DancePreset.CategoryGroup
+    let initialPreset: DancePreset
+
+    init(category: DancePreset.CategoryGroup, initialPreset: DancePreset) {
+        self.id = "\(category.id)-\(initialPreset.id)"
+        self.category = category
+        self.initialPreset = initialPreset
+    }
+
+    static func == (lhs: CategoryNavItem, rhs: CategoryNavItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

@@ -36,8 +36,8 @@ final class GenerationService {
             print("[Generation] ❌ Failed to save local record: \(error)")
         }
 
-        // Update generation state
-        appState.startGeneration(jobId: video.id)
+        // Update generation state (pass photoData for generating pill thumbnail)
+        appState.startGeneration(jobId: video.id, photoData: photoData)
         print("[Generation] 🔄 Generation phase set to .generating")
 
         let videoId = video.id
@@ -101,12 +101,33 @@ final class GenerationService {
             guard let taskId = Self.parseIdentifier(response["task_id"] ?? response["taskId"]) else {
                 let errorMsg = response["error"] as? String ?? "No task_id in response"
                 print("[Generation] ❌ No task_id found. Full response: \(response)")
-                throw GenerationError.serverError(errorMsg)
+
+                // Check if this is a pose/image recognition error
+                let lowerError = errorMsg.lowercased()
+                let isPoseError = lowerError.contains("upper body") ||
+                                  lowerError.contains("image recognition") ||
+                                  lowerError.contains("pose detect") ||
+                                  lowerError.contains("no complete")
+                await handleGenerationError(
+                    errorMsg: errorMsg,
+                    isPoseError: isPoseError,
+                    appState: appState,
+                    modelContext: modelContext,
+                    videoId: videoId
+                )
+                return
             }
             guard let backendVideoId = Self.parseIdentifier(response["video_id"] ?? response["videoId"]) else {
                 let errorMsg = response["error"] as? String ?? "No video_id in response"
                 print("[Generation] ❌ No video_id found. Full response: \(response)")
-                throw GenerationError.serverError(errorMsg)
+                await handleGenerationError(
+                    errorMsg: errorMsg,
+                    isPoseError: false,
+                    appState: appState,
+                    modelContext: modelContext,
+                    videoId: videoId
+                )
+                return
             }
             print("[Generation] 🎫 Task ID received: \(taskId)")
             print("[Generation] 🧾 Backend video ID received: \(backendVideoId)")
@@ -121,44 +142,67 @@ final class GenerationService {
 
             // ── Step 4: Poll for completion ──
             print("[Generation] ⏳ Step 4: Starting polling for taskId: \(taskId)...")
-            let videoUrl = try await KlingService.shared.pollForCompletion(
-                taskId: taskId,
-                onStatusUpdate: { status in
-                    print("[Generation] 📊 Poll status update: \(status)")
-                }
-            )
-            print("[Generation] ✅ Video generation complete! URL: \(videoUrl)")
-
-            // ── Step 5: Save to backend ──
-            print("[Generation] 💾 Step 5: Saving video to backend...")
-            _ = try await SupabaseService.shared.saveVideo(videoId: backendVideoId, videoURL: videoUrl)
-
-            // ── Step 6: Update local record on MainActor ──
-            await MainActor.run {
-                // Fetch the video from context to update it
-                let descriptor = FetchDescriptor<GeneratedVideo>(
-                    predicate: #Predicate { $0.id == videoId }
+            do {
+                let videoUrl = try await KlingService.shared.pollForCompletion(
+                    taskId: taskId,
+                    onStatusUpdate: { status in
+                        print("[Generation] 📊 Poll status update: \(status)")
+                    }
                 )
-                if let video = try? modelContext.fetch(descriptor).first {
-                    video.status = "completed"
-                    video.completedAt = .now
-                    video.videoURL = videoUrl
-                    try? modelContext.save()
-                    print("[Generation] ✅ Local record updated to completed")
-                } else {
-                    print("[Generation] ⚠️ Could not find local video record to update")
+                print("[Generation] ✅ Video generation complete! URL: \(videoUrl)")
+
+                // ── Step 5: Save to backend ──
+                print("[Generation] 💾 Step 5: Saving video to backend...")
+                _ = try await SupabaseService.shared.saveVideo(videoId: backendVideoId, videoURL: videoUrl)
+
+                // ── Step 6: Update local record on MainActor ──
+                await MainActor.run {
+                    // Fetch the video from context to update it
+                    let descriptor = FetchDescriptor<GeneratedVideo>(
+                        predicate: #Predicate { $0.id == videoId }
+                    )
+                    if let video = try? modelContext.fetch(descriptor).first {
+                        video.status = "completed"
+                        video.completedAt = .now
+                        video.videoURL = videoUrl
+                        try? modelContext.save()
+                        print("[Generation] ✅ Local record updated to completed")
+                    } else {
+                        print("[Generation] ⚠️ Could not find local video record to update")
+                    }
+                    appState.completeGeneration(videoID: videoId)
+                    print("[Generation] 🎉 Generation complete! Phase set to .complete")
                 }
-                appState.completeGeneration(videoID: videoId)
-                print("[Generation] 🎉 Generation complete! Phase set to .complete")
-            }
 
-            sendCompletionNotification()
+                sendCompletionNotification()
 
-            // Auto-reset after brief delay
-            try? await Task.sleep(for: .seconds(3))
-            await MainActor.run {
-                appState.resetGeneration()
-                print("[Generation] 🔄 Generation phase reset to .idle")
+                // Auto-reset after popup display time
+                // (VideoReadyPopup auto-dismisses after 8s, so wait 10s)
+                try? await Task.sleep(for: .seconds(10))
+                await MainActor.run {
+                    if appState.showVideoReadyPopup {
+                        // Popup was not tapped — reset now
+                        appState.resetGeneration()
+                        print("[Generation] 🔄 Generation phase reset to .idle (auto)")
+                    }
+                }
+
+            } catch {
+                // Check if Kling returned a pose-related failure during polling
+                let errorStr = error.localizedDescription.lowercased()
+                let isPoseError = errorStr.contains("upper body") ||
+                                  errorStr.contains("image recognition") ||
+                                  errorStr.contains("pose detect") ||
+                                  errorStr.contains("no complete") ||
+                                  errorStr.contains("face-dance") ||
+                                  errorStr.contains("no face")
+                await handleGenerationError(
+                    errorMsg: error.localizedDescription,
+                    isPoseError: isPoseError,
+                    appState: appState,
+                    modelContext: modelContext,
+                    videoId: videoId
+                )
             }
 
         } catch is CancellationError {
@@ -168,17 +212,75 @@ final class GenerationService {
             print("[Generation] ❌ Error type: \(type(of: error))")
             print("[Generation] ❌ Localized: \(error.localizedDescription)")
 
-            await MainActor.run {
-                let descriptor = FetchDescriptor<GeneratedVideo>(
-                    predicate: #Predicate { $0.id == videoId }
-                )
-                if let video = try? modelContext.fetch(descriptor).first {
-                    video.status = "failed"
-                    try? modelContext.save()
-                }
-                appState.failGeneration(message: error.localizedDescription)
-                print("[Generation] 🔴 Generation phase set to .failed")
+            // Check if this is a pose detection error from process-image
+            let errorStr = error.localizedDescription.lowercased()
+            let isPoseError = errorStr.contains("upper body") ||
+                              errorStr.contains("image recognition") ||
+                              errorStr.contains("pose detect") ||
+                              errorStr.contains("no complete") ||
+                              errorStr.contains("transformation failed")
+
+            await handleGenerationError(
+                errorMsg: error.localizedDescription,
+                isPoseError: isPoseError,
+                appState: appState,
+                modelContext: modelContext,
+                videoId: videoId
+            )
+        }
+    }
+
+    /// Centralized error handler: shows in-app alert, sends local notification if backgrounded
+    private func handleGenerationError(
+        errorMsg: String,
+        isPoseError: Bool,
+        appState: AppState,
+        modelContext: ModelContext,
+        videoId: String
+    ) async {
+        print("[Generation] 🚨 Handling generation error: \(errorMsg) (poseError: \(isPoseError))")
+
+        // Determine user-friendly message
+        let userMessage: String
+        let showRetryButton: Bool
+
+        if isPoseError {
+            userMessage = "Couldn't detect a pose in this image. Try a photo where your pet is standing clearly facing the camera."
+            showRetryButton = true
+        } else {
+            userMessage = "Video generation failed: \(errorMsg). Your coins have been refunded."
+            showRetryButton = false
+        }
+
+        // Update local video record
+        await MainActor.run {
+            let descriptor = FetchDescriptor<GeneratedVideo>(
+                predicate: #Predicate { $0.id == videoId }
+            )
+            if let video = try? modelContext.fetch(descriptor).first {
+                video.status = "failed"
+                try? modelContext.save()
             }
+            appState.errorAlertMessage = userMessage
+            appState.errorAlertIsPoseIssue = showRetryButton
+            appState.generationPhase = .failed(message: userMessage)
+            print("[Generation] 🔴 Error alert shown, phase set to .failed")
+        }
+
+        // Send local notification if app is backgrounded
+        if !appState.hasRequestedNotificationPermission {
+            // Request permission first (non-blocking), then send notification
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                if granted {
+                    self.sendErrorNotification(title: "Dance Generation Failed", body: "Try a clearer photo with your pet standing up")
+                }
+            }
+            await MainActor.run {
+                appState.hasRequestedNotificationPermission = true
+            }
+        } else {
+            // Permission already granted
+            sendErrorNotification(title: "Dance Generation Failed", body: "Try a clearer photo with your pet standing up")
         }
     }
 
@@ -209,6 +311,23 @@ final class GenerationService {
 
         UNUserNotificationCenter.current().add(request)
         print("[Generation] 🔔 Completion notification scheduled")
+    }
+
+    private func sendErrorNotification(title: String, body: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "video-error-\(UUID().uuidString)",
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request)
+        print("[Generation] 🔔 Error notification scheduled: \(title)")
     }
 
     private static func parseIdentifier(_ value: Any?) -> String? {

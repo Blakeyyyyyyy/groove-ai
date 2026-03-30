@@ -46,18 +46,30 @@ struct UploadView: View {
                 .animation(AppAnimation.gentle, value: selectedImage != nil)
             }
 
-            // Generate button
-            GradientCTAButton(
-                selectedImage != nil ? "Generate" : "Select a Photo First",
-                isEnabled: selectedImage != nil
-            ) {
+            // Generate button — contained width, softer styling
+            Button {
+                if selectedImage == nil { return }
                 if !appState.hasEnoughCoins {
-                    // Take them to COINS PURCHASE paywall (not subscription)
                     showCoinsPurchasePaywall = true
                 } else {
                     startGeneration()
                 }
+            } label: {
+                Text(selectedImage != nil ? "Generate" : "Select a Photo First")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: 260)
+                    .frame(height: 52)
+                    .background(
+                        selectedImage != nil
+                            ? AnyShapeStyle(LinearGradient.accent)
+                            : AnyShapeStyle(Color.bgElevated)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
+                    .opacity(selectedImage != nil ? 1.0 : 0.4)
             }
+            .buttonStyle(ScaleButtonStyle())
+            .allowsHitTesting(selectedImage != nil)
             .padding(.bottom, Spacing.xxl)
         }
         .background(Color.bgPrimary)

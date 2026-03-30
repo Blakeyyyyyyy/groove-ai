@@ -63,6 +63,12 @@ final class AppState {
     // Generation state — state-driven flow (BUG-004 fix)
     var generationPhase: GenerationPhase = .idle
 
+    /// Photo thumbnail data from the current generation (for generating pill)
+    var generatingPhotoData: Data?
+
+    /// Flag: in-app "video ready" popup should be shown
+    var showVideoReadyPopup: Bool = false
+
     var isGenerating: Bool {
         if case .generating = generationPhase { return true }
         return false
@@ -89,6 +95,10 @@ final class AppState {
     // Navigation
     var selectedTab: AppTab = .home
     var showPaywall: Bool = false
+
+    // Error alert state
+    var errorAlertMessage: String? = nil
+    var errorAlertIsPoseIssue: Bool = false
 
     // Push notification
     var hasRequestedNotificationPermission: Bool {
@@ -128,12 +138,15 @@ final class AppState {
 
     // MARK: - Generation Flow
 
-    func startGeneration(jobId: String) {
+    func startGeneration(jobId: String, photoData: Data? = nil) {
         generationPhase = .generating(startTime: Date(), jobId: jobId)
+        generatingPhotoData = photoData
     }
 
     func completeGeneration(videoID: String) {
         generationPhase = .complete(videoID: videoID)
+        showVideoReadyPopup = true
+        generatingPhotoData = nil
     }
 
     func failGeneration(message: String = "Something went wrong") {
@@ -144,6 +157,8 @@ final class AppState {
 
     func resetGeneration() {
         generationPhase = .idle
+        generatingPhotoData = nil
+        showVideoReadyPopup = false
     }
 
     // MARK: - Countdown (BUG-003 fix)
@@ -156,13 +171,12 @@ final class AppState {
         return max(0, Int(remaining))
     }
 
-    /// Formatted countdown string: "M:SS" or "Almost done..."
+    /// Formatted countdown string: "~Xm" or "Almost done..."
     func countdownText(from now: Date = Date()) -> String {
         let seconds = secondsRemaining(from: now)
-        if seconds <= 0 { return "almost done" }
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return "\(mins):\(String(format: "%02d", secs))"
+        if seconds <= 30 { return "almost done" }
+        let mins = Int(ceil(Double(seconds) / 60.0))
+        return "~\(mins)m"
     }
 }
 

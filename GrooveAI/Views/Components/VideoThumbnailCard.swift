@@ -14,11 +14,13 @@ struct VideoThumbnailCard: View {
                     if let photoData, let uiImage = UIImage(data: photoData) {
                         Image(uiImage: uiImage)
                             .resizable()
-                            .aspectRatio(9/16, contentMode: .fill)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(minWidth: 0, maxWidth: .infinity)
+                            .aspectRatio(9/16, contentMode: .fit)
                             .clipped()
                     } else {
                         Color.bgElevated.opacity(0.6)
-                            .aspectRatio(9/16, contentMode: .fill)
+                            .aspectRatio(9/16, contentMode: .fit)
                     }
 
                     // Play icon overlay

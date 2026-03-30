@@ -13,6 +13,7 @@
 		BF_CREDITSINFOROW /* CreditsInfoRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CREDITSINFOROW /* CreditsInfoRow.swift */; };
 		BF_CREDITSSERVICE /* CreditsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CREDITSSERVICE /* CreditsService.swift */; };
 		BF_DANCEPRESET /* DancePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCEPRESET /* DancePreset.swift */; };
+		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
 		BF_DANCEPRESETCARD /* DancePresetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCEPRESETCARD /* DancePresetCard.swift */; };
 		BF_DANCEPREVIEWVIEW /* DancePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCEPREVIEWVIEW /* DancePreviewView.swift */; };
 		BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */; };
@@ -59,6 +60,7 @@
 		FR_CREDITSINFOROW /* CreditsInfoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsInfoRow.swift; sourceTree = "<group>"; };
 		FR_CREDITSSERVICE /* CreditsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsService.swift; sourceTree = "<group>"; };
 		FR_DANCEPRESET /* DancePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePreset.swift; sourceTree = "<group>"; };
+		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_DANCEPRESETCARD /* DancePresetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePresetCard.swift; sourceTree = "<group>"; };
 		FR_DANCEPREVIEWVIEW /* DancePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePreviewView.swift; sourceTree = "<group>"; };
 		FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanceStylePickerView.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 		GRP_HOME /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */,
 				FR_DANCEPRESETCARD /* DancePresetCard.swift */,
 				FR_HEROBANNERVIEW /* HeroBannerView.swift */,
 				FR_HOMEVIEW /* HomeView.swift */,
@@ -383,6 +386,7 @@
 				BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */,
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */,
+				BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */,
 				BF_DANCEPRESETCARD /* DancePresetCard.swift in Sources */,
 				BF_HOMEVIEW /* HomeView.swift in Sources */,
 				BF_MYVIDEOSVIEW /* MyVideosView.swift in Sources */,

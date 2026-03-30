@@ -178,7 +178,7 @@ struct DancePreset: Identifiable, Hashable {
 
     // MARK: - Grouped by Category
 
-    struct CategoryGroup: Identifiable {
+    struct CategoryGroup: Identifiable, Hashable {
         let id: String
         let name: String
         let presets: [DancePreset]
