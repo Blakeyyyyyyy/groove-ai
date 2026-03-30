@@ -7,7 +7,7 @@ final class KlingService {
     static let shared = KlingService()
 
     private let pollInterval: TimeInterval = 15 // seconds
-    private let maxPollDuration: TimeInterval = 660 // 11 minutes (buffer over 10min generation)
+    private let maxPollDuration: TimeInterval = 2100 // 35 minutes
 
     private init() {}
 
@@ -80,7 +80,7 @@ enum KlingError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .timeout:
-            return "Video generation timed out. Your coins have been refunded."
+            return "There was an error processing your video. Please wait 5 minutes and try again."
         case .generationFailed:
             return "Video generation failed. Your coins have been refunded."
         case .noVideoURL:

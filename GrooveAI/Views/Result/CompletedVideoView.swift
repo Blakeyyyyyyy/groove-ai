@@ -6,10 +6,11 @@ struct CompletedVideoView: View {
     let video: GeneratedVideo
     let onMakeAnother: () -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @State private var headlineVisible = true
+
     @State private var isPlaying = true
-    @State private var player: AVPlayer?
+    @State private var player: AVQueuePlayer?
     @State private var playerLooper: AVPlayerLooper?
     @State private var isSharing = false
     @State private var shareURL: URL?
@@ -20,124 +21,39 @@ struct CompletedVideoView: View {
     @State private var alertMessage = ""
     @State private var showAlert = false
 
+    private var hasVideoURL: Bool {
+        guard let videoURL = video.videoURL else { return false }
+        return !videoURL.isEmpty
+    }
+
     var body: some View {
         ZStack {
-            // Full-screen video player background
             Color.bgPrimary
                 .ignoresSafeArea()
 
-            // Video player or photo fallback
-            ZStack {
-                if let player = player {
-                    VideoPlayer(player: player)
-                        .ignoresSafeArea()
-                        .disabled(true) // Disable default controls, we handle play/pause
-                } else if let photoData = video.photoData, let uiImage = UIImage(data: photoData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .ignoresSafeArea()
-                } else {
-                    Color.bgSecondary
-                        .ignoresSafeArea()
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 72))
-                        .foregroundStyle(LinearGradient.accent)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: Spacing.xl) {
+                    header
+                    mediaCard
+                    detailsCard
+                    primaryActions
+                    secondaryActions
                 }
-
-                // Play/pause overlay icon
-                if !isPlaying {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(.white.opacity(0.8))
-                        .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
-                }
-            }
-            .onTapGesture {
-                isPlaying.toggle()
-                if isPlaying {
-                    player?.play()
-                } else {
-                    player?.pause()
-                }
-            }
-
-            // Overlay headline (fades after 3s)
-            VStack {
-                Text("Here they are. 🎉")
-                    .font(.title3.bold())
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
-                    .opacity(headlineVisible ? 1 : 0)
-                    .animation(AppAnimation.gentle, value: headlineVisible)
-                    .padding(.top, 60)
-
-                Spacer()
-            }
-
-            // Bottom gradient + actions
-            VStack {
-                Spacer()
-
-                // Gradient overlay
-                LinearGradient(
-                    colors: [Color.clear, Color.bgPrimary.opacity(0.8), Color.bgPrimary],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 250)
-                .allowsHitTesting(false)
-
-                VStack(spacing: Spacing.md) {
-                    // Share Video — PRIMARY
-                    GradientCTAButton(isDownloading ? "Preparing..." : "Share Video") {
-                        Task { await shareVideo() }
-                    }
-                    .disabled(isDownloading)
-                    .opacity(isDownloading ? 0.7 : 1)
-
-                    // Save to Photos — SECONDARY
-                    Button(isSaving ? "Saving..." : "Save to Photos") {
-                        Task { await saveToPhotos() }
-                    }
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.textSecondary)
-                    .frame(minHeight: 44)
-                    .disabled(isSaving)
-
-                    // Delete — TERTIARY (destructive)
-                    Button("Delete Video") {
-                        showDeleteConfirm = true
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(Color.red.opacity(0.8))
-                    .frame(minHeight: 44)
-
-                    // Make Another — QUATERNARY
-                    Button("Make Another →") {
-                        cleanupPlayer()
-                        onMakeAnother()
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textTertiary)
-                    .frame(minHeight: 44)
-                }
-                .padding(.bottom, Spacing.xxl)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.lg)
+                .padding(.bottom, Spacing.xxxl)
             }
         }
         .navigationBarBackButtonHidden(true)
-        .statusBarHidden(false)
         .preferredColorScheme(.dark)
         .task {
             setupPlayer()
-            try? await Task.sleep(for: .seconds(3))
-            headlineVisible = false
         }
         .onDisappear {
             cleanupPlayer()
         }
         .sheet(isPresented: $isSharing) {
-            if let shareURL = shareURL {
+            if let shareURL {
                 ShareSheet(activityItems: [shareURL])
                     .presentationDetents([.medium, .large])
             }
@@ -158,10 +74,250 @@ struct CompletedVideoView: View {
         }
     }
 
-    // MARK: - Video Player
+    private var header: some View {
+        HStack(alignment: .top) {
+            Button {
+                cleanupPlayer()
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(Color.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(Color.bgSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            VStack(spacing: Spacing.xs) {
+                Text("Your Video")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(Color.textPrimary)
+
+                Text(video.danceName)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            Spacer()
+
+            statusPill
+        }
+    }
+
+    private var statusPill: some View {
+        Text(hasVideoURL ? "Ready" : "Unavailable")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(hasVideoURL ? Color.success : Color.warning)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background((hasVideoURL ? Color.success : Color.warning).opacity(0.12))
+            .clipShape(Capsule())
+    }
+
+    private var mediaCard: some View {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: Radius.xxl)
+                .fill(Color.bgSecondary)
+
+            mediaContent
+                .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
+
+            LinearGradient(
+                colors: [Color.clear, Color.bgPrimary.opacity(0.88)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
+
+            VStack(spacing: Spacing.sm) {
+                if player != nil {
+                    Button {
+                        togglePlayback()
+                    } label: {
+                        HStack(spacing: Spacing.sm) {
+                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                            Text(isPlaying ? "Pause Preview" : "Play Preview")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.md)
+                        .background(Color.black.opacity(0.45))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                } else if hasVideoURL {
+                    VStack(spacing: Spacing.xs) {
+                        ProgressView()
+                            .tint(.white)
+                        Text("Loading video preview...")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                } else {
+                    VStack(spacing: Spacing.xs) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color.warning)
+                        Text("Video file missing")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.textPrimary)
+                        Text("This result was saved without a playable URL.")
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(.horizontal, Spacing.xl)
+                }
+            }
+            .padding(.bottom, Spacing.xl)
+        }
+        .aspectRatio(9 / 16, contentMode: .fit)
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.xxl)
+                .stroke(Color.bgElevated, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.3), radius: 20, y: 10)
+    }
+
+    @ViewBuilder
+    private var mediaContent: some View {
+        if let player {
+            VideoPlayer(player: player)
+                .allowsHitTesting(false)
+        } else if let photoData = video.photoData, let uiImage = UIImage(data: photoData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } else {
+            ZStack {
+                Color.bgElevated
+                Image(systemName: "film")
+                    .font(.system(size: 42))
+                    .foregroundStyle(Color.textTertiary)
+            }
+        }
+    }
+
+    private var detailsCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Ready to share")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(Color.textPrimary)
+
+            Text(hasVideoURL
+                 ? "Preview, share, or save your finished dance clip."
+                 : "This result screen loaded, but the video URL is missing. Share and save actions need a valid file URL.")
+                .font(.subheadline)
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(Spacing.lg)
+        .background(Color.bgSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.lg)
+                .stroke(Color.bgElevated, lineWidth: 1)
+        )
+    }
+
+    private var primaryActions: some View {
+        VStack(spacing: Spacing.md) {
+            GradientCTAButton(primaryShareLabel, isEnabled: hasVideoURL && !isDownloading) {
+                Task { await shareVideo() }
+            }
+
+            actionButton(
+                title: isSaving ? "Saving..." : "Save to Photos",
+                systemImage: "arrow.down.to.line",
+                isDestructive: false,
+                isEnabled: hasVideoURL && !isSaving
+            ) {
+                Task { await saveToPhotos() }
+            }
+
+            actionButton(
+                title: "Make Another",
+                systemImage: "sparkles",
+                isDestructive: false,
+                isEnabled: true
+            ) {
+                cleanupPlayer()
+                onMakeAnother()
+            }
+        }
+    }
+
+    private var secondaryActions: some View {
+        VStack(spacing: Spacing.md) {
+            actionButton(
+                title: "Delete Video",
+                systemImage: "trash",
+                isDestructive: true,
+                isEnabled: true
+            ) {
+                showDeleteConfirm = true
+            }
+
+            Button {
+                cleanupPlayer()
+                dismiss()
+            } label: {
+                Text("Back to My Videos")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.textTertiary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var primaryShareLabel: String {
+        if isDownloading { return "Preparing..." }
+        return "Share Video"
+    }
+
+    private func actionButton(
+        title: String,
+        systemImage: String,
+        isDestructive: Bool,
+        isEnabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.md) {
+                Image(systemName: systemImage)
+                    .font(.subheadline.weight(.semibold))
+
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+
+                Spacer()
+            }
+            .foregroundStyle(isDestructive ? Color.error : Color.textPrimary)
+            .padding(.horizontal, Spacing.lg)
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(Color.bgSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+            .overlay(
+                RoundedRectangle(cornerRadius: Radius.lg)
+                    .stroke(isDestructive ? Color.error.opacity(0.35) : Color.bgElevated, lineWidth: 1)
+            )
+            .opacity(isEnabled ? 1 : 0.45)
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .disabled(!isEnabled)
+    }
 
     private func setupPlayer() {
-        guard let urlString = video.videoURL, let url = URL(string: urlString) else {
+        guard let urlString = video.videoURL,
+              let url = URL(string: urlString) else {
             print("[CompletedVideo] No video URL available")
             return
         }
@@ -173,11 +329,20 @@ struct CompletedVideoView: View {
         queuePlayer.isMuted = false
         queuePlayer.play()
 
-        self.player = queuePlayer
-        self.playerLooper = looper
-        self.isPlaying = true
+        player = queuePlayer
+        playerLooper = looper
+        isPlaying = true
 
         print("[CompletedVideo] ▶️ Player started: \(urlString)")
+    }
+
+    private func togglePlayback() {
+        isPlaying.toggle()
+        if isPlaying {
+            player?.play()
+        } else {
+            player?.pause()
+        }
     }
 
     private func cleanupPlayer() {
@@ -185,8 +350,6 @@ struct CompletedVideoView: View {
         player = nil
         playerLooper = nil
     }
-
-    // MARK: - Share
 
     private func shareVideo() async {
         guard let urlString = video.videoURL, let url = URL(string: urlString) else {
@@ -199,20 +362,16 @@ struct CompletedVideoView: View {
         defer { isDownloading = false }
 
         do {
-            // Download video to temp file
             let (tempURL, _) = try await URLSession.shared.download(from: url)
             let destinationURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("groove_\(video.id).mp4")
 
-            // Remove existing file if any
             try? FileManager.default.removeItem(at: destinationURL)
             try FileManager.default.moveItem(at: tempURL, to: destinationURL)
 
-            print("[CompletedVideo] 📥 Downloaded video to: \(destinationURL)")
-
             await MainActor.run {
-                self.shareURL = destinationURL
-                self.isSharing = true
+                shareURL = destinationURL
+                isSharing = true
             }
         } catch {
             print("[CompletedVideo] ❌ Download failed: \(error)")
@@ -222,8 +381,6 @@ struct CompletedVideoView: View {
             }
         }
     }
-
-    // MARK: - Save to Photos
 
     private func saveToPhotos() async {
         guard let urlString = video.videoURL, let url = URL(string: urlString) else {
@@ -235,7 +392,6 @@ struct CompletedVideoView: View {
         isSaving = true
         defer { isSaving = false }
 
-        // Check photo library permission
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else {
             await MainActor.run {
@@ -246,24 +402,20 @@ struct CompletedVideoView: View {
         }
 
         do {
-            // Download video to temp file
             let (tempURL, _) = try await URLSession.shared.download(from: url)
             let destinationURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("groove_save_\(video.id).mp4")
             try? FileManager.default.removeItem(at: destinationURL)
             try FileManager.default.moveItem(at: tempURL, to: destinationURL)
 
-            // Save to photo library
             try await PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: destinationURL)
             }
 
-            print("[CompletedVideo] ✅ Saved to Photos")
             await MainActor.run {
                 showSavedAlert = true
             }
 
-            // Cleanup temp file
             try? FileManager.default.removeItem(at: destinationURL)
         } catch {
             print("[CompletedVideo] ❌ Save to Photos failed: \(error)")
@@ -274,20 +426,15 @@ struct CompletedVideoView: View {
         }
     }
 
-    // MARK: - Delete
-
     private func deleteVideo() {
         print("[CompletedVideo] 🗑️ Deleting video: \(video.id)")
-        // Remove from local SwiftData
         modelContext.delete(video)
         try? modelContext.save()
 
         cleanupPlayer()
-        onMakeAnother()
+        dismiss()
     }
 }
-
-// MARK: - Share Sheet (UIActivityViewController wrapper)
 
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
