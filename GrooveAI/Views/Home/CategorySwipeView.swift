@@ -11,8 +11,23 @@ struct CategorySwipeView: View {
     @State private var currentIndex: Int = 0
     @State private var previousIndex: Int = 0
 
+    /// The currently displayed preset (based on swipe position)
+    private var currentPreset: DancePreset {
+        guard category.presets.indices.contains(currentIndex) else {
+            return initialPreset
+        }
+        return category.presets[currentIndex]
+    }
+
     var body: some View {
         VStack(spacing: 0) {
+            // Preset name — shown under category name for swipe context
+            Text(currentPreset.name)
+                .font(.subheadline)
+                .foregroundStyle(Color.textSecondary)
+                .padding(.top, Spacing.xs)
+                .animation(.easeInOut(duration: 0.2), value: currentIndex)
+
             // Page indicator
             HStack(spacing: Spacing.sm) {
                 ForEach(Array(category.presets.enumerated()), id: \.element.id) { index, _ in
@@ -118,18 +133,6 @@ struct SwipeablePresetCard: View {
                 }
             }
             .aspectRatio(9/16, contentMode: .fit)
-
-            // Coins cost
-            HStack(spacing: Spacing.sm) {
-                Image(systemName: "circle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(Color.coinGold)
-
-                Text("Uses \(preset.coinCost) coins")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textSecondary)
-            }
-            .padding(.vertical, Spacing.md)
 
             // CTA — Use This Dance
             NavigationLink(value: "upload-\(preset.id)") {

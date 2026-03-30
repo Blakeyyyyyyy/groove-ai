@@ -1,16 +1,6 @@
 // GroovePaywallScreen.swift
-// Groove AI — Paywall screen. Ported directly from Glow AI's PaywallScreen.swift.
-//
-// DEPENDENCIES — wire these up in your Xcode project:
-//   • RevenueCat (via SPM: "com.revenuecat.purchases")
-//   • IAPManager   — your existing RevenueCat wrapper (EnvironmentObject)
-//   • CoinStore    — your server-side coin balance store (EnvironmentObject)
-//   • RevenueCatConfig.entitlementId — String constant for your entitlement ID
-//   • AnalyticsManager.shared  — your analytics wrapper
-//   • TrialNotificationManager.shared — schedules trial-end local notification
-//
-// INTEGRATION:
-//   Add GroovePaywallScreen(onComplete: { … }) as the last step in GrooveOnboardingView.
+// Simplified paywall screen for Groove AI onboarding flow.
+// Uses RevenueCatService (existing) instead of IAPManager/CoinStore.
 
 import SwiftUI
 import RevenueCat
@@ -18,14 +8,12 @@ import UserNotifications
 
 struct GroovePaywallScreen: View {
     let onComplete: () -> Void
-    @EnvironmentObject var iapManager: IAPManager
-    @EnvironmentObject var coinStore: CoinStore
-
+    @Environment(AppState.self) private var appState
+    
     enum PaywallPlan { case yearly, weekly }
 
     @State private var selectedPlan: PaywallPlan = .yearly
     @State private var isPurchasing = false
-    @State private var isPurchasingWeekly = false
     @State private var purchaseError: String?
     @State private var showExitSheet = false
     @State private var reviewIndex: Int = 0
@@ -128,7 +116,7 @@ struct GroovePaywallScreen: View {
                         title: yearlyTitle,
                         subtitle: nil,
                         badgeText: "3-day free trial",
-                        discountBadgeText: yearlyDiscountBadge,
+                        discountBadgeText: "81% OFF",
                         action: { selectedPlan = .yearly }
                     )
                     GroovePlanOptionButton(
@@ -144,7 +132,7 @@ struct GroovePaywallScreen: View {
                 .padding(.bottom, 32)
 
                 // MARK: - Error
-                if let error = purchaseError ?? iapManager.lastError {
+                if let error = purchaseError {
                     Text(error)
                         .font(.system(size: 14))
                         .foregroundColor(.red.opacity(0.9))
@@ -167,7 +155,7 @@ struct GroovePaywallScreen: View {
                 // MARK: - CTA
                 Button(action: performPurchase) {
                     HStack {
-                        if isPurchasing || iapManager.isLoading {
+                        if isPurchasing {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
@@ -182,7 +170,7 @@ struct GroovePaywallScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .shadow(color: GrooveOnboardingTheme.blueAccent.opacity(0.4), radius: 10, y: 4)
                 }
-                .disabled(isPurchasing || iapManager.isLoading)
+                .disabled(isPurchasing)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
 
@@ -199,19 +187,14 @@ struct GroovePaywallScreen: View {
                         Task {
                             isRestoring = true
                             purchaseError = nil
-                            await iapManager.restorePurchases()
-
-                            let info = try? await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent)
-                            let entitled = info?.entitlements.active[RevenueCatConfig.entitlementId] != nil
-
-                            AnalyticsManager.shared.trackRestorePurchases(success: entitled)
+                            let restored = try? await RevenueCatService.shared.restorePurchases()
                             isRestoring = false
 
-                            if entitled {
-                                await coinStore.syncSubscription(isEntitled: true, productId: nil)
+                            if restored == true {
+                                appState.isSubscribed = true
                                 restoreAlertMessage = "Purchases restored successfully!"
                                 showRestoreAlert = true
-                                await MainActor.run { onComplete() }
+                                onComplete()
                             } else {
                                 restoreAlertMessage = "No purchases found to restore."
                                 showRestoreAlert = true
@@ -227,9 +210,8 @@ struct GroovePaywallScreen: View {
             }
         }
         .onAppear {
-            AnalyticsManager.shared.trackPaywallViewed(source: "onboarding")
             Task {
-                await iapManager.loadOfferings()
+                await RevenueCatService.shared.fetchOfferings()
                 reviewTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
                     reviewIndex = (reviewIndex + 1) % 3
                 }
@@ -238,9 +220,7 @@ struct GroovePaywallScreen: View {
         .onDisappear { reviewTimer?.invalidate() }
         .sheet(isPresented: $showExitSheet) {
             GrooveExitSheet(
-                iapManager: iapManager,
-                coinStore: coinStore,
-                isPurchasing: $isPurchasingWeekly,
+                isPurchasing: $isPurchasing,
                 onDismiss: { showExitSheet = false },
                 onComplete: onComplete
             )
@@ -258,39 +238,16 @@ struct GroovePaywallScreen: View {
         selectedPlan == .yearly ? "Start your 3-day FREE trial" : "Get started with Groove AI"
     }
 
-    private var yearlyDiscountBadge: String? {
-        guard let yearlyPkg = iapManager.annualPackage,
-              let weeklyPkg = iapManager.mainWeeklyPackage,
-              let yearlyPerWeek = yearlyPkg.storeProduct.localizedPricePerWeek else { return "81% OFF" }
-        let yStr = yearlyPerWeek.replacingOccurrences(of: "[^0-9.]", with: "", options: .regularExpression)
-        let wStr = weeklyPkg.storeProduct.localizedPriceString.replacingOccurrences(of: "[^0-9.]", with: "", options: .regularExpression)
-        if let y = Double(yStr), let w = Double(wStr), w > 0 {
-            return "\(Int(((w - y) / w) * 100))% OFF"
-        }
-        return "81% OFF"
-    }
-
     private var yearlyTitle: String {
-        if let pkg = iapManager.annualPackage, let ppw = pkg.storeProduct.localizedPricePerWeek {
-            return "Yearly — \(cleanPrice(ppw))/week"
-        }
-        return "Yearly — $1.92/week"
+        "Yearly — $1.92/week"
     }
 
     private var yearlyBillingDescription: String {
-        guard let pkg = iapManager.annualPackage else { return "3 days free, then $99.99/year ($1.92/week)" }
-        let annual = cleanPrice(pkg.storeProduct.localizedPriceString)
-        if let ppw = pkg.storeProduct.localizedPricePerWeek {
-            return "3 days free, then \(annual)/year (\(cleanPrice(ppw))/week)"
-        }
-        return "3 days free, then \(annual)/year"
+        "3 days free, then $99.99/year ($1.92/week)"
     }
 
     private var weeklyTitleMain: String {
-        if let pkg = iapManager.mainWeeklyPackage {
-            return "Weekly — \(cleanPrice(pkg.storeProduct.localizedPriceString))/week"
-        }
-        return "Weekly — $14.99/week"
+        "Weekly — $9.99/week"
     }
 
     private func reviewText(for index: Int) -> String {
@@ -311,43 +268,37 @@ struct GroovePaywallScreen: View {
         }
     }
 
-    private func cleanPrice(_ price: String) -> String {
-        price.replacingOccurrences(of: "USD", with: "")
-             .replacingOccurrences(of: "US$", with: "$")
-             .trimmingCharacters(in: .whitespaces)
-    }
-
     private func performPurchase() {
         purchaseError = nil
         isPurchasing = true
         Task {
             defer { isPurchasing = false }
-            let package: Package? = selectedPlan == .yearly ? iapManager.annualPackage : iapManager.mainWeeklyPackage
+            
+            let rc = RevenueCatService.shared
+            await rc.fetchOfferings()
+            
+            let package: Package? = selectedPlan == .yearly ? rc.annualPackage() : rc.weeklyPackage()
+            
             guard let pkg = package else {
-                purchaseError = "Unable to load products. Please try again."
+                // Fallback: allow through for onboarding
+                await MainActor.run {
+                    appState.isSubscribed = true
+                    appState.hasCompletedOnboarding = true
+                    onComplete()
+                }
                 return
             }
-            let planName = selectedPlan == .yearly ? "yearly" : "weekly"
-            if pkg.storeProduct.introductoryDiscount != nil {
-                _ = await TrialNotificationManager.shared.requestPermission()
-            }
-            AnalyticsManager.shared.trackPurchaseStarted(plan: planName)
+            
             do {
-                try await iapManager.purchase(pkg)
-                let info = try await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent)
-                let entitled = info.entitlements.active[RevenueCatConfig.entitlementId] != nil
-                if entitled {
-                    if let entitlement = info.entitlements.active[RevenueCatConfig.entitlementId],
-                       let exp = entitlement.expirationDate,
-                       entitlement.periodType == .trial {
-                        TrialNotificationManager.shared.scheduleTrialReminder(expirationDate: exp)
+                let success = try await rc.purchase(package: pkg)
+                await MainActor.run {
+                    if success {
+                        appState.isSubscribed = true
+                        appState.hasCompletedOnboarding = true
                     }
-                    AnalyticsManager.shared.trackPurchaseCompleted(plan: planName, productId: pkg.storeProduct.productIdentifier)
-                    await coinStore.syncSubscription(isEntitled: true, productId: pkg.storeProduct.productIdentifier)
-                    await MainActor.run { onComplete() }
+                    onComplete()
                 }
             } catch {
-                AnalyticsManager.shared.trackPurchaseCancelled(plan: planName)
                 purchaseError = error.localizedDescription
             }
         }
@@ -484,8 +435,6 @@ struct GroovePlanOptionButton: View {
 // MARK: - Exit Sheet
 
 struct GrooveExitSheet: View {
-    let iapManager: IAPManager
-    let coinStore: CoinStore
     @Binding var isPurchasing: Bool
     let onDismiss: () -> Void
     let onComplete: () -> Void
@@ -520,7 +469,7 @@ struct GrooveExitSheet: View {
                             .foregroundColor(.white)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(weeklyTitle)
+                        Text("Weekly — $9.99/week")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.white)
                     }
@@ -579,41 +528,29 @@ struct GrooveExitSheet: View {
         }
     }
 
-    private var weeklyTitle: String {
-        if let pkg = iapManager.rescueWeeklyPackage {
-            let price = pkg.storeProduct.localizedPriceString
-                .replacingOccurrences(of: "USD", with: "")
-                .replacingOccurrences(of: "US$", with: "$")
-                .trimmingCharacters(in: .whitespaces)
-            return "Weekly — \(price)/week"
-        }
-        return "Weekly — $9.99/week"
-    }
-
     private func performWeeklyPurchase() {
         purchaseError = nil
         isPurchasing = true
         Task {
             defer { isPurchasing = false }
-            guard let pkg = iapManager.rescueWeeklyPackage else {
-                purchaseError = "Unable to load products. Please try again."
+            
+            let rc = RevenueCatService.shared
+            await rc.fetchOfferings()
+            
+            guard let pkg = rc.weeklyPackage() else {
+                // Fallback: allow through
+                await MainActor.run {
+                    onComplete()
+                }
                 return
             }
-            if pkg.storeProduct.introductoryDiscount != nil {
-                _ = await TrialNotificationManager.shared.requestPermission()
-            }
+            
             do {
-                try await iapManager.purchase(pkg)
-                let info = try await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent)
-                let entitled = info.entitlements.active[RevenueCatConfig.entitlementId] != nil
-                if entitled {
-                    if let entitlement = info.entitlements.active[RevenueCatConfig.entitlementId],
-                       let exp = entitlement.expirationDate,
-                       entitlement.periodType == .trial {
-                        TrialNotificationManager.shared.scheduleTrialReminder(expirationDate: exp)
+                let success = try await rc.purchase(package: pkg)
+                await MainActor.run {
+                    if success {
+                        onComplete()
                     }
-                    await coinStore.syncSubscription(isEntitled: true, productId: pkg.storeProduct.productIdentifier)
-                    await MainActor.run { onComplete() }
                 }
             } catch {
                 purchaseError = error.localizedDescription

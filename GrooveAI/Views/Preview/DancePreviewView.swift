@@ -64,20 +64,6 @@ struct DancePreviewView: View {
             .aspectRatio(9/16, contentMode: .fit)
             .padding(.horizontal, Spacing.lg)
 
-            Spacer().frame(height: Spacing.xl)
-
-            // Coins cost
-            HStack(spacing: Spacing.sm) {
-                Image(systemName: "circle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(Color.coinGold)
-
-                Text("Uses \(preset.coinCost) coins")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textSecondary)
-            }
-            .padding(.horizontal, Spacing.lg)
-
             Spacer()
 
             // CTA
