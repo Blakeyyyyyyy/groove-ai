@@ -11,9 +11,6 @@ struct ContentView: View {
                 GrooveOnboardingView(onComplete: {
                     appState.hasCompletedOnboarding = true
                 })
-                .fullScreenCover(isPresented: $state.showPaywall) {
-                    PaywallView()
-                }
             } else {
                 mainTabView
             }
@@ -69,7 +66,7 @@ struct ContentView: View {
                     }
                     .tag(AppTab.settings)
             }
-            .tint(Color.accentStart)
+            .tint(.white)
             .safeAreaInset(edge: .bottom) {
                 // BUG-002 fix: generating pill sits ABOVE tab bar via safeAreaInset
                 if appState.isGenerating {
