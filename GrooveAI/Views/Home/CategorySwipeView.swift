@@ -9,6 +9,7 @@ struct CategorySwipeView: View {
     let initialPreset: DancePreset
 
     @State private var currentIndex: Int = 0
+    @State private var previousIndex: Int = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,13 +28,21 @@ struct CategorySwipeView: View {
             // Swipeable video preview cards — full DancePreviewView style
             TabView(selection: $currentIndex) {
                 ForEach(Array(category.presets.enumerated()), id: \.element.id) { index, preset in
-                    SwipeablePresetCard(preset: preset)
-                        .tag(index)
+                    SwipeablePresetCard(
+                        preset: preset,
+                        isActive: index == currentIndex
+                    )
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(maxHeight: .infinity)
             .padding(.horizontal, Spacing.lg)
+            .onChange(of: currentIndex) { oldValue, newValue in
+                // Haptic feedback on swipe
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+            }
 
             Spacer()
         }
@@ -50,6 +59,7 @@ struct CategorySwipeView: View {
         .onAppear {
             if let idx = category.presets.firstIndex(where: { $0.id == initialPreset.id }) {
                 currentIndex = idx
+                previousIndex = idx
             }
         }
     }
@@ -58,6 +68,8 @@ struct CategorySwipeView: View {
 /// Full video preview card with Use This Dance button — matches DancePreviewView layout
 struct SwipeablePresetCard: View {
     let preset: DancePreset
+    let isActive: Bool
+    
     @State private var player: AVPlayer?
     @State private var navigateToUpload = false
 
@@ -133,7 +145,18 @@ struct SwipeablePresetCard: View {
             .sensoryFeedback(.success, trigger: navigateToUpload)
         }
         .onAppear {
-            setupPlayer()
+            if isActive {
+                setupPlayer()
+            }
+        }
+        .onChange(of: isActive) { oldValue, newValue in
+            if newValue {
+                // Card became active - start video
+                setupPlayer()
+            } else {
+                // Card became inactive - pause video
+                player?.pause()
+            }
         }
         .onDisappear {
             player?.pause()
@@ -142,6 +165,12 @@ struct SwipeablePresetCard: View {
     }
 
     private func setupPlayer() {
+        guard player == nil else {
+            // Already has player, just play
+            player?.play()
+            return
+        }
+        
         guard let urlString = preset.videoURL,
               let url = URL(string: urlString) else { return }
         let avPlayer = AVPlayer(url: url)
