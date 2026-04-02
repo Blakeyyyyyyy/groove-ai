@@ -1,5 +1,4 @@
 import SwiftUI
-import AVKit
 
 /// Dedicated horizontal swipe page for a preset category.
 /// Shows full video preview + Use This Dance button for each preset.
@@ -85,8 +84,12 @@ struct SwipeablePresetCard: View {
     let preset: DancePreset
     let isActive: Bool
     
-    @State private var player: AVPlayer?
     @State private var navigateToUpload = false
+
+    private var videoURL: URL? {
+        guard let urlString = preset.videoURL else { return nil }
+        return URL(string: urlString)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -117,8 +120,8 @@ struct SwipeablePresetCard: View {
                         )
                     )
 
-                if let player {
-                    VideoPlayer(player: player)
+                if let videoURL {
+                    LoopingVideoView(url: videoURL)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading
@@ -146,49 +149,6 @@ struct SwipeablePresetCard: View {
             }
             .buttonStyle(ScaleButtonStyle())
             .sensoryFeedback(.success, trigger: navigateToUpload)
-        }
-        .onAppear {
-            if isActive {
-                setupPlayer()
-            }
-        }
-        .onChange(of: isActive) { oldValue, newValue in
-            if newValue {
-                // Card became active - start video
-                setupPlayer()
-            } else {
-                // Card became inactive - pause video
-                player?.pause()
-            }
-        }
-        .onDisappear {
-            player?.pause()
-            player = nil
-        }
-    }
-
-    private func setupPlayer() {
-        guard player == nil else {
-            // Already has player, just play
-            player?.play()
-            return
-        }
-        
-        guard let urlString = preset.videoURL,
-              let url = URL(string: urlString) else { return }
-        let avPlayer = AVPlayer(url: url)
-        avPlayer.isMuted = false
-        self.player = avPlayer
-        avPlayer.play()
-
-        // Loop the video
-        NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: avPlayer.currentItem,
-            queue: .main
-        ) { _ in
-            avPlayer.seek(to: .zero)
-            avPlayer.play()
         }
     }
 }

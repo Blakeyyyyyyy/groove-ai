@@ -60,6 +60,7 @@
 		BF_UPLOADVIEW /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW /* UploadView.swift */; };
 		BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */; };
 		BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */; };
+		BF_LOOPINGVIDEOVIEW /* LoopingVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_LOOPINGVIDEOVIEW /* LoopingVideoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -114,6 +115,7 @@
 		FR_SUPABASESERVICE /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		FR_UPLOADVIEW /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReadyPopup.swift; sourceTree = "<group>"; };
+		FR_LOOPINGVIDEOVIEW /* LoopingVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GrooveAI/Views/Components/LoopingVideoView.swift"; sourceTree = "<group>"; };
 		FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
 		PRODUCT_REF /* GrooveAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrooveAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -441,6 +443,7 @@
 				BF_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift in Sources */,
 				BF_ONBOARDINGSTATE /* OnboardingState.swift in Sources */,
 				BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */,
+				BF_LOOPINGVIDEOVIEW /* LoopingVideoView.swift in Sources */,
 				BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */,
 				BF_EXITPOPUPVIEW /* ExitPopupView.swift in Sources */,
 				BF_PAYWALLVIEW /* PaywallView.swift in Sources */,

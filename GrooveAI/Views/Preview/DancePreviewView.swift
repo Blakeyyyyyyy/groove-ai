@@ -1,12 +1,15 @@
 import SwiftUI
-import AVKit
 
 struct DancePreviewView: View {
     let preset: DancePreset
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToUpload = false
-    @State private var player: AVPlayer?
+
+    private var videoURL: URL? {
+        guard let urlString = preset.videoURL else { return nil }
+        return URL(string: urlString)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -46,8 +49,8 @@ struct DancePreviewView: View {
                         )
                     )
 
-                if let player {
-                    VideoPlayer(player: player)
+                if let videoURL {
+                    LoopingVideoView(url: videoURL)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading
@@ -90,32 +93,6 @@ struct DancePreviewView: View {
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(Color.textPrimary)
             }
-        }
-        .onAppear {
-            setupPlayer()
-        }
-        .onDisappear {
-            player?.pause()
-            player = nil
-        }
-    }
-
-    private func setupPlayer() {
-        guard let urlString = preset.videoURL,
-              let url = URL(string: urlString) else { return }
-        let avPlayer = AVPlayer(url: url)
-        avPlayer.isMuted = false
-        self.player = avPlayer
-        avPlayer.play()
-
-        // Loop the video
-        NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: avPlayer.currentItem,
-            queue: .main
-        ) { _ in
-            avPlayer.seek(to: .zero)
-            avPlayer.play()
         }
     }
 }

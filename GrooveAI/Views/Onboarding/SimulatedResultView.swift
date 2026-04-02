@@ -1,5 +1,5 @@
 import SwiftUI
-import AVKit
+import AVFoundation
 
 // MARK: - Screen 4: Simulated Magic Moment
 // 1.5s fake "generating" → pre-rendered video plays full-screen
@@ -11,8 +11,7 @@ struct SimulatedResultView: View {
     @State private var phase: ResultPhase = .generating
     @State private var progressValue: CGFloat = 0.6
     @State private var showCTA = false
-    @State private var player: AVQueuePlayer?
-    @State private var looper: AVPlayerLooper?
+    @State private var videoURL: URL?
 
     enum ResultPhase {
         case generating
@@ -33,9 +32,6 @@ struct SimulatedResultView: View {
         }
         .onAppear {
             startSimulation()
-        }
-        .onDisappear {
-            player?.pause()
         }
     }
 
@@ -87,8 +83,8 @@ struct SimulatedResultView: View {
     private var revealPhase: some View {
         ZStack {
             // Full-screen video
-            if let player {
-                VideoPlayer(player: player)
+            if let url = videoURL {
+                LoopingVideoView(url: url)
                     .disabled(true)
                     .ignoresSafeArea()
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -140,8 +136,8 @@ struct SimulatedResultView: View {
     // MARK: - Simulation Logic
 
     private func startSimulation() {
-        // Preload video immediately
-        preloadVideo()
+        // Preload video URL immediately
+        preloadVideoURL()
 
         // Fill progress to 100% over 1.5s
         progressValue = 1.0
@@ -153,7 +149,6 @@ struct SimulatedResultView: View {
                 withAnimation(.easeIn(duration: 0.4)) {
                     phase = .reveal
                 }
-                player?.play()
 
                 // Show CTA after 1s of video playback
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -165,7 +160,7 @@ struct SimulatedResultView: View {
         }
     }
 
-    private func preloadVideo() {
+    private func preloadVideoURL() {
         let videoName: String
         if let style {
             videoName = OnboardingVideoMapper.resultVideoName(subject: subject, style: style)
@@ -174,16 +169,7 @@ struct SimulatedResultView: View {
             videoName = subject.tileVideoName
         }
 
-        guard let url = Bundle.main.url(forResource: videoName, withExtension: "mp4") else { return }
-
-        let item = AVPlayerItem(url: url)
-        let queuePlayer = AVQueuePlayer(items: [item])
-        queuePlayer.isMuted = true
-        let playerLooper = AVPlayerLooper(player: queuePlayer, templateItem: AVPlayerItem(url: url))
-
-        self.player = queuePlayer
-        self.looper = playerLooper
-        // Don't play yet — wait for reveal
+        videoURL = Bundle.main.url(forResource: videoName, withExtension: "mp4")
     }
 }
 

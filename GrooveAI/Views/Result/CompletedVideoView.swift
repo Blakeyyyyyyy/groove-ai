@@ -26,6 +26,11 @@ struct CompletedVideoView: View {
         return !videoURL.isEmpty
     }
 
+    private var videoURL: URL? {
+        guard let urlString = video.videoURL else { return nil }
+        return URL(string: urlString)
+    }
+
     var body: some View {
         ZStack {
             Color.bgPrimary
@@ -153,8 +158,9 @@ struct CompletedVideoView: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        if let player {
-            VideoPlayer(player: player)
+        if let player, let url = videoURL {
+            // Use ControlledVideoView instead of VideoPlayer — no native controls
+            ControlledVideoView(player: player)
                 .allowsHitTesting(false)
         } else if let photoData = video.photoData, let uiImage = UIImage(data: photoData) {
             Image(uiImage: uiImage)
@@ -242,8 +248,7 @@ struct CompletedVideoView: View {
     // MARK: - Player
 
     private func setupPlayer() {
-        guard let urlString = video.videoURL,
-              let url = URL(string: urlString) else {
+        guard let url = videoURL else {
             print("[CompletedVideo] No video URL available")
             return
         }
@@ -259,7 +264,7 @@ struct CompletedVideoView: View {
         playerLooper = looper
         isPlaying = true
 
-        print("[CompletedVideo] ▶️ Player started: \(urlString)")
+        print("[CompletedVideo] ▶️ Player started: \(url)")
     }
 
     private func togglePlayback() {

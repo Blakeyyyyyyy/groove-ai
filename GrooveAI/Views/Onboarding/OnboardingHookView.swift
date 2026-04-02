@@ -1,5 +1,5 @@
 import SwiftUI
-import AVKit
+import AVFoundation
 
 // MARK: - Screen 1: The Hook
 // Full-screen video loop, no text, CTA springs in after 1.5s
@@ -12,11 +12,9 @@ struct OnboardingHookView: View {
     @State private var opacity1: Double = 1
     @State private var opacity2: Double = 0
 
-    // Two players for crossfade
-    @State private var player1: AVQueuePlayer?
-    @State private var looper1: AVPlayerLooper?
-    @State private var player2: AVQueuePlayer?
-    @State private var looper2: AVPlayerLooper?
+    // Two URLs for crossfade
+    @State private var url1: URL?
+    @State private var url2: URL?
 
     private let videoNames = OnboardingVideoMapper.hookVideos
     private let crossfadeInterval: TimeInterval = 3.0
@@ -24,23 +22,23 @@ struct OnboardingHookView: View {
     var body: some View {
         ZStack {
             // Video layer 1
-            if let player1 {
-                VideoPlayer(player: player1)
+            if let url1 {
+                LoopingVideoView(url: url1)
                     .disabled(true)
                     .opacity(opacity1)
                     .ignoresSafeArea()
             }
 
             // Video layer 2
-            if let player2 {
-                VideoPlayer(player: player2)
+            if let url2 {
+                LoopingVideoView(url: url2)
                     .disabled(true)
                     .opacity(opacity2)
                     .ignoresSafeArea()
             }
 
             // Fallback if no videos
-            if player1 == nil {
+            if url1 == nil {
                 Color.bgPrimary.ignoresSafeArea()
                 Image(systemName: "figure.dance")
                     .font(.system(size: 80))
@@ -87,7 +85,7 @@ struct OnboardingHookView: View {
             }
         }
         .onAppear {
-            setupVideos()
+            setupFirstVideo()
             startCrossfadeTimer()
 
             // CTA springs in after 1.5s
@@ -107,22 +105,10 @@ struct OnboardingHookView: View {
                 }
             }
         }
-        .onDisappear {
-            player1?.pause()
-            player2?.pause()
-        }
     }
 
-    private func setupVideos() {
-        guard let url = videoURL(for: videoNames[0]) else { return }
-
-        let item1 = AVPlayerItem(url: url)
-        let queuePlayer1 = AVQueuePlayer(items: [item1])
-        queuePlayer1.isMuted = true
-        let loop1 = AVPlayerLooper(player: queuePlayer1, templateItem: AVPlayerItem(url: url))
-        self.player1 = queuePlayer1
-        self.looper1 = loop1
-        queuePlayer1.play()
+    private func setupFirstVideo() {
+        url1 = videoURL(for: videoNames[0])
     }
 
     private func startCrossfadeTimer() {
@@ -142,39 +128,20 @@ struct OnboardingHookView: View {
         let isLayer1Active = opacity1 > 0.5
 
         if isLayer1Active {
-            // Load into player2, fade to it
-            let item = AVPlayerItem(url: url)
-            let queuePlayer = AVQueuePlayer(items: [item])
-            queuePlayer.isMuted = true
-            let loop = AVPlayerLooper(player: queuePlayer, templateItem: AVPlayerItem(url: url))
-            player2 = queuePlayer
-            looper2 = loop
-            queuePlayer.play()
+            // Load into url2, fade to it
+            url2 = url
 
             withAnimation(.easeInOut(duration: 0.3)) {
                 opacity1 = 0
                 opacity2 = 1
             }
-            // Pause old player after fade
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                player1?.pause()
-            }
         } else {
-            // Load into player1, fade to it
-            let item = AVPlayerItem(url: url)
-            let queuePlayer = AVQueuePlayer(items: [item])
-            queuePlayer.isMuted = true
-            let loop = AVPlayerLooper(player: queuePlayer, templateItem: AVPlayerItem(url: url))
-            player1 = queuePlayer
-            looper1 = loop
-            queuePlayer.play()
+            // Load into url1, fade to it
+            url1 = url
 
             withAnimation(.easeInOut(duration: 0.3)) {
                 opacity1 = 1
                 opacity2 = 0
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                player2?.pause()
             }
         }
     }
