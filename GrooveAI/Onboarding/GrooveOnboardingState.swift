@@ -4,13 +4,13 @@
 import SwiftUI
 
 class GrooveOnboardingState: ObservableObject {
-    @Published var selectedSubjectId: String = ""   // "dog" | "woman"
-    @Published var selectedDanceId:   String = ""   // "hiphop" | "ballet"
+    @Published var selectedSubjectId: String = ""   // "dog" | "person"
+    @Published var selectedDanceId:   String = ""   // preset ID
 
     func subjectEmoji() -> String {
         switch selectedSubjectId {
         case "dog":   return "🐕"
-        case "woman": return "👩"
+        case "person": return "👩"
         default:      return "🐕"
         }
     }

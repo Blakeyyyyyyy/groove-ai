@@ -1,16 +1,8 @@
 // GrooveOnboardingView.swift
 // Root coordinator for the Groove AI onboarding flow.
-// Drop this in as the onboarding entry point (replacing OnboardingView.swift).
+// 4-screen flow: Hero → Subject → Dance + Magic → Paywall
 //
-// Flow:
-//   1. GrooveHeroScrollView      — dual scroll rows + CTA
-//   2. GrooveSubjectSelectView   — Dog / Person cards
-//   3. GrooveDanceSelectView     — pick dance, typewriter, generation
-//   4. GrooveResultView          — share / create another
-//   5. GrooveReassuranceView     — "We've Got You Covered" pre-paywall screen
-//   6. GroovePaywallScreen       — RevenueCat paywall (yearly + weekly)
-//
-// Progress dots (matching Glow AI style) are rendered inside each page.
+// Progress dots shown for pages 1–3 (hidden on paywall)
 
 import SwiftUI
 
@@ -24,10 +16,10 @@ struct GrooveOnboardingView: View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
-            // Progress dots — rendered above all pages (hidden on paywall/reassurance)
-            if currentPage <= 4 {
+            // Progress dots — rendered above all pages (hidden on paywall)
+            if currentPage <= 3 {
                 VStack {
-                    ProgressDots(current: currentPage, total: 4)
+                    ProgressDots(current: currentPage, total: 3)
                         .padding(.top, 54)
                     Spacer()
                 }
@@ -58,28 +50,6 @@ struct GrooveOnboardingView: View {
                     ))
 
             case 4:
-                GrooveResultView(
-                    state: state,
-                    onComplete: { advance() },
-                    onCreateAnother: {
-                        withAnimation(.easeInOut(duration: 0.35)) {
-                            currentPage = 2
-                        }
-                    }
-                )
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal:   .move(edge: .leading)
-                ))
-
-            case 5:
-                GrooveReassuranceView(onNext: { advance() })
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal:   .move(edge: .leading)
-                    ))
-
-            case 6:
                 GroovePaywallScreen(onComplete: onComplete)
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),

@@ -1,162 +1,108 @@
 // GrooveDanceSelectView.swift
-// PAGE 3 — Hero preview of selected subject + dance preset pills.
-// Mirrors DemoFlowStep2View from Glow AI: typewriter → "Generating…" → crossfade result.
+// PAGE 3 — Hero preview + dance preset selection
+// Per spec: NO typewriter, NO "generating...", instant video reveal on tap
+// Demo subject image pre-loaded, 3 presets: Big Guy, Boombastic, Cotton Eye Joe
 
 import SwiftUI
+import AVKit
 
 struct GrooveDanceSelectView: View {
     @ObservedObject var state: GrooveOnboardingState
     let onNext: () -> Void
 
+    // ── Onboarding presets (3 only) ────────────────────────────────────────────
+    private let onboardingPresets: [DancePreset] = {
+        let ids = ["big-guy", "boombastic", "cotton-eye-joe"]
+        return ids.compactMap { id in DancePreset.allPresets.first(where: { $0.id == id }) }
+    }()
+
     // ── UI state ──────────────────────────────────────────────────────────────
-    @State private var selectedPreset:    GrooveDancePreset? = nil
-    @State private var displayedPrompt:   String             = ""
-    @State private var isGenerating:      Bool               = false
-    @State private var didRevealResult:   Bool               = false
+    @State private var selectedDanceId: String? = nil
+    @State private var didReveal: Bool = false
 
-    @State private var showPromptOptions: Bool = true
-    @State private var showPromptBox:     Bool = false
-    @State private var showGeneratingLabel: Bool = false
-
-    // Hero image animation
-    @State private var heroAssetName:  String  = ""   // swapped on reveal
-    @State private var imagePulse:     Bool     = false
-    @State private var imageOpacity:   Double   = 1.0
-    @State private var imageScale:     CGFloat  = 1.0
-
-    // Typewriter
-    @State private var cursorVisible:   Bool    = true
-    @State private var typewriterTimer: Timer?
-    @State private var cursorTimer:     Timer?
+    // Video player
+    @State private var player: AVPlayer? = nil
+    @State private var playerItem: AVPlayerItem? = nil
 
     var body: some View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // ── Hero image ────────────────────────────────────────────────
-                VStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 32)
-                            .fill(Color.gray.opacity(0.15))
-                            .frame(
-                                width:  GrooveOnboardingTheme.heroImageSize.width  + 20,
-                                height: GrooveOnboardingTheme.heroImageSize.height + 20
-                            )
-                            .blur(radius: 20)
+                Spacer().frame(height: 40)
 
-                        heroContent
-                            .frame(
-                                width:  GrooveOnboardingTheme.heroImageSize.width,
-                                height: GrooveOnboardingTheme.heroImageSize.height
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: GrooveOnboardingTheme.heroCornerRadius))
-                            .shadow(
-                                color: imagePulse
-                                    ? GrooveOnboardingTheme.blueAccent.opacity(0.5)
-                                    : .clear,
-                                radius: 20
-                            )
-                            .scaleEffect(imagePulse ? 1.015 : imageScale)
-                            .opacity(imageOpacity)
-                            .animation(.easeInOut(duration: 0.8), value: imagePulse)
-                    }
-                    .frame(
-                        width:  GrooveOnboardingTheme.heroImageSize.width,
-                        height: GrooveOnboardingTheme.heroImageSize.height
-                    )
+                // ── HERO SECTION (top ~55%) ────────────────────────────────────
+                ZStack {
+                    // Glow halo behind
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(GrooveOnboardingTheme.blueAccent.opacity(didReveal ? 0.25 : 0))
+                        .blur(radius: 24)
+                        .animation(.easeInOut(duration: 0.6), value: didReveal)
+                        .frame(width: GrooveOnboardingTheme.heroImageSize.width + 20,
+                               height: GrooveOnboardingTheme.heroImageSize.height + 20)
 
-                    if showGeneratingLabel {
-                        Text("Generating…")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.6))
-                            .transition(.opacity)
-                    }
+                    // Hero content (image or video)
+                    heroContent
+                        .frame(width: GrooveOnboardingTheme.heroImageSize.width,
+                               height: GrooveOnboardingTheme.heroImageSize.height)
+                        .clipShape(RoundedRectangle(cornerRadius: GrooveOnboardingTheme.heroCornerRadius))
+                        .shadow(
+                            color: didReveal ? GrooveOnboardingTheme.blueAccent.opacity(0.5) : .clear,
+                            radius: 20
+                        )
+                        .scaleEffect(didReveal ? 1.02 : 1.0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: didReveal)
                 }
+                .frame(width: GrooveOnboardingTheme.heroImageSize.width,
+                       height: GrooveOnboardingTheme.heroImageSize.height)
                 .padding(.top, GrooveOnboardingTheme.heroImageTopPadding)
 
                 Spacer()
 
-                // ── Bottom content ─────────────────────────────────────────────
-                if !didRevealResult {
-                    // State A / B — pre-selection & generating
+                // ── BOTTOM SECTION ─────────────────────────────────────────────
+                if !didReveal {
+                    // Pre-reveal: show dance selection
                     VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Pick a dance")
+                            Text("Now pick a dance")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("Tap to see it generate live.")
+                            Text("Tap one to see the magic")
                                 .font(.system(size: 16))
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(.white.opacity(0.55))
                         }
 
-                        if showPromptOptions {
-                            // Preset pills
-                            HStack(spacing: 12) {
-                                ForEach(GrooveDancePreset.allPresets) { preset in
-                                    Button(action: { handlePresetTap(preset) }) {
-                                        Text(preset.pillTitle)
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(.vertical, 14)
-                                            .padding(.horizontal, 20)
-                                            .frame(maxWidth: .infinity)
-                                            .background(Color.white.opacity(0.1))
-                                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 16)
-                                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                            )
-                                    }
-                                    .disabled(selectedPreset != nil)
+                        // Dance preset cards — horizontal row
+                        HStack(spacing: 12) {
+                            ForEach(onboardingPresets) { preset in
+                                DancePresetCard(
+                                    preset: preset,
+                                    isSelected: selectedDanceId == preset.id
+                                ) {
+                                    handleDanceTap(preset)
                                 }
                             }
-                            .transition(.opacity.combined(with: .scale))
-                        } else if showPromptBox {
-                            // Typewriter prompt box
-                            HStack(alignment: .top, spacing: 0) {
-                                (Text(displayedPrompt)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.white)
-                                + Text(cursorVisible && isGenerating ? "|" : "")
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundColor(GrooveOnboardingTheme.blueAccent))
-                                .lineLimit(nil)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-
-                                Spacer(minLength: 8)
-                            }
-                            .padding(16)
-                            .frame(maxWidth: .infinity)
-                            .frame(minHeight: 50)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(GrooveOnboardingTheme.blueAccent.opacity(0.5), lineWidth: 1)
-                            )
-                            .transition(.opacity.combined(with: .scale))
                         }
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
+                    .transition(.opacity)
 
                 } else {
-                    // State C — done
-                    VStack(spacing: 24) {
-                        VStack(spacing: 8) {
-                            Text("Done ✨")
-                                .font(.system(size: 36, weight: .bold))
+                    // Post-reveal: "It's alive!" + CTA
+                    VStack(spacing: 20) {
+                        VStack(spacing: 6) {
+                            Text("🔥 It's alive!")
+                                .font(.system(size: 36, weight: .heavy))
                                 .foregroundColor(.white)
-                            Text("Now try it on your own photo.")
-                                .font(.system(size: 16))
+                            Text("Now make YOUR photos dance.")
+                                .font(.system(size: 17))
                                 .foregroundColor(.white.opacity(0.7))
                                 .multilineTextAlignment(.center)
                         }
 
                         Button(action: onNext) {
-                            Text("Continue")
+                            Text("Start Dancing Free")
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -168,26 +114,20 @@ struct GrooveDanceSelectView: View {
                                     radius: 10, y: 5
                                 )
                         }
-                        .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
         }
-        .onAppear {
-            heroAssetName = ""   // no asset yet — shows emoji placeholder
-            startCursorBlink()
-        }
         .onDisappear {
-            typewriterTimer?.invalidate()
-            cursorTimer?.invalidate()
+            player?.pause()
+            NotificationCenter.default.removeObserver(self)
         }
     }
 
-    // ─── Hero content ─────────────────────────────────────────────────────────
-    // Shows the subject emoji placeholder. Once you have real assets, swap to Image(heroAssetName).
+    // ─── Hero content: image or video ─────────────────────────────────────────
     @ViewBuilder
     private var heroContent: some View {
         ZStack {
@@ -197,86 +137,118 @@ struct GrooveDanceSelectView: View {
                 endPoint: .bottomTrailing
             )
 
-            if heroAssetName.isEmpty {
-                // Placeholder — subject emoji
-                Text(state.subjectEmoji())
-                    .font(.system(size: 120))
-            } else {
-                Image(heroAssetName)
-                    .resizable()
+            if didReveal, let player = player {
+                // Video player
+                VideoPlayer(player: player)
                     .aspectRatio(contentMode: .fill)
-            }
-        }
-    }
-
-    // ─── Handlers ─────────────────────────────────────────────────────────────
-
-    private func handlePresetTap(_ preset: GrooveDancePreset) {
-        guard selectedPreset == nil else { return }
-        selectedPreset = preset
-        state.selectedDanceId = preset.id
-
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-            showPromptOptions = false
-            showPromptBox     = true
-            imagePulse        = true
-        }
-
-        startTypewriter(preset.promptText)
-
-        let typewriterDuration = Double(preset.promptText.count) * 0.025
-        DispatchQueue.main.asyncAfter(deadline: .now() + typewriterDuration) {
-            startGenerating(preset)
-        }
-    }
-
-    private func startTypewriter(_ text: String) {
-        typewriterTimer?.invalidate()
-        displayedPrompt = ""
-        let chars = Array(text)
-        var idx = 0
-        typewriterTimer = Timer.scheduledTimer(withTimeInterval: 0.025, repeats: true) { t in
-            if idx < chars.count {
-                displayedPrompt.append(chars[idx])
-                idx += 1
+                    .transition(.opacity.animation(.easeInOut(duration: 0.25)))
             } else {
-                t.invalidate()
+                // Static subject emoji (placeholder until real assets)
+                Text(demoEmoji)
+                    .font(.system(size: 120))
             }
         }
     }
 
-    private func startGenerating(_ preset: GrooveDancePreset) {
-        isGenerating = true
-        withAnimation(.easeIn(duration: 0.2)) { showGeneratingLabel = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            revealResult(preset)
-        }
+    private var demoEmoji: String {
+        state.selectedSubjectId == "dog" ? "🐕" : "👩"
     }
 
-    private func revealResult(_ preset: GrooveDancePreset) {
-        withAnimation(.easeOut(duration: 0.15)) { showGeneratingLabel = false }
-        withAnimation(.easeOut(duration: 0.2))  { imagePulse = false }
-        withAnimation(.easeInOut(duration: 0.2)) { imageOpacity = 0 }
+    // ─── Demo video URL for (subject, dance) combo ────────────────────────────
+    private func demoVideoURL(subjectId: String, danceId: String) -> URL? {
+        // Use R2 URL from DancePreset as fallback
+        guard let preset = DancePreset.allPresets.first(where: { $0.id == danceId }),
+              let urlString = preset.videoURL else {
+            return nil
+        }
+        return URL(string: urlString)
+    }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            // TODO: swap heroAssetName to the real generated video thumbnail
-            imageScale = 1.01
-            withAnimation(.easeOut(duration: 0.25))               { imageOpacity = 1 }
-            withAnimation(.easeOut(duration: 0.18).delay(0.05))   { imageScale   = 1 }
+    // ─── Handle dance tap ────────────────────────────────────────────────────
+    private func handleDanceTap(_ preset: DancePreset) {
+        guard selectedDanceId == nil else { return }  // prevent double-tap
+        selectedDanceId = preset.id
+        state.selectedDanceId = preset.id
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 
-            isGenerating    = false
-            didRevealResult = true
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        // Load video from R2
+        if let url = demoVideoURL(subjectId: state.selectedSubjectId, danceId: preset.id) {
+            let item = AVPlayerItem(url: url)
+            playerItem = item
+            player = AVPlayer(playerItem: item)
+            player?.actionAtItemEnd = .none  // loop
 
-            withAnimation(.easeInOut(duration: 0.25).delay(0.1)) {
-                showPromptBox = false
+            // Loop video
+            NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: item,
+                queue: .main
+            ) { _ in
+                player?.seek(to: .zero)
+                player?.play()
             }
         }
-    }
 
-    private func startCursorBlink() {
-        cursorTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-            cursorVisible.toggle()
+        // Reveal immediately (no generation delay)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            didReveal = true
         }
+        player?.play()
+
+        // Haptic burst for "magic" feel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+    }
+}
+
+// ─── Dance preset card (per spec) ─────────────────────────────────────────────
+
+private struct DancePresetCard: View {
+    let preset: DancePreset
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                // Badge
+                if let badge = preset.badge {
+                    Text(badge.rawValue)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(hex: 0xFF6B35))
+                        .clipShape(Capsule())
+                }
+
+                // Dance name
+                Text(preset.name)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected
+                        ? GrooveOnboardingTheme.blueAccent.opacity(0.3)
+                        : Color.white.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.15),
+                                lineWidth: isSelected ? 1.5 : 1
+                            )
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 0.96 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
     }
 }

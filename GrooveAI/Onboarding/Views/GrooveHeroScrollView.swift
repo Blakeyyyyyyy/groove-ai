@@ -1,6 +1,6 @@
 // GrooveHeroScrollView.swift
-// PAGE 1 — Two auto-scrolling card rows (one RTL, one LTR) + CTA.
-// Mirrors HeroTransformationView from Glow AI with 2 rows instead of 1.
+// PAGE 1 — Hero with auto-scrolling card rows + CTA
+// Per spec: headline BELOW scroll rows, "Let's Go →" CTA
 
 import SwiftUI
 import Combine
@@ -42,24 +42,9 @@ struct GrooveHeroScrollView: View {
             GrooveOnboardingTheme.radialGlow
 
             VStack(spacing: 0) {
-                // Header
-                VStack(spacing: 10) {
-                    Text("Make Anyone\nDrop the Beat")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
+                Spacer().frame(height: 40)
 
-                    Text("Pick a photo. Pick a dance. Watch the magic.")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 60)
-                .padding(.horizontal, 24)
-
-                Spacer()
-
-                // ── Two infinite scroll rows ──────────────────────────────────
+                // ── Two infinite scroll rows (TOP) ──────────────────────────────
                 VStack(spacing: 16) {
                     InfiniteScrollRow(cards: row1Cards, speed: 1.2, reversed: false)
                         .frame(height: 180)
@@ -69,9 +54,7 @@ struct GrooveHeroScrollView: View {
                 }
                 .clipped()
 
-                Spacer()
-
-                // Bottom gradient fade
+                // Fade gradient bottom edge
                 LinearGradient(
                     colors: [GrooveOnboardingTheme.background.opacity(0), GrooveOnboardingTheme.background],
                     startPoint: .top,
@@ -79,10 +62,28 @@ struct GrooveHeroScrollView: View {
                 )
                 .frame(height: 80)
                 .allowsHitTesting(false)
+                .offset(y: -20)
 
-                // CTA
+                // ── Headline + Subline (BELOW scroll rows per spec) ─────────────
+                VStack(spacing: 8) {
+                    Text("Make Anyone Drop the Beat")
+                        .font(.system(size: 34, weight: .heavy))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+
+                    Text("Pick a photo. Tap a dance. Watch the magic.")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.white.opacity(0.55))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 20)
+                .padding(.horizontal, 24)
+
+                Spacer().frame(minLength: 20)
+
+                // ── CTA Button ─────────────────────────────────────────────────
                 Button(action: onNext) {
-                    Text("Let's Begin")
+                    Text("Let's Go →")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -90,8 +91,8 @@ struct GrooveHeroScrollView: View {
                         .background(GrooveOnboardingTheme.blueAccent)
                         .clipShape(Capsule())
                         .shadow(
-                            color: GrooveOnboardingTheme.blueAccent.opacity(0.4),
-                            radius: 10, y: 5
+                            color: GrooveOnboardingTheme.blueAccent.opacity(0.45),
+                            radius: 12, y: 6
                         )
                 }
                 .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
@@ -105,7 +106,7 @@ struct GrooveHeroScrollView: View {
 
 struct InfiniteScrollRow: View {
     let cards:    [GrooveScrollCard]
-    let speed:    CGFloat          // points per tick
+    let speed:    CGFloat
     let reversed: Bool
 
     @State private var offset: CGFloat = 0
@@ -121,7 +122,6 @@ struct InfiniteScrollRow: View {
     var body: some View {
         GeometryReader { _ in
             HStack(spacing: cardGap) {
-                // Triplicate for smooth looping
                 ForEach(0..<30, id: \.self) { idx in
                     let card = cards[idx % cards.count]
                     GrooveScrollCardView(card: card)

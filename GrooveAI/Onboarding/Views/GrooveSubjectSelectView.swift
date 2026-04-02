@@ -1,6 +1,5 @@
 // GrooveSubjectSelectView.swift
-// PAGE 2 — Two tap-to-select subject cards (Dog / Person).
-// Selection auto-advances to Page 3 after a brief highlight delay.
+// PAGE 2 — Subject selection with "✦ Demo Mode" chip per spec
 
 import SwiftUI
 
@@ -14,19 +13,29 @@ struct GrooveSubjectSelectView: View {
             GrooveOnboardingTheme.radialGlow
 
             VStack(spacing: 0) {
-                Spacer()
+                Spacer().frame(height: 60)
+
+                // Demo Mode chip
+                Text("✦ Demo Mode")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(GrooveOnboardingTheme.blueAccent)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(GrooveOnboardingTheme.blueAccent.opacity(0.15))
+                    .clipShape(Capsule())
 
                 // Header
                 VStack(spacing: 8) {
-                    Text("Who's dancing?")
-                        .font(.system(size: 34, weight: .bold))
+                    Text("See how it works →")
+                        .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
 
-                    Text("Tap one to get started")
+                    Text("Pick your subject to start the demo")
                         .font(.system(size: 16))
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.white.opacity(0.55))
                 }
+                .padding(.top, 12)
                 .padding(.horizontal, 30)
 
                 Spacer().frame(height: 36)
@@ -44,14 +53,20 @@ struct GrooveSubjectSelectView: View {
                     SubjectCard(
                         emoji: "👩",
                         label: "Person",
-                        isSelected: state.selectedSubjectId == "woman"
+                        isSelected: state.selectedSubjectId == "person"
                     ) {
-                        handleSelect("woman")
+                        handleSelect("person")
                     }
                 }
                 .padding(.horizontal, 24)
 
                 Spacer()
+
+                // Bottom hint
+                Text("Tap to try your demo")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.35))
+                    .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
             }
         }
     }
@@ -60,8 +75,8 @@ struct GrooveSubjectSelectView: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             state.selectedSubjectId = id
         }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
             onNext()
         }
     }
@@ -96,7 +111,7 @@ private struct SubjectCard: View {
                             )
                     )
                     .shadow(
-                        color: isSelected ? GrooveOnboardingTheme.blueAccent.opacity(0.25) : .clear,
+                        color: isSelected ? GrooveOnboardingTheme.blueAccent.opacity(0.3) : .clear,
                         radius: 16
                     )
 
@@ -111,7 +126,7 @@ private struct SubjectCard: View {
             .aspectRatio(1, contentMode: .fit)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.03 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+        .scaleEffect(isSelected ? 1.04 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isSelected)
     }
 }
