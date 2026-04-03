@@ -146,7 +146,7 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
             videoURL: "\(r2Base)/Face%20Dance%20-%20She%20Call%20Me%20Mr.%20Boombastic%28new%29.mp4",
-            thumbnailURL: "https://v16-kling-fdl.klingai.com/bs2/upload-ylab-stunt-sgp/muse/864196381107044352/VIDEO/20260403/52d2961dcf91bc8bfcc69a1617b1c28c-e2277579-6193-4ffe-bb29-eb7b8e56f9b3.mp4"
+            thumbnailURL: nil
         ),
         DancePreset(
             id: "witch-doctor",

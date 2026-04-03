@@ -2,29 +2,19 @@ import SwiftUI
 
 struct DancePresetCard: View {
     let preset: DancePreset
-    
-    private var thumbnailVideoURL: URL? {
-        guard let urlString = preset.thumbnailURL else { return nil }
-        return URL(string: urlString)
-    }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Thumbnail video or gradient placeholder
-            if let videoURL = thumbnailVideoURL {
-                LoopingVideoView(url: videoURL, gravity: .resizeAspectFill)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.md))
-            } else {
-                LinearGradient(
-                    colors: [preset.placeholderGradientTop, preset.placeholderGradientBottom],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .overlay {
-                    Image(systemName: "figure.dance")
-                        .font(.system(size: 32))
-                        .foregroundStyle(.white.opacity(0.15))
-                }
+            // Thumbnail or gradient placeholder
+            LinearGradient(
+                colors: [preset.placeholderGradientTop, preset.placeholderGradientBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .overlay {
+                Image(systemName: "figure.dance")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white.opacity(0.15))
             }
 
             // Bottom gradient overlay for text readability
