@@ -40,6 +40,7 @@
 		BF_KLINGSERVICE /* KlingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_KLINGSERVICE /* KlingService.swift */; };
 		BF_MYVIDEOSVIEW /* MyVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MYVIDEOSVIEW /* MyVideosView.swift */; };
 		BF_NOTIFICATIONSERVICE /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFICATIONSERVICE /* NotificationService.swift */; };
+		BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */; };
 		BF_NOTIFPERMVIEW /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */; };
 		BF_ONBOARDINGCARD /* OnboardingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGCARD /* OnboardingCard.swift */; };
 		BF_ONBOARDINGFLOW /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGFLOW /* OnboardingFlow.swift */; };
@@ -97,6 +98,7 @@
 		FR_KLINGSERVICE /* KlingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KlingService.swift; sourceTree = "<group>"; };
 		FR_MYVIDEOSVIEW /* MyVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVideosView.swift; sourceTree = "<group>"; };
 		FR_NOTIFICATIONSERVICE /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptService.swift; sourceTree = "<group>"; };
 		FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGCARD /* OnboardingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCard.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGFLOW /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				FR_KLINGSERVICE /* KlingService.swift */,
 				FR_NOTIFICATIONSERVICE /* NotificationService.swift */,
 				FR_R2SERVICE /* R2Service.swift */,
+				FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */,
 				FR_REVENUECATSERVICE /* RevenueCatService.swift */,
 				FR_SUPABASESERVICE /* SupabaseService.swift */,
 			);
@@ -421,6 +424,7 @@
 				BF_CREDITSSERVICE /* CreditsService.swift in Sources */,
 				BF_GENERATIONSERVICE /* GenerationService.swift in Sources */,
 				BF_NOTIFICATIONSERVICE /* NotificationService.swift in Sources */,
+				BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */,
 				BF_PHOTOPICKER /* PhotoPicker.swift in Sources */,
 				BF_CREDITSINFOROW /* CreditsInfoRow.swift in Sources */,
 				BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */,

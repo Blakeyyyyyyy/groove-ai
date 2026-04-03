@@ -172,6 +172,9 @@ final class GenerationService {
                     }
                     appState.completeGeneration(videoID: videoId)
                     print("[Generation] 🎉 Generation complete! Phase set to .complete")
+
+                    // Trigger rating prompt after 1st and 2nd generations
+                    RatingPromptService.shared.didCompleteGeneration()
                 }
 
                 sendCompletionNotification()

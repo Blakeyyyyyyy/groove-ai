@@ -322,6 +322,7 @@ struct PaywallView: View {
                         appState.hasCompletedOnboarding = true
                         appState.showPaywall = false
                         isPurchasing = false
+                        RatingPromptService.shared.didSubscribe()
                     }
                     return
                 }
@@ -333,6 +334,7 @@ struct PaywallView: View {
                         appState.isSubscribed = true
                         appState.hasCompletedOnboarding = true
                         appState.showPaywall = false
+                        RatingPromptService.shared.didSubscribe()
                     }
                     isPurchasing = false
                 }

@@ -29,6 +29,9 @@ struct GrooveAIApp: App {
 
                     // Check weekly coin reset
                     CoinsService.checkWeeklyReset()
+
+                    // Show rating prompt if user just subscribed (post-purchase trigger)
+                    RatingPromptService.shared.checkPostPurchasePrompt()
                 }
         }
         .modelContainer(for: [GeneratedVideo.self])
