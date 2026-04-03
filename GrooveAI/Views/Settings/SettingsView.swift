@@ -1,14 +1,16 @@
 import SwiftUI
+import RevenueCat
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
+    @State private var showPlansSheet = false
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Spacing.xl) {
-                    // Coins Card
-                    coinsCard
+                    // Coins Balance Card (new component)
+                    GrooveCoinBalanceView()
                         .padding(.top, Spacing.sm)
 
                     // Subscription Card
@@ -38,76 +40,19 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-        }
-    }
-
-    // MARK: - Coins Card
-    private var coinsCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            HStack {
-                Image(systemName: "circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(Color.coinGold)
-                Text("Coins")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(Color.textPrimary)
-            }
-
-            // Large coin counter
-            Text("🪙 \(appState.coinsRemaining) coins remaining")
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.textPrimary)
-
-            Text("Resets Monday · 150 coins/week")
-                .font(.caption)
-                .foregroundStyle(Color.textSecondary)
-
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    // Track
-                    RoundedRectangle(cornerRadius: Radius.full)
-                        .fill(Color.bgElevated)
-                        .frame(height: 8)
-
-                    // Fill
-                    RoundedRectangle(cornerRadius: Radius.full)
-                        .fill(progressGradient)
-                        .frame(
-                            width: geo.size.width * progressFraction,
-                            height: 8
-                        )
-                }
-            }
-            .frame(height: 8)
-
-            if appState.coinsRemaining < 20 {
-                Text("⚠️ Low coins — \(appState.coinsUsed) / \(appState.coinsTotal) used")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.warning)
+            .sheet(isPresented: $showPlansSheet) {
+                GroovePlansSheet()
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(Color.bgPrimary)
             }
         }
-        .padding(Spacing.lg)
-        .background(Color.bgSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
-    }
-
-    private var progressFraction: CGFloat {
-        guard appState.coinsTotal > 0 else { return 0 }
-        return min(1.0, CGFloat(appState.coinsUsed) / CGFloat(appState.coinsTotal))
-    }
-
-    private var progressGradient: LinearGradient {
-        if appState.coinsRemaining < 20 {
-            return LinearGradient(colors: [Color.error, Color.error], startPoint: .leading, endPoint: .trailing)
-        }
-        return LinearGradient.accent
     }
 
     // MARK: - Subscription Card
     private var subscriptionCard: some View {
         Button {
-            // TODO: RevenueCat CustomerCenter
+            showPlansSheet = true
         } label: {
             HStack {
                 Image(systemName: "crown.fill")
@@ -165,7 +110,12 @@ struct SettingsView: View {
     // MARK: - Restore Card
     private var restoreCard: some View {
         Button {
-            // TODO: RevenueCat restore
+            Task {
+                let restored = await RevenueCatService.shared.restorePurchasesAsync()
+                if restored {
+                    appState.isSubscribed = true
+                }
+            }
         } label: {
             HStack {
                 Text("Restore Purchases")

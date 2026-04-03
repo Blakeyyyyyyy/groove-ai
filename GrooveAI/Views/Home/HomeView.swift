@@ -49,7 +49,7 @@ struct HomeView: View {
                         .foregroundStyle(Color.textPrimary)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    CoinsPillView(count: appState.coinsRemaining)
+                    AppHeaderCoinPill()
                 }
             }
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)

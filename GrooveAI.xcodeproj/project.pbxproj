@@ -20,6 +20,9 @@
 		BF_DESIGNTOKENS /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DESIGNTOKENS /* DesignTokens.swift */; };
 		BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EMPTYSTATEVIEW /* EmptyStateView.swift */; };
 		BF_EXITPOPUPVIEW /* ExitPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EXITPOPUPVIEW /* ExitPopupView.swift */; };
+		BF_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */; };
+		BF_GROOVEPLANSSHEET /* GroovePlansSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */; };
+		BF_GROOVECOINBALANCEVIEW /* GrooveCoinBalanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVECOINBALANCEVIEW /* GrooveCoinBalanceView.swift */; };
 		BF_GEMINISERVICE /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GEMINISERVICE /* GeminiService.swift */; };
 		BF_GENERATEDVIDEO /* GeneratedVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATEDVIDEO /* GeneratedVideo.swift */; };
 		BF_GENERATINGPILL /* GeneratingPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATINGPILL /* GeneratingPill.swift */; };
@@ -77,6 +80,9 @@
 		FR_DESIGNTOKENS /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		FR_EMPTYSTATEVIEW /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		FR_EXITPOPUPVIEW /* ExitPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitPopupView.swift; sourceTree = "<group>"; };
+		FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveCoinPurchaseSheet.swift; sourceTree = "<group>"; };
+		FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePlansSheet.swift; sourceTree = "<group>"; };
+		FR_GROOVECOINBALANCEVIEW /* GrooveCoinBalanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveCoinBalanceView.swift; sourceTree = "<group>"; };
 		FR_GEMINISERVICE /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		FR_GENERATEDVIDEO /* GeneratedVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedVideo.swift; sourceTree = "<group>"; };
 		FR_GENERATINGPILL /* GeneratingPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPill.swift; sourceTree = "<group>"; };
@@ -146,6 +152,7 @@
 			children = (
 				FR_CREDITSINFOROW /* CreditsInfoRow.swift */,
 				FR_EMPTYSTATEVIEW /* EmptyStateView.swift */,
+				FR_GROOVECOINBALANCEVIEW /* GrooveCoinBalanceView.swift */,
 				FR_GENERATINGPILL /* GeneratingPill.swift */,
 				FR_GRADIENTCTABUTTON /* GradientCTAButton.swift */,
 				FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */,
@@ -237,6 +244,8 @@
 			isa = PBXGroup;
 			children = (
 				FR_EXITPOPUPVIEW /* ExitPopupView.swift */,
+				FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */,
+				FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */,
 				FR_PAYWALLVIEW /* PaywallView.swift */,
 			);
 			path = Paywall;
@@ -446,6 +455,9 @@
 				BF_LOOPINGVIDEOVIEW /* LoopingVideoView.swift in Sources */,
 				BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */,
 				BF_EXITPOPUPVIEW /* ExitPopupView.swift in Sources */,
+				BF_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift in Sources */,
+				BF_GROOVEPLANSSHEET /* GroovePlansSheet.swift in Sources */,
+				BF_GROOVECOINBALANCEVIEW /* GrooveCoinBalanceView.swift in Sources */,
 				BF_PAYWALLVIEW /* PaywallView.swift in Sources */,
 				BF_DANCEPREVIEWVIEW /* DancePreviewView.swift in Sources */,
 				BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */,

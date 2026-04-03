@@ -49,7 +49,8 @@ struct UploadView: View {
             // Generate button — contained width, softer styling
             Button {
                 if selectedImage == nil { return }
-                if !appState.hasEnoughCoins {
+                // Generation guard: check coins >= 60 OR user is subscribed
+                if !appState.isSubscribed && !appState.hasEnoughCoins {
                     showCoinsPurchasePaywall = true
                 } else {
                     startGeneration()
@@ -105,9 +106,13 @@ struct UploadView: View {
             .presentationBackground(Color.bgSecondary)
         }
         .sheet(isPresented: $showCoinsPurchasePaywall) {
-            CoinsPurchasePaywallView {
+            GrooveCoinPurchaseSheet(onPurchaseComplete: {
                 showCoinsPurchasePaywall = false
-            }
+                // After purchase, retry generation if image is ready
+                if selectedImage != nil {
+                    startGeneration()
+                }
+            })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(Color.bgPrimary)
