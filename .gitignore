@@ -1,9 +1,5 @@
 .build/
 build/
-*.xcuserstate
 DerivedData/
+*.xcuserstate
 *.xcodeproj/project.xcworkspace/xcuserdata/
-build/
-.build/
-DerivedData/
-*.xcuserstate
