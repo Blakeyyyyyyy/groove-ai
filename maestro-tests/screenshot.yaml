@@ -1,0 +1,5 @@
+appId: com.grooveai.app
+---
+- launchApp
+- waitForAnimationToFinish:
+    duration: 2

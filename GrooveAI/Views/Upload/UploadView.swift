@@ -143,6 +143,7 @@ struct UploadView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, Spacing.xl)
             }
 
@@ -157,18 +158,22 @@ struct UploadView: View {
                     .padding(.bottom, Spacing.md)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: heroCardHeight)
+        .frame(width: heroCardWidth, height: heroCardHeight)
         .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.xl)
                 .stroke(Color.bgElevated, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.18), radius: 18, y: 10)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var heroCardWidth: CGFloat {
+        min(UIScreen.main.bounds.width - (Spacing.lg * 2), 340)
     }
 
     private var heroCardHeight: CGFloat {
-        min(UIScreen.main.bounds.height * 0.42, 330)
+        heroCardWidth * 1.25 // 4:5 portrait frame
     }
 
     private func startGeneration() {

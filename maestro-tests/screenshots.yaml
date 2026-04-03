@@ -1,0 +1,9 @@
+appId: com.grooveai.app
+---
+- launchApp
+- swipe: 
+    direction: UP
+    duration: 500
+- swipe: 
+    direction: DOWN  
+    duration: 500
