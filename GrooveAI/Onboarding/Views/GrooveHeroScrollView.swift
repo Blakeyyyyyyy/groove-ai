@@ -79,7 +79,8 @@ struct GrooveHeroScrollView: View {
                 .padding(.top, 20)
                 .padding(.horizontal, 24)
 
-                Spacer().frame(minLength: 20)
+                Spacer()
+                    .frame(height: 20)
 
                 // ── CTA Button ─────────────────────────────────────────────────
                 Button(action: onNext) {

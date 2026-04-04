@@ -75,7 +75,7 @@ struct GrooveDanceSelectView: View {
                         // Dance preset cards — horizontal row
                         HStack(spacing: 12) {
                             ForEach(onboardingPresets) { preset in
-                                DancePresetCard(
+                                DancePresetCardView(
                                     preset: preset,
                                     isSelected: selectedDanceId == preset.id
                                 ) {
@@ -204,7 +204,7 @@ struct GrooveDanceSelectView: View {
 
 // ─── Dance preset card (per spec) ─────────────────────────────────────────────
 
-private struct DancePresetCard: View {
+private struct DancePresetCardView: View {
     let preset: DancePreset
     let isSelected: Bool
     let onTap: () -> Void

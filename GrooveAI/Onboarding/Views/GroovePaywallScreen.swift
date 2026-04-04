@@ -283,15 +283,28 @@ struct GroovePaywallScreen: View {
         isRestoring = true
         purchaseError = nil
 
-        await rcService.restorePurchases()
-        let isEntitled = await rcService.checkPremium()
-
-        await MainActor.run {
-            isRestoring = false
-            if isEntitled {
-                onComplete()
+        do {
+            let restored = try await rcService.restorePurchases()
+            if restored {
+                let isEntitled = await rcService.checkPremium()
+                await MainActor.run {
+                    isRestoring = false
+                    if isEntitled {
+                        onComplete()
+                    } else {
+                        purchaseError = "No purchases found to restore."
+                    }
+                }
             } else {
-                purchaseError = "No purchases found to restore."
+                await MainActor.run {
+                    isRestoring = false
+                    purchaseError = "No purchases found to restore."
+                }
+            }
+        } catch {
+            await MainActor.run {
+                isRestoring = false
+                purchaseError = "Failed to restore: \(error.localizedDescription)"
             }
         }
     }

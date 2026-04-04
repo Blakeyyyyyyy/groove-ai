@@ -36,7 +36,6 @@
 		BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */; };
 		BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */; };
 		BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */; };
-		BF_GROOVERESULTVIEW /* GrooveResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTVIEW /* GrooveResultView.swift */; };
 		BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */; };
 		BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROBANNERVIEW /* HeroBannerView.swift */; };
 		BF_HOMEVIEW /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HOMEVIEW /* HomeView.swift */; };
@@ -96,7 +95,6 @@
 		FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingTheme.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingView.swift; sourceTree = "<group>"; };
 		FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreen.swift; sourceTree = "<group>"; };
-		FR_GROOVERESULTVIEW /* GrooveResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultView.swift; sourceTree = "<group>"; };
 		FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectView.swift; sourceTree = "<group>"; };
 		FR_HEROBANNERVIEW /* HeroBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroBannerView.swift; sourceTree = "<group>"; };
 		FR_HOMEVIEW /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -182,16 +180,16 @@
 				FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */,
 				GRP_GROOVEONBOARDING_VIEWS /* Views */,
 			);
-			path = Onboarding_New;
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		GRP_GROOVEONBOARDING_VIEWS /* Views */ = {
+			isa = PBXGroup;
 			isa = PBXGroup;
 			children = (
 				FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */,
 				FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */,
 				FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */,
-				FR_GROOVERESULTVIEW /* GrooveResultView.swift */,
 				FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */,
 			);
 			path = Views;
@@ -475,7 +473,6 @@
 				BF_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift in Sources */,
 				BF_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift in Sources */,
 				BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */,
-				BF_GROOVERESULTVIEW /* GrooveResultView.swift in Sources */,
 				BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
