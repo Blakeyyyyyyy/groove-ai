@@ -171,7 +171,6 @@
 			path = Design;
 			sourceTree = "<group>";
 		};
-		GRP_GROOVEONBOARDING /* Onboarding_New */ = {
 			isa = PBXGroup;
 			children = (
 				FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */,
@@ -345,7 +344,6 @@
 				GRP_SERVICES /* Services */,
 				GRP_UTILITIES /* Utilities */,
 				GRP_VIEWS /* Views */,
-				GRP_GROOVEONBOARDING /* Onboarding_New */,
 			);
 			path = GrooveAI;
 			sourceTree = "<group>";
