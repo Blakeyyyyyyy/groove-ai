@@ -151,9 +151,7 @@ struct GrooveCoinPurchaseSheet: View {
                         }
                     }
 
-                    Text("= \(pkg.dances) dances")
-                        .font(.caption)
-                        .foregroundStyle(Color.textSecondary)
+
                 }
 
                 Spacer()

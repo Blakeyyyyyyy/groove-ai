@@ -8,6 +8,7 @@ struct UploadView: View {
     @State private var selectedImage: UIImage?
     @State private var showPhotoPicker = false
     @State private var showCoinsPurchasePaywall = false
+    @State private var showSubscriptionPaywall = false
     @State private var showNotificationModal = false
     private let generationService = GenerationService()
 
@@ -49,10 +50,15 @@ struct UploadView: View {
             // Generate button — contained width, softer styling
             Button {
                 if selectedImage == nil { return }
-                // Generation guard: check coins >= 60 OR user is subscribed
-                if !appState.isSubscribed && !appState.hasEnoughCoins {
+                // CRITICAL: Show SUBSCRIPTION paywall for non-subscribers at this highest intent moment
+                // This is where user is most likely to convert
+                if !appState.isSubscribed {
+                    showSubscriptionPaywall = true
+                } else if !appState.hasEnoughCoins {
+                    // Subscribed but no coins → show coin purchase
                     showCoinsPurchasePaywall = true
                 } else {
+                    // Has subscription AND coins → generate
                     startGeneration()
                 }
             } label: {
@@ -117,6 +123,19 @@ struct UploadView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(Color.bgPrimary)
         }
+        .sheet(isPresented: $showSubscriptionPaywall) {
+            // Show subscription plans at highest intent moment
+            GroovePlansSheet(onPurchaseComplete: {
+                showSubscriptionPaywall = false
+                // After upgrade, retry generation if image is ready
+                if selectedImage != nil {
+                    startGeneration()
+                }
+            })
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color.bgPrimary)
+        }
     }
 
     @ViewBuilder
@@ -146,6 +165,13 @@ struct UploadView: View {
                             .font(.subheadline)
                             .foregroundStyle(Color.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        
+                        // Hint for best results
+                        Text("This dance works best with an image of 1 person, clearly visible of their body")
+                            .font(.caption)
+                            .foregroundStyle(Color.textTertiary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, Spacing.lg)
                     }
                 }
                 .padding(.horizontal, Spacing.xl)
@@ -173,7 +199,8 @@ struct UploadView: View {
     }
 
     private var heroCardHeight: CGFloat {
-        min(UIScreen.main.bounds.height * 0.42, 330)
+        // 30% larger tap area for easier photo selection
+        min(UIScreen.main.bounds.height * 0.55, 430)
     }
 
     private func startGeneration() {

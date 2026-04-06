@@ -18,6 +18,30 @@ struct CategorySwipeView: View {
         return category.presets[currentIndex]
     }
 
+    // MARK: - Next Video Hint
+
+    @ViewBuilder
+    private var nextVideoHint: some View {
+        if currentIndex < category.presets.count - 1 {
+            let nextName = category.presets[currentIndex + 1].name
+            HStack {
+                Spacer()
+                Text("Swipe to see \(nextName) →")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.xs)
+                    .background(Color.bgSecondary.opacity(0.8))
+                    .clipShape(Capsule())
+                Spacer()
+            }
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.2), value: currentIndex)
+        } else {
+            Spacer()
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Preset name — shown under category name for swipe context
@@ -37,7 +61,10 @@ struct CategorySwipeView: View {
                 }
             }
             .padding(.top, Spacing.md)
-            .padding(.bottom, Spacing.lg)
+            
+            // Hint of next video when not on last
+            nextVideoHint
+                .padding(.bottom, Spacing.lg)
 
             // Swipeable video preview cards — full DancePreviewView style
             TabView(selection: $currentIndex) {
@@ -120,8 +147,9 @@ struct SwipeablePresetCard: View {
                         )
                     )
 
+                // Using AudioLoopingVideoView for See All page — sound matters here
                 if let videoURL {
-                    LoopingVideoView(url: videoURL)
+                    AudioLoopingVideoView(url: videoURL)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading

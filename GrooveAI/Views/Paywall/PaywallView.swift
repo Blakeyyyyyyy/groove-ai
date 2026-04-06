@@ -4,7 +4,7 @@ import RevenueCat
 struct PaywallView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    @State private var showExitPopup = false
+    @State private var showExitOffer = false
     @State private var selectedPlan: PricingPlan = .annual
     @State private var isPurchasing = false
     @State private var purchaseError: String?
@@ -54,7 +54,7 @@ struct PaywallView: View {
                     HStack {
                         Spacer()
                         Button {
-                            showExitPopup = true
+                            showExitOffer = true
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.title3)
@@ -137,20 +137,17 @@ struct PaywallView: View {
                 }
             }
         }
-        .sheet(isPresented: $showExitPopup) {
-            ExitPopupView(
+        .fullScreenCover(isPresented: $showExitOffer) {
+            GrooveExitOfferView(
                 onSubscribe: {
-                    showExitPopup = false
+                    showExitOffer = false
                     handleSubscribe()
                 },
-                onDismiss: {
-                    showExitPopup = false
-                    dismiss()
+                onSkip: {
+                    showExitOffer = false
+                    appState.showPaywall = false
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.hidden)
-            .presentationBackground(Color.bgSecondary)
         }
     }
 

@@ -5,30 +5,34 @@ import AVFoundation
 struct LoopingVideoView: UIViewRepresentable {
     let url: URL
     var gravity: AVLayerVideoGravity = .resizeAspectFill
+    var isMuted: Bool = true  // Default silent for background loops
 
     func makeUIView(context: Context) -> LoopingPlayerUIView {
-        LoopingPlayerUIView(url: url, gravity: gravity)
+        LoopingPlayerUIView(url: url, gravity: gravity, isMuted: isMuted)
     }
 
-    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {}
+    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
+        uiView.setMuted(isMuted)
+    }
 }
 
-/// UIView that handles silent autoplay looping
+/// UIView that handles autoplay looping with optional audio
 final class LoopingPlayerUIView: UIView {
     private var playerLayer = AVPlayerLayer()
     private var playerLooper: AVPlayerLooper?
     private var queuePlayer: AVQueuePlayer?
+    private var player: AVQueuePlayer?
 
-    init(url: URL, gravity: AVLayerVideoGravity) {
+    init(url: URL, gravity: AVLayerVideoGravity, isMuted: Bool) {
         super.init(frame: .zero)
         backgroundColor = .clear
 
         let item = AVPlayerItem(url: url)
-        let player = AVQueuePlayer(playerItem: item)
-        playerLooper = AVPlayerLooper(player: player, templateItem: item)
+        player = AVQueuePlayer(playerItem: item)
+        playerLooper = AVPlayerLooper(player: player!, templateItem: item)
         
-        player.isMuted = true
-        player.play()
+        player?.isMuted = isMuted
+        player?.play()
         
         playerLayer.player = player
         playerLayer.videoGravity = gravity
@@ -36,6 +40,10 @@ final class LoopingPlayerUIView: UIView {
         layer.addSublayer(playerLayer)
         
         queuePlayer = player
+    }
+
+    func setMuted(_ muted: Bool) {
+        player?.isMuted = muted
     }
 
     required init?(coder: NSCoder) {
@@ -83,4 +91,17 @@ final class ControlledPlayerUIView: UIView {
         super.layoutSubviews()
         playerLayer.frame = bounds
     }
+}
+
+/// Audio-enabled version for sneak peek pages where sound matters
+struct AudioLoopingVideoView: UIViewRepresentable {
+    let url: URL
+    var gravity: AVLayerVideoGravity = .resizeAspectFill
+
+    func makeUIView(context: Context) -> LoopingPlayerUIView {
+        // Audio ON for sneak peek
+        LoopingPlayerUIView(url: url, gravity: gravity, isMuted: false)
+    }
+
+    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {}
 }

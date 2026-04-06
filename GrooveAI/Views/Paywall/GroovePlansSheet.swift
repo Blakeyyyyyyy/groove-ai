@@ -6,6 +6,8 @@ struct GroovePlansSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
+    var onPurchaseComplete: (() -> Void)?
+
     @State private var selectedTier: PlanTier = .pro
     @State private var isPurchasing = false
     @State private var isRestoring = false
@@ -235,6 +237,7 @@ struct GroovePlansSheet: View {
                     isPurchasing = false
                     if success {
                         appState.isSubscribed = true
+                        onPurchaseComplete?()
                         dismiss()
                     }
                 }
@@ -260,6 +263,7 @@ struct GroovePlansSheet: View {
                 isRestoring = false
                 if restored {
                     appState.isSubscribed = true
+                    onPurchaseComplete?()
                     dismiss()
                 } else {
                     purchaseError = "No active subscription found."

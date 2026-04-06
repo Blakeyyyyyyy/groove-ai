@@ -49,8 +49,9 @@ struct DancePreviewView: View {
                         )
                     )
 
+                // Using AudioLoopingVideoView for sneak peek — sound matters here
                 if let videoURL {
-                    LoopingVideoView(url: videoURL)
+                    AudioLoopingVideoView(url: videoURL)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading
@@ -68,6 +69,9 @@ struct DancePreviewView: View {
             .padding(.horizontal, Spacing.lg)
 
             Spacer()
+
+            // Bottom spacing — extra room so button doesn't touch video
+            Spacer().frame(height: Spacing.xl)
 
             // CTA
             NavigationLink(value: "upload-\(preset.id)") {

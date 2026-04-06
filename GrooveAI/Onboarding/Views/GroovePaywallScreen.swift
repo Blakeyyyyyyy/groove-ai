@@ -1,6 +1,6 @@
 // GroovePaywallScreen.swift
-// Groove AI — Paywall screen (V3 spec)
-// Uses RevenueCatService ONLY (no IAPManager, no CoinStore)
+// Groove AI — Paywall screen (V4 spec - NO FREE TRIAL)
+// Uses RevenueCatService ONLY
 
 import SwiftUI
 import RevenueCat
@@ -11,220 +11,164 @@ struct GroovePaywallScreen: View {
 
     @StateObject private var rcService = RevenueCatService.shared
 
-    enum PaywallPlan { case yearly, weekly }
+    enum PaywallPlan: String, CaseIterable { case yearly, weekly }
 
     @State private var selectedPlan: PaywallPlan = .yearly
     @State private var isPurchasing = false
     @State private var purchaseError: String?
-    @State private var showCloseButton = false
-    @State private var reviewIndex = 0
-    @State private var reviewTimer: Timer?
+    @State private var showExitPopup = false
+    @State private var heroIndex = 0
+    @State private var heroTimer: Timer?
     @State private var isRestoring = false
 
-    // Pricing constants (per spec)
-    private let annualPriceString = "$79.99/year"
-    private let annualPerWeekString = "$1.54/week"
-    private let weeklyIntroString = "$7.99/week"
-    private let weeklyOngoingString = "$9.99/week"
-    private let discountBadge = "85% OFF"
-    private let trialDays = 3
+    // Pricing constants (per spec - NO FREE TRIAL)
+    private let annualPrice: String = "$79.99/year"
+    private let annualPerWeek: String = "$1.54/week"
+    private let weeklyFirstWeek: String = "$7.99 first week"
+    private let weeklyOngoing: String = "$9.99/week"
+
+    // Computed discount
+    private var discountPercent: Int {
+        // (9.99 * 52 - 79.99) / (9.99 * 52) = ~85%
+        return 85
+    }
 
     var body: some View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // MARK: - Header Row with delayed X close
+                // MARK: - Top Bar (X dismiss + Restore)
                 HStack {
+                    // X dismiss button (top-left, 44pt tap target)
+                    Button(action: { showExitPopup = true }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Color(hex: 0x94A3B8))
+                            .frame(width: 44, height: 44)
+                            .background(Color(hex: 0x2B3750).opacity(0.6))
+                            .clipShape(Circle())
+                    }
+                    .padding(.leading, 16)
+                    .padding(.top, 8)
+
                     Spacer()
-                    if showCloseButton {
-                        Button(action: { onComplete() }) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(.white.opacity(0.35))
-                                .padding(12)
-                                .background(Color.white.opacity(0.08))
-                                .clipShape(Circle())
-                        }
-                        .padding(.trailing, 16)
-                        .padding(.top, 8)
-                        .transition(.opacity.animation(.easeIn(duration: 0.4)))
-                    }
-                }
 
-                // MARK: - Hero Copy (left-aligned per spec)
-                VStack(spacing: 8) {
-                    Text("Start your \(trialDays)-day FREE trial")
-                        .font(.system(size: 28, weight: .heavy))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                    Text("No charge today. Cancel anytime.")
-                        .font(.system(size: 15))
-                        .foregroundColor(.white.opacity(0.55))
-                }
-                .padding(.top, showCloseButton ? 8 : 24)
-                .padding(.horizontal, 24)
-
-                // MARK: - Timeline (Drops-style: Today → Day 3 → Day 4)
-                VStack(alignment: .leading, spacing: 0) {
-                    GrooveTimelineItem(
-                        icon: "lock.open.fill",
-                        iconColor: GrooveOnboardingTheme.blueAccent,
-                        title: "Today — Get full access free",
-                        subtitle: "All dances, unlimited videos",
-                        isActive: true,
-                        isLast: false
-                    )
-                    GrooveTimelineItem(
-                        icon: "bell.fill",
-                        iconColor: .white.opacity(0.4),
-                        title: "Day 2 — Reminder sent",
-                        subtitle: "We'll remind you before it ends",
-                        isActive: false,
-                        isLast: false
-                    )
-                    GrooveTimelineItem(
-                        icon: "creditcard.fill",
-                        iconColor: .white.opacity(0.4),
-                        title: "Day 4 — Subscription starts",
-                        subtitle: "Only if you choose to keep it",
-                        isActive: false,
-                        isLast: true
-                    )
-                }
-                .padding(.top, 20)
-                .padding(.horizontal, 36)
-
-                Spacer(minLength: 16)
-
-                // MARK: - Social Proof (star rating + rotating review)
-                VStack(spacing: 10) {
-                    HStack(spacing: 4) {
-                        ForEach(0..<5) { _ in
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color(hex: 0xFFD700))
-                        }
-                        Text("4.8 · 12k ratings")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
-                            .padding(.leading, 4)
-                    }
-
-                    Text(currentReviewText)
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 32)
-                        .animation(.easeInOut(duration: 0.4), value: reviewIndex)
-                }
-                .padding(.vertical, 12)
-
-                // MARK: - Plan Selection
-                VStack(spacing: 12) {
-                    // Annual plan (pre-selected)
-                    GroovePlanCard(
-                        isSelected: selectedPlan == .yearly,
-                        title: "Yearly",
-                        priceMain: annualPerWeekString,
-                        priceSub: annualPriceString + " billed annually",
-                        badgeTop: "3-day free trial",
-                        badgeCorner: discountBadge,
-                        action: { selectedPlan = .yearly }
-                    )
-
-                    // Weekly plan
-                    GroovePlanCard(
-                        isSelected: selectedPlan == .weekly,
-                        title: "Weekly",
-                        priceMain: weeklyIntroString,
-                        priceSub: "then \(weeklyOngoingString) • cancel anytime",
-                        badgeTop: nil,
-                        badgeCorner: nil,
-                        action: { selectedPlan = .weekly }
-                    )
-                }
-                .padding(.horizontal, 20)
-
-                Spacer(minLength: 8)
-
-                // MARK: - Error
-                if let error = purchaseError {
-                    Text(error)
-                        .font(.system(size: 13))
-                        .foregroundColor(.red.opacity(0.85))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 6)
-                }
-
-                // MARK: - CTA
-                Button(action: performPurchase) {
-                    Group {
-                        if isPurchasing {
-                            ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Text("Start Dancing Free")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 58)
-                    .background(GrooveOnboardingTheme.blueAccent)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: GrooveOnboardingTheme.blueAccent.opacity(0.45), radius: 12, y: 5)
-                }
-                .disabled(isPurchasing)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-                // MARK: - Footer
-                VStack(spacing: 10) {
-                    Text(selectedPlan == .yearly
-                        ? "3 days free, then \(annualPriceString) (\(annualPerWeekString))"
-                        : "\(weeklyIntroString) first week, then \(weeklyOngoingString)")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.35))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-
-                    HStack(spacing: 20) {
-                        Button("Restore") {
-                            Task { await performRestore() }
-                        }
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.35))
-
-                        Text("·").foregroundColor(.white.opacity(0.2))
-
-                        Link("Privacy", destination: URL(string: "https://yourapp.com/privacy")!)
+                    // Restore button (top-right)
+                    Button(action: { Task { await performRestore() } }) {
+                        Text("Restore")
                             .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.35))
+                            .foregroundColor(Color(hex: 0x64748B))
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.top, 8)
+                    .disabled(isRestoring)
+                }
 
-                        Text("·").foregroundColor(.white.opacity(0.2))
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // MARK: - Hero Output Collage (42% screen height)
+                        heroSection
+                            .frame(height: UIScreen.main.bounds.height * 0.42)
 
-                        Link("Terms", destination: URL(string: "https://yourapp.com/terms")!)
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.35))
+                        // MARK: - Headline + Subheadline
+                        VStack(spacing: 8) {
+                            Text("Your Photo. Dancing. In Minutes.")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(Color(hex: 0xF1F5F9))
+                                .multilineTextAlignment(.center)
+
+                            Text("Upload a photo of your pet, baby, or anyone — watch them dance to any style.")
+                                .font(.system(size: 15))
+                                .foregroundColor(Color(hex: 0x94A3B8))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 20)
+
+                        // MARK: - Feature Bullets (icon grid)
+                        featureBullets
+                            .padding(.top, 20)
+                            .padding(.horizontal, 16)
+
+                        // MARK: - Pricing Plan Cards
+                        pricingSection
+                            .padding(.top, 20)
+                            .padding(.horizontal, 16)
+
+                        // MARK: - Pricing Timeline (INSTANT · $7.99 · $9.99/wk)
+                        pricingTimeline
+                            .padding(.top, 16)
+                            .padding(.horizontal, 16)
+
+                        Spacer(minLength: 100)
                     }
                 }
-                .padding(.top, 8)
-                .padding(.bottom, 36)
+
+                // MARK: - Sticky Bottom CTA Zone
+                VStack(spacing: 0) {
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+
+                    VStack(spacing: 8) {
+                        // Primary CTA button
+                        Button(action: performPurchase) {
+                            Group {
+                                if isPurchasing {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Text("$7.99 to Start")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                LinearGradient(
+                                    colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .disabled(isPurchasing)
+                        .padding(.horizontal, 16)
+
+                        // Reassurance text
+                        Text("✓ first week $7.99 • cancel anytime in Settings")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: 0x94A3B8))
+                            .multilineTextAlignment(.center)
+
+                        // Legal links
+                        HStack(spacing: 4) {
+                            Link("Terms", destination: URL(string: "https://yourapp.com/terms")!)
+                                .font(.system(size: 11))
+                                .foregroundColor(Color(hex: 0x64748B))
+
+                            Text("·")
+                                .foregroundColor(Color(hex: 0x64748B).opacity(0.5))
+
+                            Link("Privacy", destination: URL(string: "https://yourapp.com/privacy")!)
+                                .font(.system(size: 11))
+                                .foregroundColor(Color(hex: 0x64748B))
+                        }
+                    }
+                    .padding(.vertical, 16)
+                    .background(GrooveOnboardingTheme.background)
+                }
             }
         }
         .onAppear {
-            // Show X close button after 3 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showCloseButton = true
+            // Start hero carousel animation
+            heroTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    heroIndex = (heroIndex + 1) % 3
                 }
-            }
-
-            // Start review rotation
-            reviewTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-                reviewIndex = (reviewIndex + 1) % 3
             }
 
             // Load offerings
@@ -233,22 +177,329 @@ struct GroovePaywallScreen: View {
             }
         }
         .onDisappear {
-            reviewTimer?.invalidate()
+            heroTimer?.invalidate()
+        }
+        .sheet(isPresented: $showExitPopup) {
+            ExitPopupView(
+                onSubscribe: {
+                    showExitPopup = false
+                    // Could trigger purchase here
+                },
+                onDismiss: {
+                    showExitPopup = false
+                    onComplete()
+                }
+            )
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(Color.black.opacity(0.85))
         }
     }
 
-    // MARK: - Review text rotation
-    private let reviewTexts = [
-        "pranked my boyfriend and he literally couldn't tell it was AI 😭",
-        "used this for my instagram and got 47k views on the first reel",
-        "my mum actually believed the photo was real. best app ever!"
-    ]
+    // MARK: - Hero Output Collage
 
-    private var currentReviewText: String {
-        reviewTexts[reviewIndex]
+    private var heroSection: some View {
+        ZStack {
+            // Background gradient glow
+            LinearGradient(
+                colors: [
+                    GrooveOnboardingTheme.blueAccent.opacity(0.15),
+                    Color.clear,
+                    Color(hex: 0xFF6B9D).opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            // Three dancing output cards (horizontal)
+            HStack(spacing: 12) {
+                ForEach(0..<3) { index in
+                    VStack {
+                        // Placeholder for dancing output
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: index == 0 ? [Color(hex: 0xFF6B9D), Color(hex: 0xFF8FAE)] :
+                                           index == 1 ? [GrooveOnboardingTheme.blueAccent, Color(hex: 0x6366F1)] :
+                                           [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                VStack {
+                                    Spacer()
+                                    HStack {
+                                        Text(index == 0 ? "🐕 Dog" : index == 1 ? "👶 Baby" : "💃 Hip Hop")
+                                            .font(.system(size: 11, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color.black.opacity(0.3))
+                                            .clipShape(Capsule())
+                                    }
+                                    .padding(12)
+                                },
+                                alignment: .bottomLeading
+                            )
+                            .opacity(heroIndex == index ? 1 : 0.5)
+                            .scaleEffect(heroIndex == index ? 1.0 : 0.92)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: heroIndex)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 180)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
     }
 
-    // MARK: - Purchase
+    // MARK: - Feature Bullets (Icon Grid)
+
+    private var featureBullets: some View {
+        let features: [(icon: String, label: String)] = [
+            ("wand.and.stars", "AI Dance Videos"),
+            ("photo", "Any Photo Works"),
+            ("music.note", "20+ Dance Styles"),
+            ("square.and.arrow.up", "Share Instantly"),
+            ("bolt.fill", "Ready in Minutes"),
+            ("arrow.counterclockwise", "Unlimited Generates")
+        ]
+
+        let rows = [
+            [features[0], features[1]],
+            [features[2], features[3]],
+            [features[4], features[5]]
+        ]
+
+        return VStack(spacing: 12) {
+            ForEach(0..<rows.count, id: \.self) { row in
+                HStack(spacing: 8) {
+                    ForEach(0..<rows[row].count, id: \.self) { col in
+                        let feature = rows[row][col]
+                        HStack(spacing: 8) {
+                            Image(systemName: feature.icon)
+                                .font(.system(size: 16))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                            Text(feature.label)
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: 0xF1F5F9))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Pricing Section
+
+    private var pricingSection: some View {
+        VStack(spacing: 8) {
+            // Section label
+            Text("Choose Your Plan")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Color(hex: 0x64748B))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Weekly plan card
+            planCard(
+                plan: .weekly,
+                title: "Weekly",
+                priceMain: weeklyOngoing,
+                priceSub: "billed weekly",
+                badge: nil,
+                isSelected: selectedPlan == .weekly
+            )
+
+            // Yearly plan card (pre-selected, gradient border)
+            planCard(
+                plan: .yearly,
+                title: "Yearly",
+                priceMain: annualPerWeek,
+                priceSub: "billed \(annualPrice) annually",
+                badge: "\(discountPercent)% OFF",
+                isSelected: selectedPlan == .yearly
+            )
+        }
+    }
+
+    private func planCard(plan: PaywallPlan, title: String, priceMain: String, priceSub: String, badge: String?, isSelected: Bool) -> some View {
+        Button(action: { withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { selectedPlan = plan } }) {
+            ZStack(alignment: .topTrailing) {
+                // Card background
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: 0x1E293B))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(isSelected ? Color.clear : Color(hex: 0x2B3750), lineWidth: 1)
+                    )
+
+                // Gradient border for selected
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            lineWidth: 2
+                        )
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(title)
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundColor(Color(hex: 0xF1F5F9))
+
+                            Text(priceMain)
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundColor(Color(hex: 0xF1F5F9))
+                        }
+
+                        Spacer()
+
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        }
+                    }
+
+                    Text(priceSub)
+                        .font(.system(size: 15))
+                        .foregroundColor(Color(hex: 0x94A3B8))
+                }
+                .padding(16)
+
+                // Top-right badge
+                if let badge = badge, isSelected {
+                    Text(badge)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            LinearGradient(
+                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(Capsule())
+                        .offset(x: -8, y: -8)
+                }
+            }
+            .frame(height: 72)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    // MARK: - Pricing Timeline (INSTANT · $7.99 · $9.99/wk)
+
+    private var pricingTimeline: some View {
+        VStack(spacing: 0) {
+            Text("How Your Pricing Works")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Color(hex: 0x64748B))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 12)
+
+            HStack(spacing: 0) {
+                // Step 1: Instant
+                VStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    Text("Instant")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Color(hex: 0xF1F5F9))
+                    Text("Access now")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: 0x94A3B8))
+                }
+                .frame(maxWidth: .infinity)
+
+                // Dashed connector
+                Rectangle()
+                    .fill(Color(hex: 0x64748B).opacity(0.3))
+                    .frame(height: 1)
+                    .frame(maxWidth: 40)
+
+                // Step 2: $7.99
+                VStack(spacing: 4) {
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    Text("$7.99")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Color(hex: 0xF1F5F9))
+                    Text("first week only")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: 0x94A3B8))
+                }
+                .frame(maxWidth: .infinity)
+
+                // Dashed connector
+                Rectangle()
+                    .fill(Color(hex: 0x64748B).opacity(0.3))
+                    .frame(height: 1)
+                    .frame(maxWidth: 40)
+
+                // Step 3: $9.99/wk
+                VStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    Text("Save")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Color(hex: 0xF1F5F9))
+                    Text("85% off annual")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: 0x94A3B8))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(16)
+            .background(Color(hex: 0x1E293B))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    // MARK: - Purchase Logic
 
     private func performPurchase() {
         purchaseError = nil
@@ -310,118 +561,12 @@ struct GroovePaywallScreen: View {
     }
 }
 
-// MARK: - Timeline Item with icon (per spec)
+// MARK: - Array Extension for chunking
 
-struct GrooveTimelineItem: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let isActive: Bool
-    let isLast: Bool
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(iconColor)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white)
-                Text(subtitle)
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.55))
-            }
-
-            Spacer()
+extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
         }
-        .padding(.vertical, 8)
-    }
-}
-
-// MARK: - Plan Card (per spec)
-
-struct GroovePlanCard: View {
-    let isSelected: Bool
-    let title: String
-    let priceMain: String
-    let priceSub: String
-    let badgeTop: String?
-    let badgeCorner: String?
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            ZStack(alignment: .top) {
-                // Card background
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.08))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.12),
-                                lineWidth: isSelected ? 2 : 1
-                            )
-                    )
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        // Title + price
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(title)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
-
-                            Text(priceMain)
-                                .font(.system(size: 20, weight: .heavy))
-                                .foregroundColor(.white)
-                        }
-
-                        Spacer()
-
-                        // Checkmark when selected
-                        if isSelected {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(GrooveOnboardingTheme.blueAccent)
-                        }
-                    }
-
-                    // Subtitle
-                    Text(priceSub)
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.5))
-                }
-                .padding(16)
-
-                // Top badge (e.g., "3-day free trial")
-                if let badge = badgeTop {
-                    Text(badge)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(GrooveOnboardingTheme.blueAccent)
-                        .clipShape(Capsule())
-                        .offset(y: -12)
-                }
-
-                // Corner badge (e.g., "85% OFF")
-                if let badge = badgeCorner, isSelected {
-                    Text(badge)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color(hex: 0xFF6B6B))
-                        .clipShape(Capsule())
-                        .offset(x: 100, y: -12)
-                }
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
