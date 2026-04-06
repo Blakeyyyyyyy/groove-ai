@@ -50,9 +50,16 @@ struct GrooveOnboardingView: View {
                     ))
 
             case 4:
-                GroovePaywallScreen(onComplete: onComplete)
+                TrialEnabledScreen(onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
+                        removal:   .opacity
+                    ))
+
+            case 5:
+                GroovePaywallScreen(onComplete: onComplete)
+                    .transition(.asymmetric(
+                        insertion: .opacity,
                         removal:   .move(edge: .leading)
                     ))
 
