@@ -1,10 +1,10 @@
 // GroovePaywallScreen.swift
-// Groove AI — Paywall screen (V4 spec - NO FREE TRIAL)
-// Uses RevenueCatService ONLY
+// Groove AI — Single-screen no-scroll paywall (visual spec V5)
+// NO ScrollView — fits above fold on iPhone Pro
+// Pricing: $7.99 first week, then $9.99/week (no free trial)
 
 import SwiftUI
 import RevenueCat
-import UserNotifications
 
 struct GroovePaywallScreen: View {
     let onComplete: () -> Void
@@ -17,173 +17,89 @@ struct GroovePaywallScreen: View {
     @State private var isPurchasing = false
     @State private var purchaseError: String?
     @State private var showExitPopup = false
-    @State private var heroIndex = 0
-    @State private var heroTimer: Timer?
     @State private var isRestoring = false
 
-    // Pricing constants (per spec - NO FREE TRIAL)
-    private let annualPrice: String = "$79.99/year"
-    private let annualPerWeek: String = "$1.54/week"
-    private let weeklyFirstWeek: String = "$7.99 first week"
-    private let weeklyOngoing: String = "$9.99/week"
-
-    // Computed discount
-    private var discountPercent: Int {
-        // (9.99 * 52 - 79.99) / (9.99 * 52) = ~85%
-        return 85
-    }
+    // MARK: - Body
 
     var body: some View {
         ZStack {
-            GrooveOnboardingTheme.background.ignoresSafeArea()
+            // Background
+            Color(hex: 0x0F172A).ignoresSafeArea()
 
+            // Subtle radial glow
+            RadialGradient(
+                colors: [Color(hex: 0x8B5CF6).opacity(0.08), Color.clear],
+                center: .top,
+                startRadius: 40,
+                endRadius: 350
+            )
+            .ignoresSafeArea()
+
+            // Main content — NO ScrollView
             VStack(spacing: 0) {
-                // MARK: - Top Bar (X dismiss + Restore)
+                // Top bar
+                topBar
+
+                // Hero collage — 30% screen height
+                heroCollage
+                    .frame(height: UIScreen.main.bounds.height * 0.28)
+                    .padding(.top, 4)
+
+                // Headline + Subheadline
+                VStack(spacing: 6) {
+                    Text("Make Anyone Dance")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(Color(hex: 0xF1F5F9))
+                        .lineLimit(1)
+
+                    Text("Upload a photo of your pet, baby, or anyone — watch them dance to any style.")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: 0x94A3B8))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+
+                // Feature bullets — max 4, 2 columns
+                featureBulletsGrid
+                    .padding(.horizontal, 16)
+                    .padding(.top, 14)
+
+                // Plan cards
+                planCardsSection
+                    .padding(.horizontal, 16)
+                    .padding(.top, 14)
+
+                Spacer(minLength: 0)
+            }
+
+            // Sticky bottom CTA zone
+            VStack {
+                Spacer()
+                bottomCTAZone
+            }
+
+            // Dismiss X — top-left, absolute positioned
+            VStack {
                 HStack {
-                    // X dismiss button (top-left, 44pt tap target)
-                    Button(action: { showExitPopup = true }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: 0x94A3B8))
-                            .frame(width: 44, height: 44)
-                            .background(Color(hex: 0x2B3750).opacity(0.6))
-                            .clipShape(Circle())
-                    }
-                    .padding(.leading, 16)
-                    .padding(.top, 8)
-
+                    dismissButton
                     Spacer()
-
-                    // Restore button (top-right)
-                    Button(action: { Task { await performRestore() } }) {
-                        Text("Restore")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: 0x64748B))
-                    }
-                    .padding(.trailing, 16)
-                    .padding(.top, 8)
-                    .disabled(isRestoring)
+                    restoreButton
                 }
-
-                VStack(spacing: 12) { // NO-SCROLL - single screen
-                    VStack(spacing: 0) {
-                        // MARK: - Hero Output Collage (42% screen height)
-                        heroSection
-                            .frame(height: UIScreen.main.bounds.height * 0.42)
-
-                        // MARK: - Headline + Subheadline
-                        VStack(spacing: 8) {
-                            Text("Your Photo. Dancing. In Minutes.")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(Color(hex: 0xF1F5F9))
-                                .multilineTextAlignment(.center)
-
-                            Text("Upload a photo of your pet, baby, or anyone — watch them dance to any style.")
-                                .font(.system(size: 15))
-                                .foregroundColor(Color(hex: 0x94A3B8))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 20)
-
-                        // MARK: - Feature Bullets (icon grid)
-                        featureBullets
-                            .padding(.top, 20)
-                            .padding(.horizontal, 16)
-
-                        // MARK: - Pricing Plan Cards
-                        pricingSection
-                            .padding(.top, 20)
-                            .padding(.horizontal, 16)
-
-                        // MARK: - Pricing Timeline (INSTANT · $7.99 · $9.99/wk)
-                        pricingTimeline
-                            .padding(.top, 16)
-                            .padding(.horizontal, 16)
-
-                        Spacer(minLength: 100)
-                    }
-                }
-
-                // MARK: - Sticky Bottom CTA Zone
-                VStack(spacing: 0) {
-                    Divider()
-                        .background(Color.white.opacity(0.1))
-
-                    VStack(spacing: 8) {
-                        // Primary CTA button
-                        Button(action: performPurchase) {
-                            Group {
-                                if isPurchasing {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                } else {
-                                    Text("$7.99 to Start")
-                                        .font(.system(size: 17, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                LinearGradient(
-                                    colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                        }
-                        .disabled(isPurchasing)
-                        .padding(.horizontal, 16)
-
-                        // Reassurance text
-                        Text("✓ first week $7.99 • cancel anytime in Settings")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: 0x94A3B8))
-                            .multilineTextAlignment(.center)
-
-                        // Legal links
-                        HStack(spacing: 4) {
-                            Link("Terms", destination: URL(string: "https://yourapp.com/terms")!)
-                                .font(.system(size: 11))
-                                .foregroundColor(Color(hex: 0x64748B))
-
-                            Text("·")
-                                .foregroundColor(Color(hex: 0x64748B).opacity(0.5))
-
-                            Link("Privacy", destination: URL(string: "https://yourapp.com/privacy")!)
-                                .font(.system(size: 11))
-                                .foregroundColor(Color(hex: 0x64748B))
-                        }
-                    }
-                    .padding(.vertical, 16)
-                    .background(GrooveOnboardingTheme.background)
-                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                Spacer()
             }
         }
         .onAppear {
-            // Start hero carousel animation
-            heroTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    heroIndex = (heroIndex + 1) % 3
-                }
-            }
-
-            // Load offerings
-            Task {
-                await rcService.fetchOfferings()
-            }
-        }
-        .onDisappear {
-            heroTimer?.invalidate()
+            Task { await rcService.fetchOfferings() }
         }
         .sheet(isPresented: $showExitPopup) {
             ExitPopupView(
                 onSubscribe: {
                     showExitPopup = false
-                    // Could trigger purchase here
+                    performPurchase()
                 },
                 onDismiss: {
                     showExitPopup = false
@@ -196,324 +112,353 @@ struct GroovePaywallScreen: View {
         }
     }
 
-    // MARK: - Hero Output Collage
+    // MARK: - Top Bar (invisible spacer for safe area)
 
-    private var heroSection: some View {
-        ZStack {
-            // Background gradient glow
-            LinearGradient(
-                colors: [
-                    GrooveOnboardingTheme.blueAccent.opacity(0.15),
-                    Color.clear,
-                    Color(hex: 0xFF6B9D).opacity(0.1)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+    private var topBar: some View {
+        HStack {
+            Spacer()
+        }
+        .frame(height: 44)
+    }
 
-            // Three dancing output cards (horizontal)
-            HStack(spacing: 12) {
-                ForEach(0..<3) { index in
-                    VStack {
-                        // Placeholder for dancing output
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                LinearGradient(
-                                    colors: index == 0 ? [Color(hex: 0xFF6B9D), Color(hex: 0xFF8FAE)] :
-                                           index == 1 ? [GrooveOnboardingTheme.blueAccent, Color(hex: 0x6366F1)] :
-                                           [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(
-                                VStack {
-                                    Spacer()
-                                    HStack {
-                                        Text(index == 0 ? "🐕 Dog" : index == 1 ? "👶 Baby" : "💃 Hip Hop")
-                                            .font(.system(size: 11, weight: .medium))
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(Color.black.opacity(0.3))
-                                            .clipShape(Capsule())
-                                    }
-                                    .padding(12)
-                                },
-                                alignment: .bottomLeading
-                            )
-                            .opacity(heroIndex == index ? 1 : 0.5)
-                            .scaleEffect(heroIndex == index ? 1.0 : 0.92)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: heroIndex)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 180)
-                }
-            }
-            .padding(.horizontal, 16)
+    // MARK: - Dismiss Button (top-left, 44pt tap target)
+
+    private var dismissButton: some View {
+        Button(action: { showExitPopup = true }) {
+            Image(systemName: "xmark")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(hex: 0x94A3B8))
+                .frame(width: 44, height: 44)
+                .background(Color(hex: 0x2B3750).opacity(0.6))
+                .clipShape(Circle())
         }
     }
 
-    // MARK: - Feature Bullets (Icon Grid)
+    // MARK: - Restore Button (top-right)
 
-    private var featureBullets: some View {
-        let features: [(icon: String, label: String)] = [
+    private var restoreButton: some View {
+        Button(action: { Task { await performRestore() } }) {
+            Text("Restore")
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: 0x64748B))
+                .frame(height: 44)
+        }
+        .disabled(isRestoring)
+    }
+
+    // MARK: - Hero Output Collage (30% screen)
+
+    private var heroCollage: some View {
+        HStack(spacing: 10) {
+            heroCard(
+                label: "Dog",
+                colors: [Color(hex: 0xFF6B9D), Color(hex: 0xFF8FAE)]
+            )
+            heroCard(
+                label: "Baby",
+                colors: [Color(hex: 0x3B82F6), Color(hex: 0x6366F1)]
+            )
+            heroCard(
+                label: "Hip Hop",
+                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)]
+            )
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private func heroCard(label: String, colors: [Color]) -> some View {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: colors,
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            // Subtle glow border
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color(hex: 0x8B5CF6).opacity(0.3), Color(hex: 0xFF6B9D).opacity(0.12)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+
+            // Label pill
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color.black.opacity(0.35))
+                .clipShape(Capsule())
+                .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Feature Bullets (2x2 grid, max 4)
+
+    private var featureBulletsGrid: some View {
+        let features: [(String, String)] = [
             ("wand.and.stars", "AI Dance Videos"),
             ("photo", "Any Photo Works"),
             ("music.note", "20+ Dance Styles"),
             ("square.and.arrow.up", "Share Instantly"),
-            ("bolt.fill", "Ready in Minutes"),
-            ("arrow.counterclockwise", "Unlimited Generates")
         ]
 
-        let rows = [
-            [features[0], features[1]],
-            [features[2], features[3]],
-            [features[4], features[5]]
-        ]
-
-        return VStack(spacing: 12) {
-            ForEach(0..<rows.count, id: \.self) { row in
+        return LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ],
+            spacing: 10
+        ) {
+            ForEach(features, id: \.0) { icon, label in
                 HStack(spacing: 8) {
-                    ForEach(0..<rows[row].count, id: \.self) { col in
-                        let feature = rows[row][col]
-                        HStack(spacing: 8) {
-                            Image(systemName: feature.icon)
-                                .font(.system(size: 16))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                            Text(feature.label)
-                                .font(.system(size: 13))
-                                .foregroundColor(Color(hex: 0xF1F5F9))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 20)
+
+                    Text(label)
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: 0xF1F5F9))
+                        .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
 
-    // MARK: - Pricing Section
+    // MARK: - Plan Cards (Yearly pre-selected, Weekly)
 
-    private var pricingSection: some View {
+    private var planCardsSection: some View {
         VStack(spacing: 8) {
-            // Section label
-            Text("Choose Your Plan")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: 0x64748B))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Weekly plan card
-            planCard(
-                plan: .weekly,
-                title: "Weekly",
-                priceMain: weeklyOngoing,
-                priceSub: "billed weekly",
-                badge: nil,
-                isSelected: selectedPlan == .weekly
-            )
-
-            // Yearly plan card (pre-selected, gradient border)
+            // Yearly card — pre-selected
             planCard(
                 plan: .yearly,
                 title: "Yearly",
-                priceMain: annualPerWeek,
-                priceSub: "billed \(annualPrice) annually",
-                badge: "\(discountPercent)% OFF",
+                priceMain: "$1.92/week",
+                priceSub: "$99.99/year",
+                badge: "SAVE 80%",
                 isSelected: selectedPlan == .yearly
+            )
+
+            // Weekly card
+            planCard(
+                plan: .weekly,
+                title: "Weekly",
+                priceMain: "$9.99/week",
+                priceSub: "first week $7.99",
+                badge: nil,
+                isSelected: selectedPlan == .weekly
             )
         }
     }
 
-    private func planCard(plan: PaywallPlan, title: String, priceMain: String, priceSub: String, badge: String?, isSelected: Bool) -> some View {
-        Button(action: { withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { selectedPlan = plan } }) {
+    private func planCard(
+        plan: PaywallPlan,
+        title: String,
+        priceMain: String,
+        priceSub: String,
+        badge: String?,
+        isSelected: Bool
+    ) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                selectedPlan = plan
+            }
+        } label: {
             ZStack(alignment: .topTrailing) {
-                // Card background
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: 0x1E293B))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isSelected ? Color.clear : Color(hex: 0x2B3750), lineWidth: 1)
-                    )
+                HStack {
+                    // Left: plan name + secondary price
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color(hex: 0xF1F5F9))
 
-                // Gradient border for selected
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            LinearGradient(
-                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            lineWidth: 2
-                        )
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(title)
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(Color(hex: 0xF1F5F9))
-
-                            Text(priceMain)
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(Color(hex: 0xF1F5F9))
-                        }
-
-                        Spacer()
-
-                        if isSelected {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                        }
+                        Text(priceSub)
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(hex: 0x94A3B8))
                     }
 
-                    Text(priceSub)
-                        .font(.system(size: 15))
-                        .foregroundColor(Color(hex: 0x94A3B8))
-                }
-                .padding(16)
+                    Spacer()
 
-                // Top-right badge
-                if let badge = badge, isSelected {
+                    // Right: main price + selection indicator
+                    HStack(spacing: 12) {
+                        Text(priceMain)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color(hex: 0xF1F5F9))
+
+                        // Radio indicator
+                        ZStack {
+                            Circle()
+                                .stroke(
+                                    isSelected
+                                        ? Color(hex: 0x8B5CF6)
+                                        : Color(hex: 0x2B3750),
+                                    lineWidth: 2
+                                )
+                                .frame(width: 22, height: 22)
+
+                            if isSelected {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 22, height: 22)
+
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+
+                // Badge (top-right corner)
+                if let badge = badge {
                     Text(badge)
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
+                        .padding(.vertical, 4)
                         .background(
                             LinearGradient(
-                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
+                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .clipShape(Capsule())
-                        .offset(x: -8, y: -8)
+                        .offset(x: -8, y: -10)
                 }
             }
-            .frame(height: 72)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    // MARK: - Pricing Timeline (INSTANT · $7.99 · $9.99/wk)
-
-    private var pricingTimeline: some View {
-        VStack(spacing: 0) {
-            Text("How Your Pricing Works")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: 0x64748B))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 12)
-
-            HStack(spacing: 0) {
-                // Step 1: Instant
-                VStack(spacing: 4) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    Text("Instant")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Color(hex: 0xF1F5F9))
-                    Text("Access now")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: 0x94A3B8))
-                }
-                .frame(maxWidth: .infinity)
-
-                // Dashed connector
-                Rectangle()
-                    .fill(Color(hex: 0x64748B).opacity(0.3))
-                    .frame(height: 1)
-                    .frame(maxWidth: 40)
-
-                // Step 2: $7.99
-                VStack(spacing: 4) {
-                    Image(systemName: "dollarsign.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    Text("$7.99")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Color(hex: 0xF1F5F9))
-                    Text("first week only")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: 0x94A3B8))
-                }
-                .frame(maxWidth: .infinity)
-
-                // Dashed connector
-                Rectangle()
-                    .fill(Color(hex: 0x64748B).opacity(0.3))
-                    .frame(height: 1)
-                    .frame(maxWidth: 40)
-
-                // Step 3: $9.99/wk
-                VStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [GrooveOnboardingTheme.blueAccent, Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    Text("Save")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Color(hex: 0xF1F5F9))
-                    Text("85% off annual")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: 0x94A3B8))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .padding(16)
+            .frame(height: 68)
             .background(Color(hex: 0x1E293B))
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isSelected
+                            ? LinearGradient(
+                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                              )
+                            : LinearGradient(
+                                colors: [Color(hex: 0x2B3750), Color(hex: 0x2B3750)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                              ),
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            )
         }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Sticky Bottom CTA Zone
+
+    private var bottomCTAZone: some View {
+        VStack(spacing: 8) {
+            // CTA Button — gradient, 56pt, full-width
+            Button(action: performPurchase) {
+                Group {
+                    if isPurchasing {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("$7.99 to Start")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .scaleEffect(isPurchasing ? 0.98 : 1.0)
+                .animation(.spring(response: 0.2), value: isPurchasing)
+            }
+            .disabled(isPurchasing)
+            .sensoryFeedback(.success, trigger: isPurchasing)
+            .padding(.horizontal, 16)
+
+            // Reassurance
+            Text("first week $7.99 • cancel anytime in Settings")
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: 0x94A3B8))
+
+            // Legal links
+            HStack(spacing: 4) {
+                Link("Terms", destination: URL(string: "https://yourapp.com/terms")!)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: 0x64748B))
+
+                Text("·")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: 0x64748B).opacity(0.5))
+
+                Link("Privacy", destination: URL(string: "https://yourapp.com/privacy")!)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: 0x64748B))
+            }
+        }
+        .padding(.bottom, 12)
+        .padding(.top, 12)
+        .background(
+            LinearGradient(
+                colors: [Color(hex: 0x0F172A).opacity(0), Color(hex: 0x0F172A)],
+                startPoint: .top,
+                endPoint: UnitPoint(x: 0.5, y: 0.3)
+            )
+            .ignoresSafeArea(edges: .bottom)
+        )
     }
 
     // MARK: - Purchase Logic
 
     private func performPurchase() {
+        guard !isPurchasing else { return }
         purchaseError = nil
         isPurchasing = true
 
         Task {
-            defer { isPurchasing = false }
+            defer { Task { @MainActor in isPurchasing = false } }
 
             let package: Package? = selectedPlan == .yearly
                 ? rcService.annualPackage()
                 : rcService.weeklyPackage()
 
             guard let pkg = package else {
-                purchaseError = "Unable to load products. Please try again."
+                await MainActor.run {
+                    purchaseError = "Unable to load products. Please try again."
+                    isPurchasing = false
+                }
                 return
             }
 
@@ -522,10 +467,10 @@ struct GroovePaywallScreen: View {
                 if success {
                     await MainActor.run { onComplete() }
                 } else {
-                    purchaseError = "Purchase was not completed."
+                    await MainActor.run { purchaseError = "Purchase was not completed." }
                 }
             } catch {
-                purchaseError = error.localizedDescription
+                await MainActor.run { purchaseError = error.localizedDescription }
             }
         }
     }
@@ -540,11 +485,8 @@ struct GroovePaywallScreen: View {
                 let isEntitled = await rcService.checkPremium()
                 await MainActor.run {
                     isRestoring = false
-                    if isEntitled {
-                        onComplete()
-                    } else {
-                        purchaseError = "No purchases found to restore."
-                    }
+                    if isEntitled { onComplete() }
+                    else { purchaseError = "No purchases found to restore." }
                 }
             } else {
                 await MainActor.run {
@@ -555,18 +497,8 @@ struct GroovePaywallScreen: View {
         } catch {
             await MainActor.run {
                 isRestoring = false
-                purchaseError = "Failed to restore: \(error.localizedDescription)"
+                purchaseError = "Restore failed: \(error.localizedDescription)"
             }
-        }
-    }
-}
-
-// MARK: - Array Extension for chunking
-
-extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            Array(self[$0..<Swift.min($0 + size, count)])
         }
     }
 }
