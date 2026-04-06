@@ -1,5 +1,5 @@
 // GroovePaywallScreen.swift
-// Groove AI — Single-screen no-scroll paywall (visual spec V5)
+// Groove AI — Single-screen no-scroll paywall
 // NO ScrollView — fits above fold on iPhone Pro
 // Pricing: $7.99 first week, then $9.99/week (no free trial)
 
@@ -11,36 +11,35 @@ struct GroovePaywallScreen: View {
 
     @StateObject private var rcService = RevenueCatService.shared
 
-    enum PaywallPlan: String, CaseIterable { case yearly, weekly }
+    enum PaywallPlan: String, CaseIterable { case weekly, yearly }
 
-    @State private var selectedPlan: PaywallPlan = .yearly
+    @State private var selectedPlan: PaywallPlan = .weekly
     @State private var isPurchasing = false
     @State private var purchaseError: String?
     @State private var showExitPopup = false
     @State private var isRestoring = false
 
+    // Colors
+    private let bgColor = Color(hex: 0x0F172A)
+    private let cardBg = Color(hex: 0x1E293B)
+    private let accentBlue = Color(hex: 0x3B82F6)
+    private let textPrimary = Color(hex: 0xF1F5F9)
+    private let textSecondary = Color(hex: 0x94A3B8)
+    private let textTertiary = Color(hex: 0x64748B)
+    private let borderIdle = Color(hex: 0x2B3750)
+
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // Background
-            Color(hex: 0x0F172A).ignoresSafeArea()
-
-            // Subtle radial glow
-            RadialGradient(
-                colors: [Color(hex: 0x8B5CF6).opacity(0.08), Color.clear],
-                center: .top,
-                startRadius: 40,
-                endRadius: 350
-            )
-            .ignoresSafeArea()
+            bgColor.ignoresSafeArea()
 
             // Main content — NO ScrollView
             VStack(spacing: 0) {
-                // Top bar
-                topBar
+                // Top bar spacer
+                Spacer().frame(height: 44)
 
-                // Hero collage — 30% screen height
+                // Hero collage
                 heroCollage
                     .frame(height: UIScreen.main.bounds.height * 0.28)
                     .padding(.top, 4)
@@ -49,27 +48,22 @@ struct GroovePaywallScreen: View {
                 VStack(spacing: 6) {
                     Text("Make Anyone Dance")
                         .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(Color(hex: 0xF1F5F9))
+                        .foregroundColor(textPrimary)
                         .lineLimit(1)
 
-                    Text("Upload a photo of your pet, baby, or anyone — watch them dance to any style.")
+                    Text("Upload a photo of your pet, baby, or anyone and watch them dance to any style.")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(hex: 0x94A3B8))
+                        .foregroundColor(textSecondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
 
-                // Feature bullets — max 4, 2 columns
-                featureBulletsGrid
-                    .padding(.horizontal, 16)
-                    .padding(.top, 14)
-
                 // Plan cards
                 planCardsSection
                     .padding(.horizontal, 16)
-                    .padding(.top, 14)
+                    .padding(.top, 20)
 
                 Spacer(minLength: 0)
             }
@@ -80,7 +74,7 @@ struct GroovePaywallScreen: View {
                 bottomCTAZone
             }
 
-            // Dismiss X — top-left, absolute positioned
+            // Dismiss X (top-left) + Restore (top-right)
             VStack {
                 HStack {
                     dismissButton
@@ -112,55 +106,46 @@ struct GroovePaywallScreen: View {
         }
     }
 
-    // MARK: - Top Bar (invisible spacer for safe area)
-
-    private var topBar: some View {
-        HStack {
-            Spacer()
-        }
-        .frame(height: 44)
-    }
-
-    // MARK: - Dismiss Button (top-left, 44pt tap target)
+    // MARK: - Dismiss Button
 
     private var dismissButton: some View {
         Button(action: { showExitPopup = true }) {
             Image(systemName: "xmark")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: 0x94A3B8))
+                .foregroundColor(textSecondary)
                 .frame(width: 44, height: 44)
                 .background(Color(hex: 0x2B3750).opacity(0.6))
                 .clipShape(Circle())
         }
     }
 
-    // MARK: - Restore Button (top-right)
+    // MARK: - Restore Button
 
     private var restoreButton: some View {
         Button(action: { Task { await performRestore() } }) {
             Text("Restore")
                 .font(.system(size: 12))
-                .foregroundColor(Color(hex: 0x64748B))
+                .foregroundColor(textTertiary)
                 .frame(height: 44)
         }
         .disabled(isRestoring)
     }
 
-    // MARK: - Hero Output Collage (30% screen)
+    // MARK: - Hero Collage
 
     private var heroCollage: some View {
         HStack(spacing: 10) {
             heroCard(
                 label: "Dog",
-                colors: [Color(hex: 0xFF6B9D), Color(hex: 0xFF8FAE)]
+                colors: [Color(hex: 0x3B82F6), Color(hex: 0x60A5FA)]
             )
             heroCard(
                 label: "Baby",
-                colors: [Color(hex: 0x3B82F6), Color(hex: 0x6366F1)]
+                colors: [Color(hex: 0x818CF8), Color(hex: 0xA78BFA)]
             )
             heroCard(
                 label: "Hip Hop",
-                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xA78BFA)]
+                colors: [Color(hex: 0x67E8F9), Color(hex: 0xA5F3FC)]
             )
         }
         .padding(.horizontal, 16)
@@ -177,17 +162,6 @@ struct GroovePaywallScreen: View {
                     )
                 )
 
-            // Subtle glow border
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(
-                    LinearGradient(
-                        colors: [Color(hex: 0x8B5CF6).opacity(0.3), Color(hex: 0xFF6B9D).opacity(0.12)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-
             // Label pill
             Text(label)
                 .font(.system(size: 11, weight: .medium))
@@ -201,61 +175,11 @@ struct GroovePaywallScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Feature Bullets (2x2 grid, max 4)
-
-    private var featureBulletsGrid: some View {
-        let features: [(String, String)] = [
-            ("wand.and.stars", "AI Dance Videos"),
-            ("photo", "Any Photo Works"),
-            ("music.note", "20+ Dance Styles"),
-            ("square.and.arrow.up", "Share Instantly"),
-        ]
-
-        return LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: 8),
-                GridItem(.flexible(), spacing: 8)
-            ],
-            spacing: 10
-        ) {
-            ForEach(features, id: \.0) { icon, label in
-                HStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 20)
-
-                    Text(label)
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(hex: 0xF1F5F9))
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-    }
-
-    // MARK: - Plan Cards (Yearly pre-selected, Weekly)
+    // MARK: - Plan Cards (Weekly first, selected; Yearly second)
 
     private var planCardsSection: some View {
         VStack(spacing: 8) {
-            // Yearly card — pre-selected
-            planCard(
-                plan: .yearly,
-                title: "Yearly",
-                priceMain: "$1.92/week",
-                priceSub: "$99.99/year",
-                badge: "SAVE 80%",
-                isSelected: selectedPlan == .yearly
-            )
-
-            // Weekly card
+            // Weekly card (selected by default)
             planCard(
                 plan: .weekly,
                 title: "Weekly",
@@ -263,6 +187,16 @@ struct GroovePaywallScreen: View {
                 priceSub: "first week $7.99",
                 badge: nil,
                 isSelected: selectedPlan == .weekly
+            )
+
+            // Yearly card
+            planCard(
+                plan: .yearly,
+                title: "Yearly",
+                priceMain: "$1.92/week",
+                priceSub: "$99.99/year",
+                badge: "SAVE 80%",
+                isSelected: selectedPlan == .yearly
             )
         }
     }
@@ -280,94 +214,66 @@ struct GroovePaywallScreen: View {
                 selectedPlan = plan
             }
         } label: {
-            ZStack(alignment: .topTrailing) {
-                HStack {
-                    // Left: plan name + secondary price
-                    VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                // Left: radio indicator
+                ZStack {
+                    Circle()
+                        .stroke(
+                            isSelected ? accentBlue : borderIdle,
+                            lineWidth: 2
+                        )
+                        .frame(width: 22, height: 22)
+
+                    if isSelected {
+                        Circle()
+                            .fill(accentBlue)
+                            .frame(width: 22, height: 22)
+
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+
+                // Center-left: title + badge + sub price
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
                         Text(title)
                             .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(Color(hex: 0xF1F5F9))
+                            .foregroundColor(textPrimary)
 
-                        Text(priceSub)
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: 0x94A3B8))
-                    }
-
-                    Spacer()
-
-                    // Right: main price + selection indicator
-                    HStack(spacing: 12) {
-                        Text(priceMain)
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(Color(hex: 0xF1F5F9))
-
-                        // Radio indicator
-                        ZStack {
-                            Circle()
-                                .stroke(
-                                    isSelected
-                                        ? Color(hex: 0x8B5CF6)
-                                        : Color(hex: 0x2B3750),
-                                    lineWidth: 2
-                                )
-                                .frame(width: 22, height: 22)
-
-                            if isSelected {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 22, height: 22)
-
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
+                        if let badge = badge {
+                            Text(badge)
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(accentBlue)
+                                .clipShape(Capsule())
                         }
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
 
-                // Badge (top-right corner)
-                if let badge = badge {
-                    Text(badge)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .clipShape(Capsule())
-                        .offset(x: -8, y: -10)
+                    Text(priceSub)
+                        .font(.system(size: 13))
+                        .foregroundColor(textSecondary)
                 }
+
+                Spacer()
+
+                // Right: main price
+                Text(priceMain)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(textPrimary)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .frame(height: 68)
-            .background(Color(hex: 0x1E293B))
+            .background(cardBg)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(
-                        isSelected
-                            ? LinearGradient(
-                                colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                              )
-                            : LinearGradient(
-                                colors: [Color(hex: 0x2B3750), Color(hex: 0x2B3750)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                              ),
+                        isSelected ? accentBlue : borderIdle,
                         lineWidth: isSelected ? 2 : 1
                     )
             )
@@ -379,27 +285,21 @@ struct GroovePaywallScreen: View {
 
     private var bottomCTAZone: some View {
         VStack(spacing: 8) {
-            // CTA Button — gradient, 56pt, full-width
+            // CTA Button — solid blue, 56pt, full-width
             Button(action: performPurchase) {
                 Group {
                     if isPurchasing {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("$7.99 to Start")
+                        Text("Continue")
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.white)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(
-                    LinearGradient(
-                        colors: [Color(hex: 0x8B5CF6), Color(hex: 0xFF6B9D)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .background(accentBlue)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .scaleEffect(isPurchasing ? 0.98 : 1.0)
                 .animation(.spring(response: 0.2), value: isPurchasing)
@@ -409,30 +309,30 @@ struct GroovePaywallScreen: View {
             .padding(.horizontal, 16)
 
             // Reassurance
-            Text("first week $7.99 • cancel anytime in Settings")
+            Text("first week $7.99, then $9.99/week \u{00B7} cancel anytime")
                 .font(.system(size: 12))
-                .foregroundColor(Color(hex: 0x94A3B8))
+                .foregroundColor(textSecondary)
 
             // Legal links
             HStack(spacing: 4) {
                 Link("Terms", destination: URL(string: "https://yourapp.com/terms")!)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x64748B))
+                    .foregroundColor(textTertiary)
 
-                Text("·")
+                Text("\u{00B7}")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x64748B).opacity(0.5))
+                    .foregroundColor(textTertiary.opacity(0.5))
 
                 Link("Privacy", destination: URL(string: "https://yourapp.com/privacy")!)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x64748B))
+                    .foregroundColor(textTertiary)
             }
         }
         .padding(.bottom, 12)
         .padding(.top, 12)
         .background(
             LinearGradient(
-                colors: [Color(hex: 0x0F172A).opacity(0), Color(hex: 0x0F172A)],
+                colors: [bgColor.opacity(0), bgColor],
                 startPoint: .top,
                 endPoint: UnitPoint(x: 0.5, y: 0.3)
             )
