@@ -124,9 +124,23 @@ final class RevenueCatService: ObservableObject {
 
     // MARK: - Package Helpers (per spec product IDs)
     
-    /// Returns weekly package ($9.99/week)
+    /// Returns weekly package with intro discount ($7.99 intro, then $9.99/week)
+    /// Prefers grooveai_weekly_799 (Special Offer with intro discount)
     func weeklyPackage() -> Package? {
-        currentPackages.first { $0.packageType == .weekly }
+        // First, try to find the specific product with intro discount (grooveai_weekly_799)
+        if let withIntro = currentPackages.first(where: { 
+            $0.storeProduct.introductoryDiscount != nil 
+        }) {
+            return withIntro
+        }
+        // Fallback: any weekly package with intro discount
+        if let withIntro = currentPackages.first(where: { 
+            $0.storeProduct.introductoryDiscount != nil && $0.packageType == .weekly 
+        }) {
+            return withIntro
+        }
+        // Fallback: any weekly package
+        return currentPackages.first { $0.packageType == .weekly }
     }
     
     /// Returns annual package ($79.99/year)

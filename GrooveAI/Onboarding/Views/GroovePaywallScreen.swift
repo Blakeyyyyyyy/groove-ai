@@ -1,7 +1,7 @@
 // GroovePaywallScreen.swift
 // Groove AI — Single-screen no-scroll paywall
-// NO ScrollView — fits above fold on iPhone Pro
-// Pricing: $7.99 first week, then $9.99/week (no free trial)
+// Pure black background, minimal premium design
+// All pricing dynamic from RevenueCat
 
 import SwiftUI
 import RevenueCat
@@ -19,24 +19,98 @@ struct GroovePaywallScreen: View {
     @State private var showExitPopup = false
     @State private var isRestoring = false
 
-    // Colors
-    private let bgColor = Color(hex: 0x0F172A)
-    private let cardBg = Color(hex: 0x1E293B)
+    // Colors — pure black + minimal accents
     private let accentBlue = Color(hex: 0x3B82F6)
-    private let textPrimary = Color(hex: 0xF1F5F9)
-    private let textSecondary = Color(hex: 0x94A3B8)
-    private let textTertiary = Color(hex: 0x64748B)
-    private let borderIdle = Color(hex: 0x2B3750)
+    private let textPrimary = Color.white
+    private let textSecondary = Color.white.opacity(0.5)
+    private let textTertiary = Color.white.opacity(0.35)
+
+    // MARK: - Dynamic Pricing Helpers
+
+    private var weeklyPkg: Package? { rcService.weeklyPackage() }
+    private var annualPkg: Package? { rcService.annualPackage() }
+
+    /// Strip currency symbols (USD, $, etc.) from price string
+    private func stripCurrency(_ priceString: String) -> String {
+        // Remove $, USD, US$, currency symbols, and whitespace
+        var cleaned = priceString
+            .replacingOccurrences(of: "$", with: "")
+            .replacingOccurrences(of: "USD", with: "")
+            .replacingOccurrences(of: "US$", with: "")
+            .replacingOccurrences(of: "€", with: "")
+            .replacingOccurrences(of: "£", with: "")
+            .replacingOccurrences(of: "¥", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return cleaned
+    }
+
+    /// Weekly intro price (e.g. "7.99") — stripped of currency symbols
+    private var weeklyIntroPrice: String {
+        // TEMP FIX: Hardcoded to 7.99 pending RevenueCat/ASC product fix
+        return "7.99"
+    }
+
+    /// Weekly renewal price (e.g. "9.99") — stripped of currency symbols
+    private var weeklyRenewalPrice: String {
+        stripCurrency(weeklyPkg?.localizedPriceString ?? "9.99")
+    }
+
+    /// Weekly intro price as Decimal
+    private var weeklyIntroPriceDecimal: Decimal {
+        if let intro = weeklyPkg?.storeProduct.introductoryDiscount {
+            return intro.price
+        }
+        return weeklyPkg?.storeProduct.price ?? 7.99
+    }
+
+    /// Weekly renewal as Decimal
+    private var weeklyRenewalDecimal: Decimal {
+        weeklyPkg?.storeProduct.price ?? 9.99
+    }
+
+    /// Annual price string (e.g. "79.99/year") — stripped of currency symbols
+    private var annualPriceString: String {
+        let price = stripCurrency(annualPkg?.localizedPriceString ?? "79.99")
+        return "\(price)/year"
+    }
+
+    /// Annual price as Decimal
+    private var annualPriceDecimal: Decimal {
+        annualPkg?.storeProduct.price ?? 79.99
+    }
+
+    /// Weekly equivalent for annual (annual / 52) — stripped of currency symbols
+    private var annualWeeklyEquivalent: String {
+        let weekly = NSDecimalNumber(decimal: annualPriceDecimal / 52).doubleValue
+        return String(format: "%.2f/week", weekly)
+    }
+
+    /// Percentage saved vs weekly renewal
+    private var savingsPercent: Int {
+        let weeklyAnnualized = weeklyRenewalDecimal * 52
+        guard weeklyAnnualized > 0 else { return 0 }
+        let saved = ((weeklyAnnualized - annualPriceDecimal) / weeklyAnnualized) * 100
+        return Int(NSDecimalNumber(decimal: saved).doubleValue.rounded())
+    }
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            bgColor.ignoresSafeArea()
+            // Pure black background
+            Color.black.ignoresSafeArea()
+
+            // Optional subtle vignette
+            RadialGradient(
+                colors: [Color.clear, Color.black.opacity(0.3)],
+                center: .center,
+                startRadius: UIScreen.main.bounds.height * 0.3,
+                endRadius: UIScreen.main.bounds.height * 0.6
+            )
+            .ignoresSafeArea()
 
             // Main content — NO ScrollView
             VStack(spacing: 0) {
-                // Top bar spacer
                 Spacer().frame(height: 44)
 
                 // Hero collage
@@ -44,33 +118,21 @@ struct GroovePaywallScreen: View {
                     .frame(height: UIScreen.main.bounds.height * 0.28)
                     .padding(.top, 4)
 
-                // Headline + Subheadline
-                VStack(spacing: 6) {
-                    Text("Make Anyone Dance")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(textPrimary)
-                        .lineLimit(1)
-
-                    Text("Upload a photo of your pet, baby, or anyone and watch them dance to any style.")
-                        .font(.system(size: 14))
-                        .foregroundColor(textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-
-                // Plan cards
-                planCardsSection
+                // Headline only — no subtext
+                Text("Make Anyone Dance")
+                    .font(.system(size: 27, weight: .bold))
+                    .foregroundColor(textPrimary)
+                    .lineLimit(1)
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
 
                 Spacer(minLength: 0)
-            }
 
-            // Sticky bottom CTA zone
-            VStack {
-                Spacer()
+                // Plan cards directly above CTA
+                planCardsSection
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+
                 bottomCTAZone
             }
 
@@ -111,11 +173,9 @@ struct GroovePaywallScreen: View {
     private var dismissButton: some View {
         Button(action: { showExitPopup = true }) {
             Image(systemName: "xmark")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(textSecondary)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color.white.opacity(0.25))
                 .frame(width: 44, height: 44)
-                .background(Color(hex: 0x2B3750).opacity(0.6))
-                .clipShape(Circle())
         }
     }
 
@@ -162,7 +222,6 @@ struct GroovePaywallScreen: View {
                     )
                 )
 
-            // Label pill
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.white.opacity(0.9))
@@ -175,27 +234,25 @@ struct GroovePaywallScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Plan Cards (Weekly first, selected; Yearly second)
+    // MARK: - Plan Cards
 
     private var planCardsSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             // Weekly card (selected by default)
             planCard(
                 plan: .weekly,
-                title: "Weekly",
-                priceMain: "$9.99/week",
-                priceSub: "first week $7.99",
-                badge: nil,
+                titleLine: "Weekly \u{2013} \(weeklyIntroPrice)/week",
+                subtitle: "No commitment \u{00B7} Cancel anytime",
+                badge: "Popular",
                 isSelected: selectedPlan == .weekly
             )
 
             // Yearly card
             planCard(
                 plan: .yearly,
-                title: "Yearly",
-                priceMain: "$1.92/week",
-                priceSub: "$99.99/year",
-                badge: "SAVE 80%",
+                titleLine: "Yearly \u{2013} \(stripCurrency(annualPkg?.localizedPriceString ?? "79.99"))/year",
+                subtitle: annualWeeklyEquivalent,
+                badge: savingsPercent > 0 ? "Save \(savingsPercent)%" : nil,
                 isSelected: selectedPlan == .yearly
             )
         }
@@ -203,9 +260,8 @@ struct GroovePaywallScreen: View {
 
     private func planCard(
         plan: PaywallPlan,
-        title: String,
-        priceMain: String,
-        priceSub: String,
+        titleLine: String,
+        subtitle: String,
         badge: String?,
         isSelected: Bool
     ) -> some View {
@@ -214,66 +270,45 @@ struct GroovePaywallScreen: View {
                 selectedPlan = plan
             }
         } label: {
-            HStack(spacing: 12) {
-                // Left: radio indicator
-                ZStack {
-                    Circle()
-                        .stroke(
-                            isSelected ? accentBlue : borderIdle,
-                            lineWidth: 2
-                        )
-                        .frame(width: 22, height: 22)
+            HStack(spacing: 0) {
+                // Left: title + subtitle
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(titleLine)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(textPrimary)
 
-                    if isSelected {
-                        Circle()
-                            .fill(accentBlue)
-                            .frame(width: 22, height: 22)
-
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white)
-                    }
+                    Text(subtitle)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.white.opacity(0.65))
                 }
-
-                // Center-left: title + badge + sub price
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(title)
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(textPrimary)
-
-                        if let badge = badge {
-                            Text(badge)
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(accentBlue)
-                                .clipShape(Capsule())
-                        }
-                    }
-
-                    Text(priceSub)
-                        .font(.system(size: 13))
-                        .foregroundColor(textSecondary)
-                }
+                .padding(.leading, 16)
 
                 Spacer()
 
-                // Right: main price
-                Text(priceMain)
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(textPrimary)
+                // Right: banner badge (Popular sits half in/half out at top border)
+                if let badge = badge {
+                    Text(badge)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(accentBlue)
+                        )
+                        .padding(.trailing, 14)
+                        .offset(y: -14) // Pull up to sit half in/half out on TOP border
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .frame(height: 68)
-            .background(cardBg)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .frame(height: 72)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.black)
+            )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 14)
                     .stroke(
-                        isSelected ? accentBlue : borderIdle,
+                        isSelected ? accentBlue : Color.white.opacity(0.15),
                         lineWidth: isSelected ? 2 : 1
                     )
             )
@@ -285,7 +320,7 @@ struct GroovePaywallScreen: View {
 
     private var bottomCTAZone: some View {
         VStack(spacing: 8) {
-            // CTA Button — solid blue, 56pt, full-width
+            // CTA Button — solid blue, no gradient
             Button(action: performPurchase) {
                 Group {
                     if isPurchasing {
@@ -308,10 +343,16 @@ struct GroovePaywallScreen: View {
             .sensoryFeedback(.success, trigger: isPurchasing)
             .padding(.horizontal, 16)
 
-            // Reassurance
-            Text("first week $7.99, then $9.99/week \u{00B7} cancel anytime")
-                .font(.system(size: 12))
-                .foregroundColor(textSecondary)
+            // Below CTA — context-sensitive renewal info
+            Group {
+                if selectedPlan == .weekly {
+                    Text("First week \(weeklyIntroPrice), then \(weeklyRenewalPrice)/week \u{00B7} cancel anytime")
+                } else {
+                    Text("No commitment \u{00B7} Cancel anytime")
+                }
+            }
+            .font(.system(size: 12))
+            .foregroundColor(textSecondary)
 
             // Legal links
             HStack(spacing: 4) {
@@ -332,7 +373,7 @@ struct GroovePaywallScreen: View {
         .padding(.top, 12)
         .background(
             LinearGradient(
-                colors: [bgColor.opacity(0), bgColor],
+                colors: [Color.black.opacity(0), Color.black],
                 startPoint: .top,
                 endPoint: UnitPoint(x: 0.5, y: 0.3)
             )
