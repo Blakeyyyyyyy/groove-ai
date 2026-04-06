@@ -65,7 +65,7 @@ struct GroovePaywallScreen: View {
                     .disabled(isRestoring)
                 }
 
-                VStack(spacing: 12) { // NO-SCROLL - single screen
+                ScrollView {
                     VStack(spacing: 0) {
                         // MARK: - Hero Output Collage (42% screen height)
                         heroSection
