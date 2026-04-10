@@ -1,5 +1,63 @@
 import SwiftUI
 import SwiftData
+import Security
+
+// MARK: - Keychain Helper
+
+/// Simple Keychain wrapper for storing sensitive data like user ID
+enum KeychainHelper {
+    private static let service = "com.grooveai.app"
+    
+    static func save(_ value: String, forKey key: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data
+        ]
+        
+        // Delete existing item first
+        SecItemDelete(query as CFDictionary)
+        
+        // Add new item
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status != errSecSuccess {
+            print("[Keychain] Failed to save \(key): \(status)")
+        }
+    }
+    
+    static func get(forKey key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let value = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        
+        return value
+    }
+    
+    static func delete(forKey key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
 
 // MARK: - Generation State
 enum GenerationPhase: Equatable {
@@ -12,13 +70,11 @@ enum GenerationPhase: Equatable {
 @Observable
 final class AppState {
     var hasCompletedOnboarding: Bool {
-        get { UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") }
-        set { UserDefaults.standard.set(newValue, forKey: "hasCompletedOnboarding") }
+        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
     }
 
     var isSubscribed: Bool {
-        get { UserDefaults.standard.bool(forKey: "isSubscribed") }
-        set { UserDefaults.standard.set(newValue, forKey: "isSubscribed") }
+        didSet { UserDefaults.standard.set(isSubscribed, forKey: "isSubscribed") }
     }
 
     // MARK: - Server-Synced Coins
@@ -31,7 +87,7 @@ final class AppState {
         set { UserDefaults.standard.set(newValue, forKey: "creditsUsed") }
     }
 
-    let coinsTotal: Int = 150
+    let coinsTotal: Int = 0
     let coinCostPerGeneration: Int = 60
 
     /// Use server coins if available, otherwise local calculation
@@ -44,20 +100,34 @@ final class AppState {
         coinsRemaining >= coinCostPerGeneration
     }
 
-    // MARK: - User ID (auto-generated on first access, persisted)
+    // MARK: - User ID (auto-generated on first access, persisted in Keychain for security)
 
     var userId: String? {
         get {
+            // First check Keychain (preferred)
+            if let keychainId = KeychainHelper.get(forKey: "userId") {
+                return keychainId
+            }
+            // Fallback: check UserDefaults for migration from older versions
             if let existing = UserDefaults.standard.string(forKey: "userId") {
+                // Migrate to Keychain and remove from UserDefaults (less secure store)
+                KeychainHelper.save(existing, forKey: "userId")
+                UserDefaults.standard.removeObject(forKey: "userId")
                 return existing
             }
             // Auto-generate a stable userId on first access
             let newId = UUID().uuidString
-            UserDefaults.standard.set(newId, forKey: "userId")
+            KeychainHelper.save(newId, forKey: "userId")
             print("[AppState] 🆔 Generated new userId: \(newId)")
             return newId
         }
-        set { UserDefaults.standard.set(newValue, forKey: "userId") }
+        set {
+            if let value = newValue {
+                KeychainHelper.save(value, forKey: "userId")
+            } else {
+                KeychainHelper.delete(forKey: "userId")
+            }
+        }
     }
 
     // Generation state — state-driven flow (BUG-004 fix)
@@ -102,8 +172,21 @@ final class AppState {
 
     // Push notification
     var hasRequestedNotificationPermission: Bool {
-        get { UserDefaults.standard.bool(forKey: "hasRequestedNotificationPermission") }
-        set { UserDefaults.standard.set(newValue, forKey: "hasRequestedNotificationPermission") }
+        didSet { UserDefaults.standard.set(hasRequestedNotificationPermission, forKey: "hasRequestedNotificationPermission") }
+    }
+
+    init() {
+        let defaults = UserDefaults.standard
+        hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
+        isSubscribed = defaults.bool(forKey: "isSubscribed")
+        hasRequestedNotificationPermission = defaults.bool(forKey: "hasRequestedNotificationPermission")
+        
+        // Listen for purchase completions to force-refresh coins from server
+        NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] _ in
+            guard let self else { return }
+            print("[AppState] 🔔 Purchase completed notification — syncing with server")
+            Task { await self.syncWithServer() }
+        }
     }
 
     // MARK: - Coins (local fallback — server is authoritative)

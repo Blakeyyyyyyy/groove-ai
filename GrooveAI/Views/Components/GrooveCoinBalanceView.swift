@@ -85,7 +85,7 @@ struct GrooveCoinBalanceView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationBackground(Color.bgPrimary)
+            .presentationBackground(.black)
         }
     }
 
@@ -256,52 +256,73 @@ struct GrooveCoinBalanceView: View {
 struct AppHeaderCoinPill: View {
     @Environment(AppState.self) private var appState
     @State private var showCoinsSheet = false
+    @State private var showPaywall = false
+
+    private func log(_ message: String) {
+        print("[AppHeaderCoinPill] \(message)")
+    }
 
     var body: some View {
         Button {
-            // Tappable to show coins purchase or plans sheet
+            log("Coin button tapped. isSubscribed=\(appState.isSubscribed), coinsRemaining=\(appState.coinsRemaining)")
             if appState.isSubscribed {
-                // Subscribed → show plans sheet for upgrade/manage
+                log("Presenting upgrade paywall: GrooveCoinPurchaseSheet")
                 showCoinsSheet = true
+            } else if appState.coinsRemaining <= 0 {
+                log("Presenting onboarding paywall: GroovePaywallScreen (0 coins)")
+                showPaywall = true
             } else {
-                // Not subscribed → show coins purchase
+                log("Presenting coin purchase sheet (has coins but not subscribed)")
                 showCoinsSheet = true
             }
         } label: {
-            if appState.isSubscribed {
-                // Premium badge
-                HStack(spacing: 4) {
-                    Image(systemName: "crown.fill")
-                        .font(.caption2)
-                        .foregroundStyle(Color.accentStart)
-                    Text("Pro")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.accentStart)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.accentStart.opacity(0.12))
-                .clipShape(Capsule())
-            } else {
-                // Coin balance pill
-                CoinsPillView(count: appState.coinsRemaining)
+            // Always show coin count — subscribed users get a gold coin icon
+            HStack(spacing: 4) {
+                Image(systemName: appState.isSubscribed ? "star.circle.fill" : "circle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(appState.isSubscribed ? Color.coinGold : Color.coinGold)
+                Text("\(appState.coinsRemaining)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(appState.isSubscribed ? Color.coinGold : Color.textPrimary)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(appState.isSubscribed ? Color.coinGold.opacity(0.12) : Color.bgElevated)
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showCoinsSheet) {
-            if appState.isSubscribed {
-                // Show plans for upgrade/manage
-                GroovePlansSheet()
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(Color.bgPrimary)
-            } else {
-                // Show coin purchase for non-subscribers
-                GrooveCoinPurchaseSheet(onPurchaseComplete: {})
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(Color.bgPrimary)
-            }
+            GrooveCoinPurchaseSheet(onPurchaseComplete: {})
+                .onAppear {
+                    log("GrooveCoinPurchaseSheet appeared from coin button")
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(.black)
+        }
+        .fullScreenCover(isPresented: $showPaywall) {
+            GroovePaywallScreen(
+                onPurchaseSuccess: {
+                    log("GroovePaywallScreen purchase succeeded from coin button")
+                    appState.isSubscribed = true
+                    appState.selectedTab = .home
+                    showPaywall = false
+                },
+                onDismiss: {
+                    log("GroovePaywallScreen dismissed from coin button")
+                    appState.selectedTab = .home
+                    showPaywall = false
+                }
+            )
+                .onAppear {
+                    log("GroovePaywallScreen appeared from coin button")
+                }
+        }
+        .onChange(of: showCoinsSheet) { _, isPresented in
+            log("showCoinsSheet changed -> \(isPresented)")
+        }
+        .onChange(of: showPaywall) { _, isPresented in
+            log("showPaywall changed -> \(isPresented)")
         }
     }
 }

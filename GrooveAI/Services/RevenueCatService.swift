@@ -2,23 +2,33 @@ import Foundation
 import RevenueCat
 import StoreKit
 
+extension Notification.Name {
+    static let revenueCatPurchaseCompleted = Notification.Name("revenueCatPurchaseCompleted")
+}
+
 /// RevenueCat subscription management
 /// Handles purchases, entitlement checks, and subscription sync with Supabase
 final class RevenueCatService: ObservableObject {
     static let shared = RevenueCatService()
+    private let premiumEntitlementID = "premium"
 
     @Published var isSubscribed = false
     @Published var offerings: Offerings?
     @Published var currentPackages: [Package] = []
+    private var configuredAppUserId: String?
+    private var hasConfigured = false
     
     // Coin balance (local only - synced with AppState)
-    @Published var coinBalance: Int = 150
+    @Published var coinBalance: Int = 0
 
-    // Product IDs from ASC
+    // Product IDs from ASC (correct IDs as of API check)
     private enum ProductID {
-        // Subscriptions
-        static let weekly = "grooveai_weekly_999"
+        // Subscriptions - Correct RevenueCat IDs
+        // Intro weekly: grooveai_weekly_799 → prodbe0274a44a (Weekly with intro)
+        // Weekly (no intro): grooveai_weekly_999 → prodbe0274a44a  
+        // Annual: grooveai_annual_9999 → prod7b6b006573 (Annual 85% Off)
         static let weeklyIntro = "grooveai_weekly_799"
+        static let weekly = "grooveai_weekly_999"
         static let annual = "grooveai_annual_9999"
         
         // Coins (consumables)
@@ -27,20 +37,45 @@ final class RevenueCatService: ObservableObject {
         static let coinsLarge = "grooveai_coins_large"
     }
 
-    private let apiKey = "test_asPwPLcWptxFPXSHMcdieXUETYM"
+    // RevenueCat public key - loaded from environment/build config
+    // Note: RevenueCat public keys are designed to be safe in client-side code
+    private var apiKey: String {
+        // Check Info.plist first (recommended for production)
+        if let rcKey = Bundle.main.object(forInfoDictionaryKey: "RevenueCatAPIKey") as? String, !rcKey.isEmpty {
+            return rcKey
+        }
+        // Fallback: environment variable (CI/debug builds)
+        if let envKey = ProcessInfo.processInfo.environment["REVENUECAT_API_KEY"], !envKey.isEmpty {
+            return envKey
+        }
+        // Fallback: hardcoded public key (safe - RevenueCat designed for client-side)
+        // This key is the public SDK key, not a secret
+        return "appl_dmOLXuPKMXatwKYxDHjLyYfULfu"
+    }
+    
+    /// Returns true if RevenueCat is properly configured with an API key
+    var isConfigured: Bool {
+        !apiKey.isEmpty
+    }
 
     private init() {
         loadCoinBalance()
+    }
+
+    private func premiumEntitlement(from customerInfo: CustomerInfo) -> EntitlementInfo? {
+        if let exactMatch = customerInfo.entitlements[premiumEntitlementID] {
+            return exactMatch
+        }
+
+        return customerInfo.entitlements.all.first { key, _ in
+            key.caseInsensitiveCompare(premiumEntitlementID) == .orderedSame
+        }?.value
     }
     
     // MARK: - Coin Balance
     
     func loadCoinBalance() {
         coinBalance = UserDefaults.standard.integer(forKey: "groove_coins")
-        if coinBalance == 0 {
-            coinBalance = 150  // Default starting coins
-            saveCoinBalance()
-        }
     }
     
     func saveCoinBalance() {
@@ -55,6 +90,11 @@ final class RevenueCatService: ObservableObject {
         coinBalance += amount
         saveCoinBalance()
     }
+
+    func setCoinBalance(_ amount: Int) {
+        coinBalance = amount
+        saveCoinBalance()
+    }
     
     func spendCoins(_ amount: Int) -> Bool {
         guard coinBalance >= amount else { return false }
@@ -66,8 +106,15 @@ final class RevenueCatService: ObservableObject {
     // MARK: - Configuration
 
     func configure() {
+        guard !apiKey.isEmpty else {
+            print("[RevenueCat] ⚠️ Skipping configuration - no API key configured")
+            return
+        }
+        guard !hasConfigured else { return }
+        
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: apiKey)
+        hasConfigured = true
 
         // Listen for subscription changes
         Task {
@@ -76,8 +123,16 @@ final class RevenueCatService: ObservableObject {
     }
 
     func configureWithUserId(_ userId: String) {
+        guard !apiKey.isEmpty else {
+            print("[RevenueCat] ⚠️ Skipping configuration - no API key configured")
+            return
+        }
+        guard !(hasConfigured && configuredAppUserId == userId) else { return }
+        
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: apiKey, appUserID: userId)
+        configuredAppUserId = userId
+        hasConfigured = true
 
         Task {
             await refreshSubscriptionStatus()
@@ -88,18 +143,34 @@ final class RevenueCatService: ObservableObject {
 
     @MainActor
     func refreshSubscriptionStatus() async {
+        guard isConfigured else {
+            print("[RevenueCat] Skipping refresh - not configured")
+            return
+        }
+        
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
-            isSubscribed = customerInfo.entitlements["premium"]?.isActive == true
+            let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
+            let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive == true
+            print("[RevenueCat] refreshSubscriptionStatus activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+            isSubscribed = premiumIsActive
         } catch {
             print("[RevenueCat] Error fetching customer info: \(error)")
         }
     }
 
     func checkPremium() async -> Bool {
+        guard isConfigured else {
+            print("[RevenueCat] Skipping premium check - not configured")
+            return false
+        }
+        
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
-            return customerInfo.entitlements["premium"]?.isActive ?? false
+            let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
+            let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive ?? false
+            print("[RevenueCat] checkPremium activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+            return premiumIsActive
         } catch {
             print("[RevenueCat] Error checking premium: \(error)")
             return false
@@ -110,6 +181,11 @@ final class RevenueCatService: ObservableObject {
 
     @MainActor
     func fetchOfferings() async {
+        guard isConfigured else {
+            print("[RevenueCat] Skipping offerings fetch - not configured")
+            return
+        }
+        
         do {
             let offerings = try await Purchases.shared.offerings()
             self.offerings = offerings
@@ -127,20 +203,26 @@ final class RevenueCatService: ObservableObject {
     /// Returns weekly package with intro discount ($7.99 intro, then $9.99/week)
     /// Prefers grooveai_weekly_799 (Special Offer with intro discount)
     func weeklyPackage() -> Package? {
-        // First, try to find the specific product with intro discount (grooveai_weekly_799)
-        if let withIntro = currentPackages.first(where: { 
-            $0.storeProduct.introductoryDiscount != nil 
+        let targetProductID = "grooveai_weekly_799"
+        
+        // 1. Exact product ID match (preferred)
+        if let exact = currentPackages.first(where: {
+            $0.storeProduct.productIdentifier == targetProductID
         }) {
-            return withIntro
+            print("[WeeklyPkg] ✅ Exact match: \(exact.storeProduct.productIdentifier) | intro: \(exact.storeProduct.introductoryDiscount?.price ?? -1) | base: \(exact.storeProduct.price)")
+            return exact
         }
-        // Fallback: any weekly package with intro discount
+        // 2. Fallback: any weekly package with intro discount
         if let withIntro = currentPackages.first(where: { 
             $0.storeProduct.introductoryDiscount != nil && $0.packageType == .weekly 
         }) {
+            print("[WeeklyPkg] ⚠️ Fallback intro weekly: \(withIntro.storeProduct.productIdentifier) | intro: \(withIntro.storeProduct.introductoryDiscount?.price ?? -1) | base: \(withIntro.storeProduct.price)")
             return withIntro
         }
-        // Fallback: any weekly package
-        return currentPackages.first { $0.packageType == .weekly }
+        // 3. Fallback: any weekly package
+        let fallback = currentPackages.first { $0.packageType == .weekly }
+        print("[WeeklyPkg] ⚠️ Generic weekly fallback: \(fallback?.storeProduct.productIdentifier ?? "nil") | base: \(fallback?.storeProduct.price ?? -1)")
+        return fallback
     }
     
     /// Returns annual package ($79.99/year)
@@ -152,13 +234,31 @@ final class RevenueCatService: ObservableObject {
 
     @MainActor
     func purchase(package: Package) async throws -> Bool {
-        let result = try await Purchases.shared.purchase(package: package)
+        guard isConfigured else {
+            print("[RevenueCat] Skipping purchase - not configured")
+            return false
+        }
 
-        if result.customerInfo.entitlements["premium"]?.isActive == true {
+        print("[RevenueCat] Starting purchase package=\(package.identifier) product=\(package.storeProduct.productIdentifier)")
+        let result = try await Purchases.shared.purchase(package: package)
+        let activeEntitlementKeys = result.customerInfo.entitlements.active.keys.sorted()
+        let premiumIsActive = premiumEntitlement(from: result.customerInfo)?.isActive == true
+        let activeSubscriptions = result.customerInfo.activeSubscriptions.sorted()
+
+        print("[RevenueCat] Purchase completed product=\(package.storeProduct.productIdentifier) activeEntitlements=\(activeEntitlementKeys) activeSubscriptions=\(activeSubscriptions) premiumActive=\(premiumIsActive)")
+
+        if premiumIsActive {
             isSubscribed = true
+            print("[RevenueCat] Purchase returning success=true — posting sync notification")
+            
+            // Notify AppState to force-refresh coins from server
+            // AppState listens for this and calls syncWithServer()
+            NotificationCenter.default.post(name: .revenueCatPurchaseCompleted, object: nil)
+            
             return true
         }
 
+        print("[RevenueCat] Purchase returning success=false")
         return false
     }
 
@@ -166,8 +266,16 @@ final class RevenueCatService: ObservableObject {
 
     @MainActor
     func restorePurchases() async throws -> Bool {
+        guard isConfigured else {
+            print("[RevenueCat] Skipping restore - not configured")
+            return false
+        }
+
         let customerInfo = try await Purchases.shared.restorePurchases()
-        isSubscribed = customerInfo.entitlements["premium"]?.isActive == true
+        let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
+        let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive == true
+        print("[RevenueCat] restorePurchases activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+        isSubscribed = premiumIsActive
         return isSubscribed
     }
     
@@ -202,7 +310,6 @@ final class RevenueCatService: ObservableObject {
         switch result {
         case .success(let verification):
             let transaction = try verification.payloadValue
-            addCoins(package.coins)
             await transaction.finish()
             return true
         case .userCancelled:
