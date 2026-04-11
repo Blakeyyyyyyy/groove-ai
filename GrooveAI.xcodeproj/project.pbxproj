@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
 		BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */; };
@@ -19,9 +20,7 @@
 		BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */; };
 		BF_DESIGNTOKENS /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DESIGNTOKENS /* DesignTokens.swift */; };
 		BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EMPTYSTATEVIEW /* EmptyStateView.swift */; };
-		BF_EXITPOPUPVIEW /* ExitPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EXITPOPUPVIEW /* ExitPopupView.swift */; };
-		BF_GROOVEEXTOFFERVIEW /* GrooveExitOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEEXTOFFERVIEW /* GrooveExitOfferView.swift */; };
-
+		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
 		BF_GEMINISERVICE /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GEMINISERVICE /* GeminiService.swift */; };
 		BF_GENERATEDVIDEO /* GeneratedVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATEDVIDEO /* GeneratedVideo.swift */; };
 		BF_GENERATINGPILL /* GeneratingPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATINGPILL /* GeneratingPill.swift */; };
@@ -32,12 +31,14 @@
 		BF_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */; };
 		BF_GROOVEDANCEPRESET /* GrooveDancePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */; };
 		BF_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */; };
+		BF_PLANTIER /* PlanTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PLANTIER /* PlanTier.swift */; };
 		BF_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */; };
+		BF_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */; };
+		BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */; };
 		BF_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */; };
 		BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */; };
 		BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */; };
 		BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */; };
-		BF_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */; };
 		BF_GROOVEPLANSSHEET /* GroovePlansSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */; };
 		BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */; };
 		BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROBANNERVIEW /* HeroBannerView.swift */; };
@@ -65,12 +66,14 @@
 		BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */; };
 		BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */; };
 		BF_SUPABASESERVICE /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUPABASESERVICE /* SupabaseService.swift */; };
+		BF_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */; };
 		BF_UPLOADVIEW /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW /* UploadView.swift */; };
 		BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */; };
 		BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
@@ -83,9 +86,7 @@
 		FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanceStylePickerView.swift; sourceTree = "<group>"; };
 		FR_DESIGNTOKENS /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		FR_EMPTYSTATEVIEW /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
-		FR_EXITPOPUPVIEW /* ExitPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitPopupView.swift; sourceTree = "<group>"; };
-		FR_GROOVEEXTOFFERVIEW /* GrooveExitOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveExitOfferView.swift; sourceTree = "<group>"; };
-
+		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
 		FR_GEMINISERVICE /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		FR_GENERATEDVIDEO /* GeneratedVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedVideo.swift; sourceTree = "<group>"; };
 		FR_GENERATINGPILL /* GeneratingPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPill.swift; sourceTree = "<group>"; };
@@ -96,12 +97,14 @@
 		FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveCoinPurchaseSheet.swift; sourceTree = "<group>"; };
 		FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDancePreset.swift; sourceTree = "<group>"; };
 		FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectView.swift; sourceTree = "<group>"; };
+		FR_PLANTIER /* PlanTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTier.swift; sourceTree = "<group>"; };
 		FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollView.swift; sourceTree = "<group>"; };
+		FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveMagicMomentView.swift; sourceTree = "<group>"; };
+		FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAView.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingState.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingTheme.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingView.swift; sourceTree = "<group>"; };
 		FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreen.swift; sourceTree = "<group>"; };
-		FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreen.swift; sourceTree = "<group>"; };
 		FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePlansSheet.swift; sourceTree = "<group>"; };
 		FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectView.swift; sourceTree = "<group>"; };
 		FR_HEROBANNERVIEW /* HeroBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroBannerView.swift; sourceTree = "<group>"; };
@@ -128,6 +131,7 @@
 		FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedResultView.swift; sourceTree = "<group>"; };
 		FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectPickerView.swift; sourceTree = "<group>"; };
 		FR_SUPABASESERVICE /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreen.swift; sourceTree = "<group>"; };
 		FR_UPLOADVIEW /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReadyPopup.swift; sourceTree = "<group>"; };
 		FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
@@ -171,6 +175,7 @@
 				FR_SETTINGSROW /* SettingsRow.swift */,
 				FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */,
 				FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */,
+				51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -200,6 +205,8 @@
 			children = (
 				FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */,
 				FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */,
+				FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */,
+				FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */,
 				FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */,
 				FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */,
 				FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */,
@@ -225,6 +232,7 @@
 				FR_DANCEPRESET /* DancePreset.swift */,
 				FR_GENERATEDVIDEO /* GeneratedVideo.swift */,
 				FR_ONBOARDINGSTATE /* OnboardingState.swift */,
+				FR_PLANTIER /* PlanTier.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -253,8 +261,7 @@
 		GRP_PAYWALL /* Paywall */ = {
 			isa = PBXGroup;
 			children = (
-				FR_EXITPOPUPVIEW /* ExitPopupView.swift */,
-				FR_GROOVEEXTOFFERVIEW /* GrooveExitOfferView.swift */,
+				FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */,
 				FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */,
 				FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */,
 				FR_PAYWALLVIEW /* PaywallView.swift */,
@@ -445,8 +452,8 @@
 				BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */,
 				BF_DESIGNTOKENS /* DesignTokens.swift in Sources */,
 				BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */,
-				BF_EXITPOPUPVIEW /* ExitPopupView.swift in Sources */,
-				BF_GROOVEEXTOFFERVIEW /* GrooveExitOfferView.swift in Sources */,
+				BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */,
+				BF_PLANTIER /* PlanTier.swift in Sources */,
 				BF_GEMINISERVICE /* GeminiService.swift in Sources */,
 				BF_GENERATEDVIDEO /* GeneratedVideo.swift in Sources */,
 				BF_GENERATINGPILL /* GeneratingPill.swift in Sources */,
@@ -458,6 +465,8 @@
 				BF_GROOVEDANCEPRESET /* GrooveDancePreset.swift in Sources */,
 				BF_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift in Sources */,
 				BF_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift in Sources */,
+				BF_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift in Sources */,
+				BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */,
 				BF_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift in Sources */,
 				BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */,
 				BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */,
@@ -492,6 +501,7 @@
 				BF_UPLOADVIEW /* UploadView.swift in Sources */,
 				BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */,
 				BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */,
+				98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

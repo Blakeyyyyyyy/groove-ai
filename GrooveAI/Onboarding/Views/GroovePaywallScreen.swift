@@ -7,8 +7,10 @@ import SwiftUI
 import RevenueCat
 
 struct GroovePaywallScreen: View {
-    let onComplete: () -> Void
+    let onPurchaseSuccess: () -> Void
+    let onDismiss: () -> Void
 
+    @Environment(AppState.self) private var appState
     @StateObject private var rcService = RevenueCatService.shared
 
     enum PaywallPlan: String, CaseIterable { case weekly, yearly }
@@ -18,12 +20,17 @@ struct GroovePaywallScreen: View {
     @State private var purchaseError: String?
     @State private var showExitPopup = false
     @State private var isRestoring = false
+    @State private var showProductError = false
 
     // Colors — pure black + minimal accents
     private let accentBlue = Color(hex: 0x3B82F6)
     private let textPrimary = Color.white
     private let textSecondary = Color.white.opacity(0.5)
     private let textTertiary = Color.white.opacity(0.35)
+
+    private func log(_ message: String) {
+        print("[GroovePaywallScreen] \(message)")
+    }
 
     // MARK: - Dynamic Pricing Helpers
 
@@ -44,10 +51,15 @@ struct GroovePaywallScreen: View {
         return cleaned
     }
 
-    /// Weekly intro price (e.g. "7.99") — stripped of currency symbols
+    /// Weekly intro price (e.g. "7.99") — dynamically from RevenueCat package
     private var weeklyIntroPrice: String {
-        // TEMP FIX: Hardcoded to 7.99 pending RevenueCat/ASC product fix
-        return "7.99"
+        // Get intro discount price from package, strip currency symbols
+        if let intro = weeklyPkg?.storeProduct.introductoryDiscount {
+            let price = intro.localizedPriceString
+            return stripCurrency(price)
+        }
+        // Fallback: use the package's base price if no intro discount
+        return stripCurrency(weeklyPkg?.localizedPriceString ?? "7.99")
     }
 
     /// Weekly renewal price (e.g. "9.99") — stripped of currency symbols
@@ -149,29 +161,53 @@ struct GroovePaywallScreen: View {
             }
         }
         .onAppear {
+            log("appeared")
             Task { await rcService.fetchOfferings() }
         }
-        .sheet(isPresented: $showExitPopup) {
-            ExitPopupView(
-                onSubscribe: {
-                    showExitPopup = false
-                    performPurchase()
+        .onDisappear {
+            log("disappeared")
+        }
+        .alert("Unable to Load Subscription", isPresented: $showProductError) {
+            Button("Retry") {
+                Task { await rcService.fetchOfferings() }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Please check your connection and try again.")
+        }
+        .fullScreenCover(isPresented: $showExitPopup) {
+            GrooveSpecialOfferView(
+                onPurchaseComplete: {
+                    log("Special offer purchase complete callback — calling onPurchaseSuccess()")
+                    // Complete onboarding directly — removes entire onboarding
+                    // view tree including this fullScreenCover
+                    onPurchaseSuccess()
                 },
                 onDismiss: {
-                    showExitPopup = false
-                    onComplete()
+                    log("Special offer dismiss callback — calling onDismiss()")
+                    // "No thanks" — complete onboarding to go straight to home.
+                    // Don't just dismiss the cover (that reveals the paywall).
+                    // Calling onDismiss() lets the caller decide how to exit this flow.
+                    onDismiss()
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.hidden)
-            .presentationBackground(Color.black.opacity(0.85))
         }
     }
 
     // MARK: - Dismiss Button
 
     private var dismissButton: some View {
-        Button(action: { showExitPopup = true }) {
+        Button(action: {
+            // Fire special offer ONCE per user, then skip to dismiss
+            if !GrooveSpecialOfferView.hasBeenShown {
+                log("Dismiss tapped — presenting special offer")
+                GrooveSpecialOfferView.markShown()
+                showExitPopup = true
+            } else {
+                log("Dismiss tapped — special offer already shown, calling onDismiss()")
+                onDismiss()
+            }
+        }) {
             Image(systemName: "xmark")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(Color.white.opacity(0.25))
@@ -241,7 +277,7 @@ struct GroovePaywallScreen: View {
             // Weekly card (selected by default)
             planCard(
                 plan: .weekly,
-                titleLine: "Weekly \u{2013} \(weeklyIntroPrice)/week",
+                titleLine: "Just \(weeklyIntroPrice)/week",
                 subtitle: "No commitment \u{00B7} Cancel anytime",
                 badge: "Popular",
                 isSelected: selectedPlan == .weekly
@@ -251,12 +287,15 @@ struct GroovePaywallScreen: View {
             planCard(
                 plan: .yearly,
                 titleLine: "Yearly \u{2013} \(stripCurrency(annualPkg?.localizedPriceString ?? "79.99"))/year",
-                subtitle: annualWeeklyEquivalent,
+                subtitle: "Just \(annualWeeklyEquivalent)",
                 badge: savingsPercent > 0 ? "Save \(savingsPercent)%" : nil,
                 isSelected: selectedPlan == .yearly
             )
         }
     }
+
+    // Purple shimmer phase for badge animation
+    @State private var shimmerPhase: CGFloat = 0
 
     private func planCard(
         plan: PaywallPlan,
@@ -279,25 +318,15 @@ struct GroovePaywallScreen: View {
 
                     Text(subtitle)
                         .font(.system(size: 14))
-                        .foregroundColor(Color.white.opacity(0.65))
+                        .foregroundColor(Color.white.opacity(0.85))
                 }
                 .padding(.leading, 16)
 
                 Spacer()
 
-                // Right: banner badge (Popular sits half in/half out at top border)
-                if let badge = badge {
-                    Text(badge)
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(accentBlue)
-                        )
-                        .padding(.trailing, 14)
-                        .offset(y: -14) // Pull up to sit half in/half out on TOP border
+                if plan == .yearly, let badge = badge {
+                    savingsBadge(badge)
+                        .padding(.trailing, 16)
                 }
             }
             .frame(height: 72)
@@ -312,8 +341,45 @@ struct GroovePaywallScreen: View {
                         lineWidth: isSelected ? 2 : 1
                     )
             )
+            // Badge on top border line, left-aligned
+            .overlay(alignment: .topTrailing) {
+                if plan != .yearly, let badge = badge {
+                    savingsBadge(badge)
+                        .offset(x: -20, y: -12) // Right-aligned, half above/below top border
+                }
+            }
         }
         .buttonStyle(.plain)
+    }
+
+    private func savingsBadge(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .bold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: 0x7B2FBE),
+                                Color(hex: 0xA855F7),
+                                Color(hex: 0xC084FC),
+                                Color(hex: 0xA855F7),
+                                Color(hex: 0x7B2FBE)
+                            ],
+                            startPoint: UnitPoint(x: shimmerPhase - 0.5, y: 0),
+                            endPoint: UnitPoint(x: shimmerPhase + 0.5, y: 1)
+                        )
+                    )
+            )
+            .shadow(color: Color(hex: 0xA855F7).opacity(0.5), radius: 6, y: 2)
+            .onAppear {
+                withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: false)) {
+                    shimmerPhase = 1.5
+                }
+            }
     }
 
     // MARK: - Sticky Bottom CTA Zone
@@ -352,7 +418,7 @@ struct GroovePaywallScreen: View {
                 }
             }
             .font(.system(size: 12))
-            .foregroundColor(textSecondary)
+            .foregroundColor(Color.white.opacity(0.85))
 
             // Legal links
             HStack(spacing: 4) {
@@ -397,21 +463,32 @@ struct GroovePaywallScreen: View {
 
             guard let pkg = package else {
                 await MainActor.run {
-                    purchaseError = "Unable to load products. Please try again."
                     isPurchasing = false
+                    showProductError = true
                 }
                 return
             }
 
             do {
                 let success = try await rcService.purchase(package: pkg)
+                log("performPurchase result success=\(success) selectedPlan=\(selectedPlan.rawValue) product=\(pkg.storeProduct.productIdentifier)")
                 if success {
-                    await MainActor.run { onComplete() }
+                    await MainActor.run {
+                        appState.isSubscribed = true
+                        log("performPurchase success path — calling onPurchaseSuccess()")
+                        onPurchaseSuccess()
+                    }
                 } else {
-                    await MainActor.run { purchaseError = "Purchase was not completed." }
+                    await MainActor.run {
+                        log("performPurchase returned false — setting purchaseError")
+                        purchaseError = "Purchase was not completed."
+                    }
                 }
             } catch {
-                await MainActor.run { purchaseError = error.localizedDescription }
+                await MainActor.run {
+                    log("performPurchase error=\(error.localizedDescription)")
+                    purchaseError = error.localizedDescription
+                }
             }
         }
     }
@@ -426,7 +503,10 @@ struct GroovePaywallScreen: View {
                 let isEntitled = await rcService.checkPremium()
                 await MainActor.run {
                     isRestoring = false
-                    if isEntitled { onComplete() }
+                    if isEntitled {
+                        appState.isSubscribed = true
+                        onPurchaseSuccess()
+                    }
                     else { purchaseError = "No purchases found to restore." }
                 }
             } else {

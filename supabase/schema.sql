@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
   coins INTEGER DEFAULT 150,
   subscription_status TEXT DEFAULT 'free',
   subscription_expires_at TIMESTAMPTZ,
-  r2_user_folder TEXT
+  r2_user_folder TEXT,
+  revenuecat_id TEXT UNIQUE
 );
 
 -- Videos table

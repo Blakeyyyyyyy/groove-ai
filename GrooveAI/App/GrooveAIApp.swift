@@ -7,8 +7,6 @@ struct GrooveAIApp: App {
     @State private var appState = AppState()
 
     init() {
-        // Configure RevenueCat on launch
-        RevenueCatService.shared.configure()
         Self.configureTabBarAppearance()
     }
 
@@ -18,6 +16,12 @@ struct GrooveAIApp: App {
                 .environment(appState)
                 .preferredColorScheme(.dark)
                 .task {
+                    if let userId = appState.userId {
+                        RevenueCatService.shared.configureWithUserId(userId)
+                    } else {
+                        RevenueCatService.shared.configure()
+                    }
+
                     // Sync user data from server
                     await appState.syncWithServer()
 

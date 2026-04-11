@@ -9,11 +9,23 @@ struct ContentView: View {
         Group {
             if !appState.hasCompletedOnboarding {
                 GrooveOnboardingView(onComplete: {
+                    print("[ContentView] GrooveOnboardingView.onComplete fired — before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
                     appState.hasCompletedOnboarding = true
+                    appState.selectedTab = .home
+                    print("[ContentView] GrooveOnboardingView.onComplete finished — after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
                 })
             } else {
                 mainTabView
             }
+        }
+        .onChange(of: appState.hasCompletedOnboarding) { _, newValue in
+            print("[ContentView] hasCompletedOnboarding changed -> \(newValue)")
+        }
+        .onChange(of: appState.showPaywall) { _, newValue in
+            print("[ContentView] showPaywall changed -> \(newValue)")
+        }
+        .onChange(of: appState.selectedTab) { _, newValue in
+            print("[ContentView] selectedTab changed -> \(newValue)")
         }
         .alert("Image Issue", isPresented: Binding(
             get: { appState.errorAlertMessage != nil },

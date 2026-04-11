@@ -121,7 +121,7 @@ struct UploadView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationBackground(Color.bgPrimary)
+            .presentationBackground(.black)
         }
         .sheet(isPresented: $showSubscriptionPaywall) {
             // Show subscription plans at highest intent moment

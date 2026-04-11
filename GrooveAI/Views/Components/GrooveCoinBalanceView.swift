@@ -7,7 +7,6 @@ struct GrooveCoinBalanceView: View {
     @ObservedObject private var rcService = RevenueCatService.shared
 
     @State private var showCoinPurchaseSheet = false
-    @State private var showTransactionHistory = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
@@ -72,9 +71,6 @@ struct GrooveCoinBalanceView: View {
                 }
                 .buttonStyle(ScaleButtonStyle())
             }
-
-            // Transaction history (collapsible)
-            transactionHistorySection
         }
         .padding(Spacing.lg)
         .background(Color.bgSecondary)
@@ -114,18 +110,18 @@ struct GrooveCoinBalanceView: View {
 
     private var subscriberRefillInfo: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            let daysUntilRefill = daysUntilNextMonday()
-
             HStack {
-                Text("Your plan refills in \(daysUntilRefill) day\(daysUntilRefill == 1 ? "" : "s")")
+                Text(rcService.refillStatusLine)
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
 
                 Spacer()
 
-                Text("\(daysUntilRefill)d")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.accentStart)
+                if let countdown = rcService.refillCountdownLabel {
+                    Text(countdown)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.accentStart)
+                }
             }
 
             // Refill progress bar
@@ -138,26 +134,13 @@ struct GrooveCoinBalanceView: View {
                     RoundedRectangle(cornerRadius: Radius.full)
                         .fill(Color.accentStart.opacity(0.6))
                         .frame(
-                            width: geo.size.width * refillProgress,
+                            width: geo.size.width * rcService.refillProgressFraction,
                             height: 6
                         )
                 }
             }
             .frame(height: 6)
         }
-    }
-
-    private var refillProgress: CGFloat {
-        let days = daysUntilNextMonday()
-        return CGFloat(7 - days) / 7.0
-    }
-
-    private func daysUntilNextMonday() -> Int {
-        let calendar = Calendar.current
-        let today = calendar.component(.weekday, from: Date())
-        // Sunday=1, Monday=2, ... Saturday=7
-        let daysUntilMonday = (9 - today) % 7
-        return daysUntilMonday == 0 ? 7 : daysUntilMonday
     }
 
     // MARK: - Coin Progress Bar
@@ -192,63 +175,6 @@ struct GrooveCoinBalanceView: View {
         return LinearGradient(colors: [Color.coinGold, Color.coinGold.opacity(0.7)], startPoint: .leading, endPoint: .trailing)
     }
 
-    // MARK: - Transaction History
-
-    private var transactionHistorySection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Button {
-                withAnimation(AppAnimation.gentle) {
-                    showTransactionHistory.toggle()
-                }
-            } label: {
-                HStack {
-                    Text("Recent Activity")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.textSecondary)
-
-                    Spacer()
-
-                    Image(systemName: showTransactionHistory ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.textTertiary)
-                }
-            }
-            .buttonStyle(.plain)
-
-            if showTransactionHistory {
-                VStack(spacing: Spacing.sm) {
-                    transactionRow(icon: "minus.circle.fill", color: .error, label: "Dance generation", coins: -60, time: "Today")
-                    transactionRow(icon: "plus.circle.fill", color: .success, label: "Weekly refill", coins: 150, time: "Monday")
-                    transactionRow(icon: "minus.circle.fill", color: .error, label: "Dance generation", coins: -60, time: "Yesterday")
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func transactionRow(icon: String, color: Color, label: String, coins: Int, time: String) -> some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundStyle(color)
-
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(Color.textPrimary)
-
-            Spacer()
-
-            Text(coins > 0 ? "+\(coins)" : "\(coins)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(coins > 0 ? Color.success : Color.textSecondary)
-
-            Text(time)
-                .font(.caption2)
-                .foregroundStyle(Color.textTertiary)
-        }
-        .padding(.vertical, Spacing.xs)
-    }
 }
 
 // MARK: - App Header Coin Pill (updated)

@@ -1,210 +1,142 @@
 // GrooveDanceSelectView.swift
-// PAGE 3 — Hero preview + dance preset selection
-// Per spec: NO typewriter, NO "generating...", instant video reveal on tap
-// Demo subject image pre-loaded, 3 presets: Big Guy, Boombastic, Cotton Eye Joe
+// PAGE 3 — Dance style selection only (result moved to Screen 5)
+// Per spec: subject confirmation strip, horizontal scroll carousel,
+// badge color system, left-aligned headline, rigid haptic
 
 import SwiftUI
-import AVKit
 
 struct GrooveDanceSelectView: View {
     @ObservedObject var state: GrooveOnboardingState
     let onNext: () -> Void
 
-    // ── Onboarding presets (3 only) ────────────────────────────────────────────
+    // ── Onboarding presets (show more for carousel feel) ───────────────────────
     private let onboardingPresets: [DancePreset] = {
-        let ids = ["big-guy", "boombastic", "cotton-eye-joe"]
+        let ids = ["big-guy", "boombastic", "cotton-eye-joe", "coco-channel", "trag"]
         return ids.compactMap { id in DancePreset.allPresets.first(where: { $0.id == id }) }
     }()
 
-    // ── UI state ──────────────────────────────────────────────────────────────
     @State private var selectedDanceId: String? = nil
-    @State private var didReveal: Bool = false
-
-    // Video player
-    @State private var player: AVPlayer? = nil
-    @State private var playerItem: AVPlayerItem? = nil
+    @State private var carouselAppeared = false
 
     var body: some View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                Spacer().frame(height: 40)
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer().frame(height: 96) // below progress dots
 
-                // ── HERO SECTION (top ~55%) ────────────────────────────────────
-                ZStack {
-                    // Glow halo behind
-                    RoundedRectangle(cornerRadius: 32)
-                        .fill(GrooveOnboardingTheme.blueAccent.opacity(didReveal ? 0.25 : 0))
-                        .blur(radius: 24)
-                        .animation(.easeInOut(duration: 0.6), value: didReveal)
-                        .frame(width: GrooveOnboardingTheme.heroImageSize.width + 20,
-                               height: GrooveOnboardingTheme.heroImageSize.height + 20)
+                // ── Subject confirmation strip ─────────────────────────────────
+                SubjectConfirmationStrip(subjectId: state.selectedSubjectId)
+                    .opacity(carouselAppeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.3), value: carouselAppeared)
 
-                    // Hero content (image or video)
-                    heroContent
-                        .frame(width: GrooveOnboardingTheme.heroImageSize.width,
-                               height: GrooveOnboardingTheme.heroImageSize.height)
-                        .clipShape(RoundedRectangle(cornerRadius: GrooveOnboardingTheme.heroCornerRadius))
-                        .shadow(
-                            color: didReveal ? GrooveOnboardingTheme.blueAccent.opacity(0.5) : .clear,
-                            radius: 20
-                        )
-                        .scaleEffect(didReveal ? 1.02 : 1.0)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: didReveal)
+                Spacer().frame(height: 24)
+
+                // ── Headline (left-aligned) ────────────────────────────────────
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Now pick a dance")
+                        .font(.system(size: 32, weight: .bold))
+                        .tracking(-0.5)
+                        .foregroundColor(.white)
+
+                    Text("Tap one to see the magic")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(GrooveOnboardingTheme.textSecondary)
                 }
-                .frame(width: GrooveOnboardingTheme.heroImageSize.width,
-                       height: GrooveOnboardingTheme.heroImageSize.height)
-                .padding(.top, GrooveOnboardingTheme.heroImageTopPadding)
+                .padding(.horizontal, 20)
+
+                Spacer().frame(height: 20)
+
+                // ── 2x2 Dance grid ─────────────────────────────────────────────
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                    ForEach(Array(onboardingPresets.prefix(4).enumerated()), id: \.element.id) { index, preset in
+                        DanceCarouselCard(
+                            preset: preset,
+                            isSelected: selectedDanceId == preset.id
+                        ) {
+                            handleDanceTap(preset)
+                        }
+                        .opacity(carouselAppeared ? 1 : 0)
+                        .animation(
+                            .spring(response: 0.4, dampingFraction: 0.8)
+                                .delay(Double(index) * 0.04),
+                            value: carouselAppeared
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
 
                 Spacer()
-
-                // ── BOTTOM SECTION ─────────────────────────────────────────────
-                if !didReveal {
-                    // Pre-reveal: show dance selection
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Now pick a dance")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("Tap one to see the magic")
-                                .font(.system(size: 16))
-                                .foregroundColor(.white.opacity(0.55))
-                        }
-
-                        // Dance preset cards — horizontal row
-                        HStack(spacing: 12) {
-                            ForEach(onboardingPresets) { preset in
-                                DancePresetCardView(
-                                    preset: preset,
-                                    isSelected: selectedDanceId == preset.id
-                                ) {
-                                    handleDanceTap(preset)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
-                    .transition(.opacity)
-
-                } else {
-                    // Post-reveal: "It's alive!" + CTA
-                    VStack(spacing: 20) {
-                        VStack(spacing: 6) {
-                            Text("🔥 It's alive!")
-                                .font(.system(size: 36, weight: .heavy))
-                                .foregroundColor(.white)
-                            Text("Now make YOUR photos dance.")
-                                .font(.system(size: 17))
-                                .foregroundColor(.white.opacity(0.7))
-                                .multilineTextAlignment(.center)
-                        }
-
-                        Button(action: onNext) {
-                            Text("Start Dancing Free")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
-                                .background(GrooveOnboardingTheme.blueAccent)
-                                .clipShape(Capsule())
-                                .shadow(
-                                    color: GrooveOnboardingTheme.blueAccent.opacity(0.4),
-                                    radius: 10, y: 5
-                                )
-                        }
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
             }
         }
-        .onDisappear {
-            player?.pause()
-            NotificationCenter.default.removeObserver(self)
-        }
-    }
-
-    // ─── Hero content: image or video ─────────────────────────────────────────
-    @ViewBuilder
-    private var heroContent: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(hex: 0x1C1C2C), Color(hex: 0x0F0F18)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            if didReveal, let player = player {
-                // Video player
-                VideoPlayer(player: player)
-                    .aspectRatio(contentMode: .fill)
-                    .transition(.opacity.animation(.easeInOut(duration: 0.25)))
-            } else {
-                // Static subject emoji (placeholder until real assets)
-                Text(demoEmoji)
-                    .font(.system(size: 120))
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                carouselAppeared = true
             }
         }
     }
 
-    private var demoEmoji: String {
-        state.selectedSubjectId == "dog" ? "🐕" : "👩"
-    }
-
-    // ─── Demo video URL for (subject, dance) combo ────────────────────────────
-    private func demoVideoURL(subjectId: String, danceId: String) -> URL? {
-        // Use R2 URL from DancePreset as fallback
-        guard let preset = DancePreset.allPresets.first(where: { $0.id == danceId }),
-              let urlString = preset.videoURL else {
-            return nil
-        }
-        return URL(string: urlString)
-    }
-
-    // ─── Handle dance tap ────────────────────────────────────────────────────
     private func handleDanceTap(_ preset: DancePreset) {
-        guard selectedDanceId == nil else { return }  // prevent double-tap
+        guard selectedDanceId == nil else { return }
         selectedDanceId = preset.id
         state.selectedDanceId = preset.id
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 
-        // Load video from R2
-        if let url = demoVideoURL(subjectId: state.selectedSubjectId, danceId: preset.id) {
-            let item = AVPlayerItem(url: url)
-            playerItem = item
-            player = AVPlayer(playerItem: item)
-            player?.actionAtItemEnd = .none  // loop
+        // Rigid haptic per spec ("click" feel)
+        UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
 
-            // Loop video
-            NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemDidPlayToEndTime,
-                object: item,
-                queue: .main
-            ) { _ in
-                player?.seek(to: .zero)
-                player?.play()
-            }
-        }
-
-        // Reveal immediately (no generation delay)
-        withAnimation(.easeInOut(duration: 0.3)) {
-            didReveal = true
-        }
-        player?.play()
-
-        // Haptic burst for "magic" feel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        // Brief visual feedback then advance
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            onNext()
         }
     }
 }
 
-// ─── Dance preset card (per spec) ─────────────────────────────────────────────
+// ─── Subject Confirmation Strip ──────────────────────────────────────────────
 
-private struct DancePresetCardView: View {
+private struct SubjectConfirmationStrip: View {
+    let subjectId: String
+
+    private var label: String {
+        switch subjectId {
+        case "dog":    return "Your pet"
+        case "person": return "Your person"
+        default:       return "Your subject"
+        }
+    }
+
+    private var thumbnailURL: String {
+        let r2Base = "https://pub-7ff4cf5f3d0d431db23366638a4128e0.r2.dev/presets"
+        if subjectId == "dog" {
+            return "\(r2Base)/big-guy-V5-AI.mp4"
+        } else {
+            return "\(r2Base)/baby-boombastic.mp4"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Rounded pet/subject thumbnail
+            RemoteVideoThumbnail(urlString: thumbnailURL, cornerRadius: 16)
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                )
+
+            Text(label)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.white.opacity(0.8))
+
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+    }
+}
+
+// ─── Dance Carousel Card ─────────────────────────────────────────────────────
+
+private struct DanceCarouselCard: View {
     let preset: DancePreset
     let isSelected: Bool
     let onTap: () -> Void
@@ -212,43 +144,58 @@ private struct DancePresetCardView: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 8) {
-                // Badge
-                if let badge = preset.badge {
-                    Text(badge.rawValue)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color(hex: 0xFF6B35))
-                        .clipShape(Capsule())
+                // Thumbnail
+                ZStack(alignment: .topLeading) {
+                    RemoteVideoThumbnail(
+                        urlString: preset.videoURL ?? "",
+                        cornerRadius: 16
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 174)
+
+                    // Badge
+                    if let badge = preset.badge {
+                        Text(badge.rawValue)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(badgeColor(for: badge))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .padding(8)
+                            .opacity(isSelected ? 0 : 1) // hide badge when selected
+                            .animation(.easeOut(duration: 0.15), value: isSelected)
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            isSelected ? GrooveOnboardingTheme.blueAccent : Color.clear,
+                            lineWidth: isSelected ? 3 : 0
+                        )
+                )
+                .scaleEffect(isSelected ? 1.04 : 1.0)
+                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
 
                 // Dance name
                 Text(preset.name)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .padding(.horizontal, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected
-                        ? GrooveOnboardingTheme.blueAccent.opacity(0.3)
-                        : Color.white.opacity(0.08))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.15),
-                                lineWidth: isSelected ? 1.5 : 1
-                            )
-                    )
-            )
         }
         .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 0.96 : 1.0)
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
+    }
+
+    private func badgeColor(for badge: DancePreset.DanceBadge) -> Color {
+        switch badge {
+        case .trending: return GrooveOnboardingTheme.badgeTrending
+        case .hot:      return GrooveOnboardingTheme.badgeHot
+        case .fanFave:  return GrooveOnboardingTheme.badgeFanFave
+        case .newDance: return GrooveOnboardingTheme.badgeNew
+        }
     }
 }

@@ -3,6 +3,7 @@ import RevenueCat
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
+    @ObservedObject private var rcService = RevenueCatService.shared
     @State private var showPlansSheet = false
 
     var body: some View {
@@ -40,6 +41,9 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .task {
+                await rcService.refreshSubscriptionStatus()
+            }
             .sheet(isPresented: $showPlansSheet) {
                 GroovePlansSheet()
                     .presentationDetents([.large])
@@ -59,10 +63,10 @@ struct SettingsView: View {
                     .foregroundStyle(Color.accentStart)
 
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text("Groove AI Pro")
+                    Text("Groove AI \(rcService.subscriptionPlanName)")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(Color.textPrimary)
-                    Text("$9.99/week")
+                    Text(rcService.subscriptionStatusLine)
                         .font(.subheadline)
                         .foregroundStyle(Color.textSecondary)
                 }

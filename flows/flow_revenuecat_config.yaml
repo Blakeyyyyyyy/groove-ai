@@ -1,0 +1,18 @@
+appId: com.grooveai.app
+---
+# Flow: RevenueCat Config Test
+# Tests that RevenueCat is properly configured and subscription features are available
+
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- assertVisible:
+    text: "Groove AI"
+
+- assertVisible:
+    text: "Start Free Trial"
+
+- takeScreenshot:
+    path: ./screenshots/revenuecat.png

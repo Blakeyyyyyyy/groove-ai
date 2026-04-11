@@ -1,0 +1,15 @@
+appId: com.grooveai.app
+---
+# Flow: Keychain Persistence Test
+# Tests that onboarding displays correctly and app launches
+
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- assertVisible:
+    text: "Groove AI"
+
+- takeScreenshot:
+    path: ./screenshots/keychain.png

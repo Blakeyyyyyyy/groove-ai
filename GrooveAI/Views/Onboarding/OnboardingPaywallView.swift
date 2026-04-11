@@ -33,6 +33,10 @@ struct OnboardingPaywallView: View {
         }
     }
 
+    private func log(_ message: String) {
+        print("[OnboardingPaywallView] \(message)")
+    }
+
     var body: some View {
         ZStack {
             Color.bgPrimary.ignoresSafeArea()
@@ -52,7 +56,14 @@ struct OnboardingPaywallView: View {
                     HStack {
                         Spacer()
                         Button {
-                            showExitPopup = true
+                            if !GrooveSpecialOfferView.hasBeenShown {
+                                log("Close tapped — presenting special offer")
+                                GrooveSpecialOfferView.markShown()
+                                showExitPopup = true
+                            } else {
+                                log("Close tapped — special offer already shown, skipping paywall")
+                                appState.showPaywall = false
+                            }
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.title3)
@@ -113,20 +124,19 @@ struct OnboardingPaywallView: View {
                 }
             }
         }
-        .sheet(isPresented: $showExitPopup) {
-            ExitPopupView(
-                onSubscribe: {
+        .fullScreenCover(isPresented: $showExitPopup) {
+            GrooveSpecialOfferView(
+                onPurchaseComplete: {
+                    log("Special offer purchase complete callback")
                     showExitPopup = false
                     handleSubscribe()
                 },
                 onDismiss: {
+                    log("Special offer dismiss callback")
                     showExitPopup = false
                     skipPaywall()
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.hidden)
-            .presentationBackground(Color.bgSecondary)
         }
     }
 
@@ -265,15 +275,21 @@ struct OnboardingPaywallView: View {
 
     // MARK: - Actions
     private func handleSubscribe() {
+        log("handleSubscribe() before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
         appState.isSubscribed = true
         appState.hasCompletedOnboarding = true
         appState.showPaywall = false
+        appState.selectedTab = .home
+        log("handleSubscribe() after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
     }
 
     private func skipPaywall() {
         // User dismissed without subscribing — still complete onboarding
+        log("skipPaywall() before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
         appState.hasCompletedOnboarding = true
         appState.showPaywall = false
+        appState.selectedTab = .home
+        log("skipPaywall() after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
     }
 }
 

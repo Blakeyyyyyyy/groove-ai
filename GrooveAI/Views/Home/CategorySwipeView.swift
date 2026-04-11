@@ -38,7 +38,8 @@ struct CategorySwipeView: View {
             .transition(.opacity)
             .animation(.easeInOut(duration: 0.2), value: currentIndex)
         } else {
-            Spacer()
+            Color.clear
+                .frame(height: 24)
         }
     }
 
@@ -135,6 +136,7 @@ struct SwipeablePresetCard: View {
                 }
             }
             .padding(.bottom, Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             // Main video preview — same sizing as DancePreviewView
             ZStack {
@@ -149,7 +151,7 @@ struct SwipeablePresetCard: View {
 
                 // Using AudioLoopingVideoView for See All page — sound matters here
                 if let videoURL {
-                    AudioLoopingVideoView(url: videoURL)
+                    AudioLoopingVideoView(url: videoURL, isPlaying: isActive)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading
@@ -164,6 +166,7 @@ struct SwipeablePresetCard: View {
                 }
             }
             .aspectRatio(9/16, contentMode: .fit)
+            .frame(maxWidth: .infinity)
 
             // CTA — Use This Dance
             NavigationLink(value: "upload-\(preset.id)") {
@@ -178,6 +181,7 @@ struct SwipeablePresetCard: View {
             .buttonStyle(ScaleButtonStyle())
             .sensoryFeedback(.success, trigger: navigateToUpload)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 

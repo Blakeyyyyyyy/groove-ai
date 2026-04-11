@@ -37,7 +37,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
-            videoURL: "\(r2Base)/Big%20guy%20video.mp4",
+            videoURL: "\(r2Base)/big-guy-V5-AI.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -50,8 +50,8 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
-            videoURL: "\(r2Base)/Coco-Channel.mp4",
-            thumbnailURL: nil
+            videoURL: "\(r2Base)/coco-channel-75fcae6c.mp4",
+            thumbnailURL: "\(r2Base)/coco-channel-75fcae6c.mp4"
         ),
         DancePreset(
             id: "trag",
@@ -63,7 +63,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
-            videoURL: "\(r2Base)/Trag%20dance.mp4",
+            videoURL: "\(r2Base)/trag-V5-AI.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -76,8 +76,8 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
-            videoURL: "\(r2Base)/ophelia%20Dance.mp4",
-            thumbnailURL: nil
+            videoURL: "\(r2Base)/ophelia-ai.mp4",
+            thumbnailURL: "\(r2Base)/ophelia-ai.mp4"
         ),
         DancePreset(
             id: "jenny",
@@ -89,8 +89,8 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🔥 Trending", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.18, blue: 0.10),
-            videoURL: "\(r2Base)/jenny%20Dance.mp4",
-            thumbnailURL: nil
+            videoURL: "\(r2Base)/jenny-ai.mp4",
+            thumbnailURL: "\(r2Base)/jenny-ai.mp4"
         ),
 
         // CLASSIC (3)
@@ -104,7 +104,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎵 Classic", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
-            videoURL: "\(r2Base)/macarena%20dance.mp4",
+            videoURL: "\(r2Base)/macarena-V5-AI.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -117,7 +117,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎵 Classic", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
-            videoURL: "\(r2Base)/Milkshake%20Dance.mp4",
+            videoURL: "\(r2Base)/milkshake-V5-AI.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -130,7 +130,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎵 Classic", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
-            videoURL: "\(r2Base)/C%20walk%20%28dance%29.mp4",
+            videoURL: "\(r2Base)/c-walk-V5-AI.mp4",
             thumbnailURL: nil
         ),
 
@@ -145,7 +145,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
-            videoURL: "\(r2Base)/Face%20Dance%20-%20She%20Call%20Me%20Mr.%20Boombastic%28new%29.mp4",
+            videoURL: "\(r2Base)/baby-boombastic.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -158,7 +158,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
-            videoURL: "\(r2Base)/Face%20Dance%20-%20Witch%20Doctor%20%282%29.mp4",
+            videoURL: "\(r2Base)/witch-doctor-v3.mp4",
             thumbnailURL: nil
         ),
         DancePreset(
@@ -171,7 +171,7 @@ struct DancePreset: Identifiable, Hashable {
             pillTags: ["🎭 Face Dance", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.04, blue: 0.10),
-            videoURL: "\(r2Base)/cotten%20eye%20joe%20%28face%20dance%29.mp4",
+            videoURL: "\(r2Base)/cotton-eye-joe.mp4",
             thumbnailURL: nil
         ),
     ]

@@ -1,0 +1,18 @@
+appId: com.grooveai.app
+---
+# Flow: Subscription Paywall Test
+# Tests that subscription paywall renders correctly
+
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- assertVisible:
+    text: "Start Free Trial"
+
+- assertVisible:
+    text: "per year"
+
+- takeScreenshot:
+    path: ./screenshots/paywall.png

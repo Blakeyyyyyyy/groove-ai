@@ -8,40 +8,66 @@ struct PaywallView: View {
     @State private var selectedPlan: PricingPlan = .annual
     @State private var isPurchasing = false
     @State private var purchaseError: String?
-
-    enum PricingPlan: CaseIterable {
+    
+    // Dynamic pricing from RevenueCat
+    @State private var weeklyIntroPrice: String = "$7.99"
+    @State private var weeklyFullPrice: String = "$9.99/week"
+    @State private var yearlyPrice: String = "$99.99/year"
+    @State private var yearlyWeeklyEquivalent: String = "$1.92/week"
+    @State private var yearlySavings: String? = "SAVE 80%"
+    @State private var hasIntroOffer: Bool = true
+    
+    private enum PricingPlan: CaseIterable {
         case weekly, annual
+    }
 
-        var displayTitle: String {
-            switch self {
-            case .weekly: return "Weekly"
-            case .annual: return "Yearly"
+    private func log(_ message: String) {
+        print("[PaywallView] \(message)")
+    }
+
+    private func exitToHome() {
+        log("exitToHome() before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
+        appState.hasCompletedOnboarding = true
+        appState.showPaywall = false
+        appState.selectedTab = .home
+        log("exitToHome() after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), showPaywall=\(appState.showPaywall), selectedTab=\(appState.selectedTab)")
+        dismiss()
+    }
+    
+    // Load dynamic pricing from RevenueCat
+    private func loadPricing() {
+        Task {
+            let rc = RevenueCatService.shared
+            await rc.fetchOfferings()
+            
+            await MainActor.run {
+                // Get weekly with intro discount (grooveai_weekly_799)
+                if let weeklyPkg = rc.weeklyPackage(), 
+                   let intro = weeklyPkg.storeProduct.introductoryDiscount {
+                    // Use localizedPriceString directly from the discount
+                    weeklyIntroPrice = intro.localizedPriceString
+                    hasIntroOffer = true
+                    
+                    // Full price after intro
+                    let fullPrice = weeklyPkg.storeProduct.localizedPriceString
+                    weeklyFullPrice = "\(fullPrice)/week"
+                }
+                
+                // Get annual (grooveai_annual_9999)
+                if let annualPkg = rc.annualPackage() {
+                    yearlyPrice = annualPkg.storeProduct.localizedPriceString + "/year"
+                    
+                    // Calculate weekly equivalent
+                    let annualPrice = annualPkg.storeProduct.price
+                    let weeklyEquivalent = annualPrice / 52
+                    let formatter = NumberFormatter()
+                    formatter.numberStyle = .currency
+                    formatter.currencyCode = "USD"
+                    yearlyWeeklyEquivalent = "\(formatter.string(from: weeklyEquivalent as NSNumber) ?? "$1.92")/week"
+                    
+                    yearlySavings = "SAVE 80%"
+                }
             }
-        }
-
-        var mainPrice: String {
-            switch self {
-            case .weekly: return "$9.99/week"
-            case .annual: return "$1.92/week"
-            }
-        }
-
-        var secondaryPrice: String {
-            switch self {
-            case .weekly: return "billed weekly"
-            case .annual: return "$99.99/year"
-            }
-        }
-
-        var savings: String? {
-            switch self {
-            case .weekly: return nil
-            case .annual: return "SAVE 80%"
-            }
-        }
-
-        var trialText: String {
-            return "first week $7.99"
         }
     }
 
@@ -66,7 +92,14 @@ struct PaywallView: View {
                 HStack {
                     // Dismiss button - top-left
                     Button {
-                        showExitOffer = true
+                        if !GrooveSpecialOfferView.hasBeenShown {
+                            log("Dismiss tapped — presenting special offer")
+                            GrooveSpecialOfferView.markShown()
+                            showExitOffer = true
+                        } else {
+                            log("Dismiss tapped — special offer already shown, exiting to home")
+                            exitToHome()
+                        }
                     } label: {
                         Image(systemName: "xmark")
                             .font(.body.weight(.medium))
@@ -82,7 +115,8 @@ struct PaywallView: View {
                             let restored = try? await RevenueCatService.shared.restorePurchases()
                             if restored == true {
                                 appState.isSubscribed = true
-                                appState.showPaywall = false
+                                log("Restore succeeded")
+                                exitToHome()
                             }
                         }
                     }
@@ -134,7 +168,7 @@ struct PaywallView: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text("$7.99 to Start")
+                                Text("\(weeklyIntroPrice) to Start")
                                     .font(.headline.bold())
                             }
                         }
@@ -151,11 +185,11 @@ struct PaywallView: View {
                     VStack(spacing: 4) {
                         Text("✓ No payment due now · Cancel anytime")
                             .font(.caption)
-                            .foregroundStyle(Color.textSecondary)
+                            .foregroundStyle(.white.opacity(0.85))
 
                         Text("Terms of Service · Privacy Policy")
                             .font(.caption2)
-                            .foregroundStyle(Color.textTertiary)
+                            .foregroundStyle(.white.opacity(0.5))
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -167,15 +201,21 @@ struct PaywallView: View {
                 )
             }
         }
+        .task {
+            loadPricing()
+        }
         .fullScreenCover(isPresented: $showExitOffer) {
-            GrooveExitOfferView(
-                onSubscribe: {
+            GrooveSpecialOfferView(
+                onPurchaseComplete: {
+                    log("Special offer purchase complete callback")
                     showExitOffer = false
-                    handleSubscribe()
+                    appState.isSubscribed = true
+                    exitToHome()
                 },
-                onSkip: {
+                onDismiss: {
+                    log("Special offer dismiss callback")
                     showExitOffer = false
-                    appState.showPaywall = false
+                    exitToHome()
                 }
             )
         }
@@ -292,51 +332,82 @@ struct PaywallView: View {
 
     private var pricingPlanCards: some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(PricingPlan.allCases, id: \.self) { plan in
-                planCard(plan: plan)
-            }
+            // Weekly Card - "Just X/week"
+            planCard(
+                isSelected: selectedPlan == .weekly,
+                onSelect: { selectedPlan = .weekly },
+                title: "Just \(weeklyIntroPrice)/week",
+                subtitle: hasIntroOffer ? "first week \(weeklyIntroPrice)" : "billed weekly",
+                fullPrice: weeklyFullPrice,
+                savings: nil
+            )
+            
+            // Annual Card - "Just X/week" as subtext
+            planCard(
+                isSelected: selectedPlan == .annual,
+                onSelect: { selectedPlan = .annual },
+                title: "Yearly - \(yearlyPrice)",
+                subtitle: "Just \(yearlyWeeklyEquivalent)",
+                fullPrice: yearlyPrice,
+                savings: yearlySavings
+            )
         }
         .padding(.horizontal, Spacing.lg)
     }
-
+    
     @ViewBuilder
-    private func planCard(plan: PricingPlan) -> some View {
-        let isSelected = selectedPlan == plan
-
+    private func planCard(isSelected: Bool, onSelect: @escaping () -> Void, title: String, subtitle: String, fullPrice: String, savings: String?) -> some View {
         Button {
             withAnimation(AppAnimation.snappy) {
-                selectedPlan = plan
+                onSelect()
             }
         } label: {
-            HStack {
+            HStack(alignment: .center) {
                 // Left content
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(plan.displayTitle)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text(plan.secondaryPrice)
-                        .font(.subheadline)
-                        .foregroundStyle(Color.textSecondary)
+                    // Weekly: "Just X/week" | Annual: "Yearly - X"
+                    if title.contains("Just") {
+                        Text("Weekly")
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(Color.textPrimary)
+                        
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.textSecondary)
+                    } else {
+                        Text("Yearly")
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(Color.textPrimary)
+                        
+                        Text(subtitle)  // "Just X/week"
+                            .font(.subheadline)
+                            .foregroundStyle(Color.textSecondary)
+                    }
                 }
 
                 Spacer()
 
-                // Right content
-                VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    Text(plan.mainPrice)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(Color.textPrimary)
-
-                    if let savings = plan.savings {
-                        Text(savings)
-                            .font(.caption.bold())
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, Spacing.xxs)
-                            .background(LinearGradient.accent)
-                            .clipShape(Capsule())
+                // Right content - vertically centered badge + price
+                HStack(alignment: .center, spacing: Spacing.md) {
+                    if let savings = savings {
+                        VStack {
+                            Text(savings)
+                                .font(.caption.bold())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.xxs)
+                                .background(LinearGradient.accent)
+                                .clipShape(Capsule())
+                        }
+                        .frame(maxHeight: .infinity, alignment: .center)
                     }
+
+                    VStack(alignment: .trailing, spacing: Spacing.xs) {
+                        Text(fullPrice)
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                    .frame(maxHeight: .infinity, alignment: .center)
                 }
 
                 // Selection indicator
@@ -388,8 +459,7 @@ struct PaywallView: View {
                     // Fallback: if offerings not loaded, mark subscribed for onboarding flow
                     await MainActor.run {
                         appState.isSubscribed = true
-                        appState.hasCompletedOnboarding = true
-                        appState.showPaywall = false
+                        exitToHome()
                         isPurchasing = false
                     }
                     return
@@ -400,8 +470,7 @@ struct PaywallView: View {
                 await MainActor.run {
                     if success {
                         appState.isSubscribed = true
-                        appState.hasCompletedOnboarding = true
-                        appState.showPaywall = false
+                        exitToHome()
                     }
                     isPurchasing = false
                 }

@@ -1,13 +1,12 @@
 // GrooveOnboardingView.swift
 // Root coordinator for the Groove AI onboarding flow.
-// 4-screen flow: Hero → Subject → Dance + Magic → Paywall
-//
-// Progress dots shown for pages 1–3 (hidden on paywall)
+// 7-screen flow: Hero → Subject → Dance → Magic → Result → Trial → Paywall
+// Progress dots shown for pages 1–3 only (hidden on magic, result, trial, paywall)
 
 import SwiftUI
 
 struct GrooveOnboardingView: View {
-    let onComplete: () -> Void   // called when user finishes onboarding (→ main app)
+    let onComplete: () -> Void
 
     @StateObject private var state = GrooveOnboardingState()
     @State private var currentPage: Int = 1
@@ -16,11 +15,11 @@ struct GrooveOnboardingView: View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
-            // Progress dots — rendered above all pages (hidden on paywall)
-            if currentPage <= 3 {
+            // Progress dots — pages 1-3 only
+            if currentPage >= 1 && currentPage <= 3 {
                 VStack {
                     ProgressDots(current: currentPage, total: 3)
-                        .padding(.top, 54)
+                        .padding(.top, 72) // 16pt below Dynamic Island area
                     Spacer()
                 }
                 .zIndex(10)
@@ -46,18 +45,35 @@ struct GrooveOnboardingView: View {
                 GrooveDanceSelectView(state: state, onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
-                        removal:   .move(edge: .leading)
+                        removal:   .opacity  // crossfade to magic moment
                     ))
 
             case 4:
+                GrooveMagicMomentView(state: state, onNext: { advance() })
+                    .transition(.asymmetric(
+                        insertion: .opacity,  // crossfade in from dance select
+                        removal:   .move(edge: .bottom)  // push up to reveal result
+                    ))
+
+            case 5:
+                GrooveResultCTAView(state: state, onNext: { advance() })
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal:   .move(edge: .leading)
+                    ))
+
+            case 6:
                 TrialEnabledScreen(onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
                         removal:   .opacity
                     ))
 
-            case 5:
-                GroovePaywallScreen(onComplete: onComplete)
+            case 7:
+                GroovePaywallScreen(
+                    onPurchaseSuccess: onComplete,
+                    onDismiss: onComplete
+                )
                     .transition(.asymmetric(
                         insertion: .opacity,
                         removal:   .move(edge: .leading)
@@ -70,7 +86,9 @@ struct GrooveOnboardingView: View {
     }
 
     private func advance() {
-        withAnimation(.easeInOut(duration: 0.35)) {
+        withAnimation(.interpolatingSpring(
+            mass: 1.0, stiffness: 200, damping: 22, initialVelocity: 0
+        )) {
             currentPage += 1
         }
     }
@@ -83,15 +101,18 @@ private struct ProgressDots: View {
     let total:   Int
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             ForEach(1...total, id: \.self) { i in
-                Capsule()
+                Circle()
                     .fill(
                         i == current
                             ? GrooveOnboardingTheme.blueAccent
                             : Color.white.opacity(0.25)
                     )
-                    .frame(width: i == current ? 20 : 6, height: 6)
+                    .frame(
+                        width:  i == current ? 8 : 6,
+                        height: i == current ? 8 : 6
+                    )
                     .animation(.spring(response: 0.4, dampingFraction: 0.7), value: current)
             }
         }
