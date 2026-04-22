@@ -1,8 +1,11 @@
 import SwiftUI
+import AVFoundation
 
 struct DancePresetCard: View {
     let preset: DancePreset
     @State private var isVisibleForPlayback = false
+    @State private var pooledPlayer: AVPlayer? = nil
+    @StateObject private var playerPool = AVPlayerPoolManager.shared
 
     private let cornerRadius = Radius.lg
 
@@ -28,6 +31,18 @@ struct DancePresetCard: View {
                 }
             }
             .modifier(HomePresetVisibilityPlayback(isVisibleForPlayback: $isVisibleForPlayback))
+            .onAppear {
+                if videoURL != nil && pooledPlayer == nil {
+                    pooledPlayer = playerPool.getPlayer()
+                }
+                if let videoURL {
+                    VideoPreloader.shared.preload(url: videoURL)
+                }
+            }
+            .onDisappear {
+                pooledPlayer?.pause()
+                pooledPlayer = nil
+            }
     }
 
     private var cardContent: some View {
@@ -62,7 +77,8 @@ struct DancePresetCard: View {
                 url: videoURL,
                 gravity: .resizeAspectFill,
                 isMuted: true,
-                isPlaying: isVisibleForPlayback
+                isPlaying: isVisibleForPlayback,
+                pooledPlayer: pooledPlayer  // Fix 1: pass pooled player
             )
         } else {
             LinearGradient(

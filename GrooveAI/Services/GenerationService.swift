@@ -132,12 +132,16 @@ final class GenerationService {
             print("[Generation] 🎫 Task ID received: \(taskId)")
             print("[Generation] 🧾 Backend video ID received: \(backendVideoId)")
 
-            // Update coins from server response
+            // Update coins from server response IF provided, otherwise sync from server
             if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
                 await MainActor.run {
                     appState.serverCoins = remaining
                     print("[Generation] 🪙 Coins remaining: \(remaining)")
                 }
+            } else {
+                // Fallback: refresh balance from server if not in response
+                print("[Generation] ⚠️ coins_remaining not in response, syncing from server...")
+                await appState.syncWithServer()
             }
 
             // ── Step 4: Poll for completion ──

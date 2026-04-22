@@ -1,36 +1,37 @@
 // GrooveHeroScrollView.swift — v2
-// PAGE 1 — Hero with 3-column symmetric auto-scrolling grid + CTA
-// v2 change: removed text overlays from carousel cards (clean video-only cards)
+// PAGE 1 — Hero with 3-column parallax video wall + CTA
+// v3: AVPlayer-based hero video wall with player pooling
+// NOTE: Requires HeroVideoCell, AVPlayerPool, HeroVideoColumnView, HeroVideoWallView
+//       to be added to Xcode target. See HERO_VIDEO_INTEGRATION.md for setup.
 
 import SwiftUI
-import Combine
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-struct GrooveScrollCard: Identifiable {
-    let id    = UUID()
-    let videoURL: String
-}
+private let videoURLs: [String] = {
+    let presetsByID = Dictionary(uniqueKeysWithValues: DancePreset.allPresets.map { ($0.id, $0) })
+    let heroPresetIDs = [
+        "big-guy",
+        "coco-channel",
+        "trag",
+        "c-walk",
+        "boombastic",
+        "ophelia",
+        "jenny",
+        "macarena",
+        "milkshake",
+        "witch-doctor",
+        "cotton-eye-joe",
+        "boombastic",
+        "big-guy",
+        "trag",
+        "ophelia",
+    ]
 
-private let r2Base = "https://videos.trygrooveai.com/presets"
-
-private let column1Cards: [GrooveScrollCard] = [
-    .init(videoURL: "\(r2Base)/big-guy-V5-AI.mp4"),
-    .init(videoURL: "\(r2Base)/trag-V5-AI.mp4"),
-    .init(videoURL: "\(r2Base)/c-walk-V5-AI.mp4"),
-]
-
-private let column2Cards: [GrooveScrollCard] = [
-    .init(videoURL: "\(r2Base)/ophelia-ai.mp4"),
-    .init(videoURL: "\(r2Base)/baby-boombastic.mp4"),
-    .init(videoURL: "\(r2Base)/jenny-ai.mp4"),
-]
-
-private let column3Cards: [GrooveScrollCard] = [
-    .init(videoURL: "\(r2Base)/macarena-V5-AI.mp4"),
-    .init(videoURL: "\(r2Base)/milkshake-V5-AI.mp4"),
-    .init(videoURL: "\(r2Base)/coco-channel-75fcae6c.mp4"),
-]
+    return heroPresetIDs.compactMap { presetID in
+        presetsByID[presetID]?.videoURL
+    }
+}()
 
 // ─── View ─────────────────────────────────────────────────────────────────────
 
@@ -50,14 +51,9 @@ struct GrooveHeroScrollViewV2: View {
 
                 Spacer().frame(height: 20)
 
-                // ── 3-column symmetric grid ─────────────────────────────────────
+                // ── 3-column parallax video wall (AVPlayer pooling) ────────────
                 ZStack {
-                    HStack(spacing: 12) {
-                        InfiniteColumnScroll(cards: column1Cards, speed: 0.8, reversed: false)
-                        InfiniteColumnScroll(cards: column2Cards, speed: 1.0, reversed: true)
-                        InfiniteColumnScroll(cards: column3Cards, speed: 0.9, reversed: false)
-                    }
-                    .padding(.horizontal, 0)
+                    HeroVideoWallView(videoURLs: videoURLs)
 
                     // Top gradient fade
                     VStack {
@@ -138,68 +134,3 @@ struct CTAPressStyle: ButtonStyle {
     }
 }
 
-// ─── Infinite vertical column scroll ────────────────────────────────────────────
-
-private struct InfiniteColumnScroll: View {
-    let cards: [GrooveScrollCard]
-    let speed: CGFloat
-    let reversed: Bool
-
-    @State private var offset: CGFloat = 0
-    @State private var timer: AnyCancellable?
-
-    private let cardHeight: CGFloat = 160
-    private let cardGap:    CGFloat = 12
-
-    private var unitHeight: CGFloat {
-        CGFloat(cards.count) * (cardHeight + cardGap)
-    }
-
-    var body: some View {
-        GeometryReader { geo in
-            VStack(spacing: cardGap) {
-                ForEach(0..<18, id: \.self) { idx in
-                    let card = cards[idx % cards.count]
-                    GrooveGridCardView(card: card)
-                        .frame(height: cardHeight)
-                }
-            }
-            .offset(y: offset)
-        }
-        .clipped()
-        .onAppear { startScroll() }
-        .onDisappear { timer?.cancel() }
-    }
-
-    private func startScroll() {
-        offset = reversed ? 0 : -(unitHeight * 0.5)
-        timer = Timer.publish(every: 0.016, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                if reversed {
-                    offset += speed
-                    if offset >= unitHeight { offset -= unitHeight }
-                } else {
-                    offset -= speed
-                    if offset <= -unitHeight { offset += unitHeight }
-                }
-            }
-    }
-}
-
-// ─── Single grid card — v2: NO text overlay, clean video card ─────────────────
-
-private struct GrooveGridCardView: View {
-    let card: GrooveScrollCard
-
-    var body: some View {
-        ZStack {
-            RemoteVideoThumbnail(urlString: card.videoURL, cornerRadius: 16)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(GrooveOnboardingTheme.borderSubtle, lineWidth: 1)
-        )
-    }
-}

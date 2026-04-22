@@ -2,18 +2,21 @@ import SwiftUI
 import AVFoundation
 
 /// Silent autoplay loop with zero native controls. Drop-in for VideoPlayer.
+/// Can optionally use a pooled player (pass `pooledPlayer`), or create its own.
 struct LoopingVideoView: UIViewRepresentable {
     let url: URL
     var gravity: AVLayerVideoGravity = .resizeAspectFill
     var isMuted: Bool = true  // Default silent for background loops
     var isPlaying: Bool = true
+    var pooledPlayer: AVQueuePlayer? = nil  // Optional pooled player (for Fix 1)
 
     func makeUIView(context: Context) -> LoopingPlayerUIView {
         LoopingPlayerUIView(
             url: url,
             gravity: gravity,
             isMuted: isMuted,
-            isPlaying: isPlaying
+            isPlaying: isPlaying,
+            pooledPlayer: pooledPlayer
         )
     }
 
@@ -23,20 +26,35 @@ struct LoopingVideoView: UIViewRepresentable {
     }
 }
 
-/// UIView that handles autoplay looping with optional audio
+/// UIView that handles autoplay looping with optional audio.
+/// Can use a pooled player (Fix 1) or create its own.
 final class LoopingPlayerUIView: UIView {
     private var playerLayer = AVPlayerLayer()
     private var playerLooper: AVPlayerLooper?
     private var queuePlayer: AVQueuePlayer?
     private var player: AVQueuePlayer?
+    private let pooledPlayer: AVQueuePlayer?
+    private var isUsingPooledPlayer: Bool = false
 
-    init(url: URL, gravity: AVLayerVideoGravity, isMuted: Bool, isPlaying: Bool) {
+    init(url: URL, gravity: AVLayerVideoGravity, isMuted: Bool, isPlaying: Bool, pooledPlayer: AVQueuePlayer? = nil) {
+        self.pooledPlayer = pooledPlayer
         super.init(frame: .zero)
         backgroundColor = .clear
 
         let item = AVPlayerItem(url: url)
-        player = AVQueuePlayer(playerItem: item)
-        playerLooper = AVPlayerLooper(player: player!, templateItem: item)
+        
+        if let pooledPlayer {
+            // Use the pooled player (Fix 1)
+            isUsingPooledPlayer = true
+            pooledPlayer.removeAllItems()
+            pooledPlayer.insert(item, after: nil)
+            player = pooledPlayer
+            playerLooper = AVPlayerLooper(player: pooledPlayer, templateItem: item)
+        } else {
+            // Fallback: create own player (for backward compatibility)
+            player = AVQueuePlayer(playerItem: item)
+            playerLooper = AVPlayerLooper(player: player!, templateItem: item)
+        }
         
         player?.isMuted = isMuted
         if isPlaying {
