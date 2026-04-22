@@ -205,7 +205,7 @@ struct DancePreset: Identifiable, Hashable {
 
     // MARK: - Woman Demo Videos (mapped to presets for HUMAN subjects)
     static let womanDemoVideos: [String: String] = [
-        "big-guy": "https://videos.trygrooveai.com/demos/woman-big-guy.mp4",
+        "big-guy": "https://v16-kling-fdl.klingai.com/bs2/upload-ylab-stunt-sgp/muse/864196381107044352/VIDEO/20260422/bb17255580387233f4b77a677c4c83d6-b539a294-550c-4c3a-ae7f-1acc891ddc96.mp4",
         "coco-channel": "https://v16-kling-fdl.klingai.com/bs2/upload-ylab-stunt-sgp/muse/864196381107044352/VIDEO/20260422/d85913e2512ac59a58f17a6068c5e2ea-9727ee72-ae52-4825-90fd-82ccbf283115.mp4"
     ]
 }
