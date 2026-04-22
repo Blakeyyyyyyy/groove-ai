@@ -1,0 +1,62 @@
+appId: com.grooveai.app
+---
+# Quick All Presets Test — Just verify each preset can be selected & generated
+# No navigation back, just rapid-fire test each one
+
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+
+# Test Big Guy
+- tapOn:
+    text: "Big Guy"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 0
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# ✓ Big Guy works
+
+# Test Coco Channel  
+- tapOn:
+    text: "Coco Channel"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 1
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# ✓ Coco Channel works
+
+# Test Trag
+- tapOn:
+    text: "Trag"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 2
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# ✓ All 3 presets work

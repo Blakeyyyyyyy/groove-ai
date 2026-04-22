@@ -1,7 +1,5 @@
 // GrooveOnboardingView.swift
 // Root coordinator for the Groove AI onboarding flow.
-// 7-screen flow: Hero → Subject → Dance → Magic → Result → Trial → Paywall
-// Progress dots shown for pages 1–3 only (hidden on magic, result, trial, paywall)
 
 import SwiftUI
 
@@ -11,62 +9,80 @@ struct GrooveOnboardingView: View {
     @StateObject private var state = GrooveOnboardingState()
     @State private var currentPage: Int = 1
 
+    private var progressStep: Int? {
+        switch currentPage {
+        case 2: return 1
+        case 3: return 2
+        default: return nil
+        }
+    }
+
     var body: some View {
         ZStack {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
-            // Progress dots — pages 1-3 only
-            if currentPage >= 1 && currentPage <= 3 {
+            if let progressStep {
                 VStack {
-                    ProgressDots(current: currentPage, total: 3)
-                        .padding(.top, 72) // 16pt below Dynamic Island area
+                    ProgressDots(current: progressStep, total: 3)
+                        .padding(.top, 72)
                     Spacer()
                 }
                 .zIndex(10)
             }
 
-            // Pages
             switch currentPage {
             case 1:
                 GrooveHeroScrollView(onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
-                        removal:   .move(edge: .leading)
+                        removal: .move(edge: .leading)
                     ))
 
             case 2:
                 GrooveSubjectSelectView(state: state, onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
-                        removal:   .move(edge: .leading)
+                        removal: .move(edge: .leading)
                     ))
 
             case 3:
                 GrooveDanceSelectView(state: state, onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
-                        removal:   .opacity  // crossfade to magic moment
+                        removal: .opacity
                     ))
 
             case 4:
-                GrooveMagicMomentView(state: state, onNext: { advance() })
-                    .transition(.asymmetric(
-                        insertion: .opacity,  // crossfade in from dance select
-                        removal:   .move(edge: .bottom)  // push up to reveal result
-                    ))
+                if GrooveOnboardingFeatureFlags.usePremiumMagicResultFlow {
+                    GroovePremiumMagicResultFlowView(state: state, onNext: { advance(by: 2) })
+                        .transition(.asymmetric(
+                            insertion: .opacity,
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
+                } else {
+                    GrooveMagicMomentView(state: state, onNext: { advance() })
+                        .transition(.asymmetric(
+                            insertion: .opacity,
+                            removal: .move(edge: .bottom)
+                        ))
+                }
 
             case 5:
-                GrooveResultCTAView(state: state, onNext: { advance() })
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .bottom).combined(with: .opacity),
-                        removal:   .move(edge: .leading)
-                    ))
+                if GrooveOnboardingFeatureFlags.usePremiumMagicResultFlow {
+                    EmptyView()
+                } else {
+                    GrooveResultCTAView(state: state, onNext: { advance() })
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .leading)
+                        ))
+                }
 
             case 6:
                 TrialEnabledScreen(onNext: { advance() })
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing),
-                        removal:   .opacity
+                        removal: .opacity
                     ))
 
             case 7:
@@ -74,10 +90,10 @@ struct GrooveOnboardingView: View {
                     onPurchaseSuccess: onComplete,
                     onDismiss: onComplete
                 )
-                    .transition(.asymmetric(
-                        insertion: .opacity,
-                        removal:   .move(edge: .leading)
-                    ))
+                .transition(.asymmetric(
+                    insertion: .opacity,
+                    removal: .move(edge: .leading)
+                ))
 
             default:
                 EmptyView()
@@ -85,35 +101,26 @@ struct GrooveOnboardingView: View {
         }
     }
 
-    private func advance() {
+    private func advance(by step: Int = 1) {
         withAnimation(.interpolatingSpring(
             mass: 1.0, stiffness: 200, damping: 22, initialVelocity: 0
         )) {
-            currentPage += 1
+            currentPage += step
         }
     }
 }
 
-// ─── Progress dots ────────────────────────────────────────────────────────────
-
 private struct ProgressDots: View {
     let current: Int
-    let total:   Int
+    let total: Int
 
     var body: some View {
         HStack(spacing: 8) {
-            ForEach(1...total, id: \.self) { i in
-                Circle()
-                    .fill(
-                        i == current
-                            ? GrooveOnboardingTheme.blueAccent
-                            : Color.white.opacity(0.25)
-                    )
-                    .frame(
-                        width:  i == current ? 8 : 6,
-                        height: i == current ? 8 : 6
-                    )
-                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: current)
+            ForEach(1...total, id: \.self) { index in
+                Capsule()
+                    .fill(index == current ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.25))
+                    .frame(width: index == current ? 20 : 6, height: 6)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: current)
             }
         }
     }

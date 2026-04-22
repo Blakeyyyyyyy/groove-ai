@@ -20,7 +20,7 @@ struct GrooveCoinPurchaseSheet: View {
 
     @State private var selectedTab: PackageTab = .topUp
     @State private var selectedCoinPackage: CoinPackage = .medium
-    @State private var selectedPlanTier: PlanTier = .pro
+    @State private var selectedPlanTier: PlanTier = .weeklyPro550
     @State private var isPurchasing = false
     @State private var purchaseError: String?
     @State private var showCoinsInfo = false
@@ -95,6 +95,7 @@ struct GrooveCoinPurchaseSheet: View {
         }
         .task {
             await rcService.fetchOfferings()
+            await rcService.fetchCoinProducts()
         }
         .sheet(isPresented: $showCoinsInfo) {
             coinsInfoSheet
@@ -293,9 +294,16 @@ struct GrooveCoinPurchaseSheet: View {
                     .padding(.horizontal, 12)
 
                 // Price
-                Text(pkg.price)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
+                Group {
+                    if let price = rcService.localizedPrice(for: pkg) {
+                        Text(price)
+                    } else {
+                        Text("$X.XX")
+                            .redacted(reason: .placeholder)
+                    }
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
 
                 Text("one-time")
                     .font(.system(size: 12))
@@ -370,11 +378,13 @@ struct GrooveCoinPurchaseSheet: View {
                 // Plan info
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text(tier.name)
+                        let displayName = rcService.localizedDisplayName(for: tier)
+                        Text(displayName ?? "Plan")
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.white)
+                            .redacted(reason: displayName == nil ? .placeholder : [])
 
-                        if tier == .pro {
+                        if tier == .weeklyPro550 {
                             Text("POPULAR")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(.white)
@@ -391,7 +401,7 @@ struct GrooveCoinPurchaseSheet: View {
                         }
                     }
 
-                    Text("\(tier.coinsPerWeek) coins / week")
+                    Text(tier.coinSummaryLabel)
                         .font(.system(size: 14))
                         .foregroundStyle(textSecondarySpec)
                 }
@@ -400,9 +410,11 @@ struct GrooveCoinPurchaseSheet: View {
 
                 // Price
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(tier.priceLabel)
+                    let priceStr = rcService.localizedPrice(for: tier)
+                    Text(priceStr ?? "$XX.XX")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
+                        .redacted(reason: priceStr == nil ? .placeholder : [])
                 }
 
                 // Selection radio
@@ -480,16 +492,17 @@ struct GrooveCoinPurchaseSheet: View {
         case .topUp:
             return "Get \(selectedCoinPackage.coins) Coins"
         case .plans:
-            return "Upgrade to \(selectedPlanTier.name)"
+            let name = rcService.localizedDisplayName(for: selectedPlanTier) ?? "Plan"
+            return "Upgrade to \(name)"
         }
     }
 
     private var ctaSubtitle: String {
         switch selectedTab {
         case .topUp:
-            return selectedCoinPackage.price
+            return rcService.localizedPrice(for: selectedCoinPackage) ?? "Loading..."
         case .plans:
-            return selectedPlanTier.priceLabel
+            return rcService.localizedPrice(for: selectedPlanTier) ?? "Loading..."
         }
     }
 
@@ -499,7 +512,7 @@ struct GrooveCoinPurchaseSheet: View {
         VStack(spacing: 8) {
             Text(selectedTab == .topUp
                  ? "One-time purchase. Coins don't expire."
-                 : "3-day free trial, then billed weekly. Cancel anytime.")
+                 : "Subscription billed automatically until canceled.")
                 .font(.system(size: 12))
                 .foregroundStyle(textTertiary)
                 .multilineTextAlignment(.center)

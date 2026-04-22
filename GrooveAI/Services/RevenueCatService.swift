@@ -18,26 +18,27 @@ final class RevenueCatService: ObservableObject {
     @Published var currentPackages: [Package] = []
     @Published var activeSubscriptionProductID: String?
     @Published var subscriptionRenewalDate: Date?
+    @Published var coinProducts: [String: Product] = [:]
     private var configuredAppUserId: String?
     private var hasConfigured = false
     
     // Coin balance (local only - synced with AppState)
     @Published var coinBalance: Int = 0
 
-    // Product IDs from ASC (correct IDs as of API check)
+    // Product IDs from ASC — prices are set in App Store Connect, never hardcoded
     private enum ProductID {
         // Weekly Subscriptions (with weekly coin allocation)
-        static let weeklyBasic = "grooveai_weekly_300"      // $14.99 - 300 coins/week
-        static let weeklyStandard = "grooveai_weekly_550" // $19.99 - 550 coins/week
-        static let weeklyPremium = "grooveai_weekly_1200"   // $34.99 - 1200 coins/week
+        static let weeklyBasic = "grooveai_weekly_300"      // 300 coins/week
+        static let weeklyStandard = "grooveai_weekly_550"   // 550 coins/week
+        static let weeklyPremium = "grooveai_weekly_1200"   // 1200 coins/week
         
         // Annual Subscription
-        static let annual = "grooveai_annual_9999"       // $79.99/year
+        static let annual = "grooveai_annual_9999"
         
         // Coins (one-time purchases)
-        static let coinsSmall = "grooveai_coins_small"   // 100 coins - $9.99
-        static let coinsMedium = "grooveai_coins_medium" // 300 coins - $19.99
-        static let coinsLarge = "grooveai_coins_large"  // 600 coins - $29.99
+        static let coinsSmall = "grooveai_coins_small"    // 100 coins
+        static let coinsMedium = "grooveai_coins_medium"  // 300 coins
+        static let coinsLarge = "grooveai_coins_large"    // 600 coins
     }
 
     // RevenueCat public key - loaded from environment/build config
@@ -56,9 +57,9 @@ final class RevenueCatService: ObservableObject {
         return "appl_dmOLXuPKMXatwKYxDHjLyYfULfu"
     }
     
-    /// Returns true if RevenueCat is properly configured with an API key
+    /// Returns true if the RevenueCat SDK has been configured with an API key.
     var isConfigured: Bool {
-        !apiKey.isEmpty
+        hasConfigured && !apiKey.isEmpty
     }
 
     private init() {
@@ -212,9 +213,27 @@ final class RevenueCatService: ObservableObject {
         }
     }
 
+    @MainActor
+    func fetchCoinProducts() async {
+        do {
+            let products = try await Product.products(for: [
+                ProductID.coinsSmall,
+                ProductID.coinsMedium,
+                ProductID.coinsLarge
+            ])
+            var mapped: [String: Product] = [:]
+            for product in products {
+                mapped[product.id] = product
+            }
+            coinProducts = mapped
+        } catch {
+            print("[RevenueCat] Error fetching coin products: \(error)")
+        }
+    }
+
     // MARK: - Package Helpers (per spec product IDs)
     
-    /// Returns weekly package with intro discount ($7.99 intro, then $9.99/week)
+    /// Returns weekly package with intro discount (if available).
     /// Prefers grooveai_weekly_799 (Special Offer with intro discount)
     func weeklyPackage() -> Package? {
         let targetProductID = "grooveai_weekly_799"
@@ -239,7 +258,7 @@ final class RevenueCatService: ObservableObject {
         return fallback
     }
     
-    /// Returns annual package ($79.99/year)
+    /// Returns annual package if available.
     func annualPackage() -> Package? {
         currentPackages.first { $0.packageType == .annual }
     }
@@ -295,22 +314,19 @@ final class RevenueCatService: ObservableObject {
     
     // MARK: - Weekly Subscription Package Helpers
     
-    /// Weekly Basic: $14.99/week - 300 coins per week
+    /// Weekly Basic: 300 coins per week. Returns nil if product not found.
     func weeklyBasicPackage() -> Package? {
         currentPackages.first { $0.storeProduct.productIdentifier == ProductID.weeklyBasic }
-            ?? currentPackages.first { $0.packageType == .weekly }
     }
     
-    /// Weekly Standard: $19.99/week - 550 coins per week (recommended)
+    /// Weekly Standard: 550 coins per week (recommended). Returns nil if product not found.
     func weeklyStandardPackage() -> Package? {
         currentPackages.first { $0.storeProduct.productIdentifier == ProductID.weeklyStandard }
-            ?? currentPackages.first { $0.packageType == .weekly }
     }
     
-    /// Weekly Premium: $34.99/week - 1200 coins per week
+    /// Weekly Premium: 1200 coins per week. Returns nil if product not found.
     func weeklyPremiumPackage() -> Package? {
         currentPackages.first { $0.storeProduct.productIdentifier == ProductID.weeklyPremium }
-            ?? currentPackages.first { $0.packageType == .weekly }
     }
     
     /// Legacy aliases for backward compatibility
@@ -324,6 +340,60 @@ final class RevenueCatService: ObservableObject {
     
     func vipWeeklyPackage() -> Package? {
         weeklyPremiumPackage()
+    }
+
+    func package(for tier: PlanTier) -> Package? {
+        switch tier {
+        case .weeklyStarter300:
+            return weeklyBasicPackage()
+        case .weeklyPro550:
+            return weeklyStandardPackage()
+        case .weeklyMax1200:
+            return weeklyPremiumPackage()
+        case .annual:
+            return annualPackage()
+        }
+    }
+
+    /// Returns the StoreKit localized title for this tier, or nil if the package isn't loaded.
+    func localizedDisplayName(for tier: PlanTier) -> String? {
+        guard let title = package(for: tier)?.storeProduct.localizedTitle
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !title.isEmpty else {
+            return nil
+        }
+        return title
+    }
+
+    /// Returns just the localized price amount, or nil if unavailable.
+    func localizedPriceOnly(for tier: PlanTier) -> String? {
+        package(for: tier)?.storeProduct.localizedPriceString
+    }
+
+    /// Returns localized price with period suffix derived from StoreKit subscription period, or nil if unavailable.
+    func localizedPrice(for tier: PlanTier) -> String? {
+        guard let pkg = package(for: tier) else { return nil }
+        let price = pkg.storeProduct.localizedPriceString
+        if let period = pkg.storeProduct.subscriptionPeriod {
+            switch period.unit {
+            case .day: return "\(price)/day"
+            case .week: return "\(price)/wk"
+            case .month: return "\(price)/mo"
+            case .year: return "\(price)/yr"
+            @unknown default: return price
+            }
+        }
+        return price
+    }
+
+    /// Returns the localized display price for a coin package, or nil if the StoreKit product isn't loaded.
+    func localizedPriceOnly(for package: CoinPackage) -> String? {
+        coinProducts[package.productID]?.displayPrice
+    }
+
+    /// Returns the localized display price for a coin package, or nil if the StoreKit product isn't loaded.
+    func localizedPrice(for package: CoinPackage) -> String? {
+        localizedPriceOnly(for: package)
     }
     
     // MARK: - Coin Purchases (StoreKit consumables)
@@ -425,10 +495,12 @@ final class RevenueCatService: ObservableObject {
 
 // MARK: - Coin Package Model
 
+/// CoinPackage is an ID-only model for looking up StoreKit products.
+/// Display prices MUST come from StoreKit — never hardcoded here.
 enum CoinPackage: CaseIterable {
-    case small   // 100 coins, $9.99
-    case medium  // 300 coins, $19.99 (pre-select)
-    case large   // 600 coins, $29.99
+    case small   // 100 coins
+    case medium  // 300 coins (pre-select)
+    case large   // 600 coins
     
     var productID: String {
         switch self {
@@ -438,24 +510,13 @@ enum CoinPackage: CaseIterable {
         }
     }
     
+    /// Internal coin amount — app-defined, not a store price.
     var coins: Int {
         switch self {
         case .small:  return 100
         case .medium: return 300
         case .large:  return 600
         }
-    }
-    
-    var price: String {
-        switch self {
-        case .small:  return "$9.99"
-        case .medium: return "$19.99"
-        case .large:  return "$29.99"
-        }
-    }
-    
-    var badge: String? {
-        self == .medium ? "BEST VALUE" : nil
     }
 }
 

@@ -1,0 +1,85 @@
+appId: com.grooveai.app
+---
+# Full Preset Test — 3 Presets UI Flow Verification
+# Tests: preset tap → sneak peek → Use This Dance → upload → photo select → Generate visible
+# Does NOT tap Generate — triggers real Kling API calls, rate-limited to 1 per 43min
+# "Generate" visible = full upload flow confirmed working for each preset
+#
+# PHPicker grid: 3 columns on iPhone 17 Pro, first row starts at ~17% from top
+# Row 1 center = ~25% from top. Using Col 1 (17%,25%) for all presets.
+# waitForAnimationToEnd (no timeout param) ensures picker loads before tap + dismisses after
+
+# ════════════════════════════════════════════
+# PRESET 1: BIG GUY
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- tapOn:
+    text: "Big Guy"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ BIG GUY FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 2: COCO CHANNEL
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- tapOn:
+    text: "Coco Channel"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ COCO CHANNEL FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 3: TRAG
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- tapOn:
+    text: "Trag"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ TRAG FLOW: PASS

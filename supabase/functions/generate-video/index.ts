@@ -6,11 +6,59 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.177.0/encoding/base64.ts";
 import { HmacSha256 } from "https://deno.land/std@0.177.0/hash/sha256.ts";
+import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.529.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// --- R2 Client ---
+function getR2Client(): S3Client {
+  const accountId = Deno.env.get("R2_ACCOUNT_ID")!;
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: Deno.env.get("R2_ACCESS_KEY_ID")!,
+      secretAccessKey: Deno.env.get("R2_SECRET_ACCESS_KEY")!,
+    },
+  });
+}
+
+// --- Download video and upload to R2 ---
+async function downloadAndUploadToR2(videoUrl: string, videoId: string): Promise<string> {
+  console.log("[R2 Upload] Downloading video from:", videoUrl);
+  
+  // Download video from Kling
+  const videoResponse = await fetch(videoUrl);
+  if (!videoResponse.ok) {
+    throw new Error(`Failed to download video: ${videoResponse.status}`);
+  }
+  const videoBuffer = await videoResponse.arrayBuffer();
+  const videoBytes = new Uint8Array(videoBuffer);
+  
+  console.log("[R2 Upload] Video downloaded, size:", videoBytes.length, "bytes");
+  
+  const outputKey = `videos/${videoId}.mp4`;
+  const r2 = getR2Client();
+  const bucketName = Deno.env.get("R2_BUCKET_NAME_VIDEOS") || "groove-ai-videos";
+  
+  // Upload to R2 with proper caching headers
+  await r2.send(new PutObjectCommand({
+    Bucket: bucketName,
+    Key: outputKey,
+    Body: videoBytes,
+    ContentType: "video/mp4",
+    CacheControl: "public, max-age=31536000",
+  }));
+  
+  const r2BaseUrl = `https://${Deno.env.get("R2_ACCOUNT_ID")}.r2.dev`;
+  const finalUrl = `${r2BaseUrl}/${outputKey}`;
+  
+  console.log("[R2 Upload] Uploaded to R2:", finalUrl);
+  return finalUrl;
+}
 
 // --- Kling JWT ---
 function generateKlingJWT(): string {
@@ -283,11 +331,20 @@ serve(async (req) => {
           const result = await pollKlingStatus(taskId);
 
           if (result.status === "completed" && result.videoUrl) {
-            // Update video record with real URL
+            // Download video and upload to R2 for better streaming
+            let finalVideoUrl = result.videoUrl;
+            try {
+              finalVideoUrl = await downloadAndUploadToR2(result.videoUrl, video.id);
+            } catch (e) {
+              console.error("[R2 Upload] Failed to upload to R2, using original URL:", e);
+              // Fall back to original Kling URL
+            }
+            
+            // Update video record with R2 URL
             await supabase
               .from("videos")
               .update({
-                video_url: result.videoUrl,
+                video_url: finalVideoUrl,
                 status: "completed",
               })
               .eq("id", video.id);

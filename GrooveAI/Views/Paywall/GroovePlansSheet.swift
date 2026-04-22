@@ -5,10 +5,11 @@ import RevenueCat
 struct GroovePlansSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var rcService = RevenueCatService.shared
 
     var onPurchaseComplete: (() -> Void)?
 
-    @State private var selectedTier: PlanTier = .pro
+    @State private var selectedTier: PlanTier = .weeklyPro550
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var purchaseError: String?
@@ -63,7 +64,10 @@ struct GroovePlansSheet: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text(selectedTier.ctaLabel)
+                        let name = rcService.localizedDisplayName(for: selectedTier) ?? "Plan"
+                        let price = rcService.localizedPrice(for: selectedTier) ?? "..."
+                        let prefix = selectedTier == .annual ? "Start" : "Upgrade to"
+                        Text("\(prefix) \(name) \u{2014} \(price)")
                             .font(.headline.weight(.semibold))
                             .foregroundStyle(.white)
                     }
@@ -74,7 +78,8 @@ struct GroovePlansSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
             }
             .buttonStyle(ScaleButtonStyle())
-            .allowsHitTesting(!isPurchasing)
+            .allowsHitTesting(!isPurchasing && rcService.localizedPrice(for: selectedTier) != nil)
+            .opacity(rcService.localizedPrice(for: selectedTier) != nil ? 1.0 : 0.5)
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.lg)
 
@@ -104,6 +109,9 @@ struct GroovePlansSheet: View {
             .padding(.bottom, Spacing.lg)
         }
         .background(Color.bgPrimary)
+        .task {
+            await rcService.fetchOfferings()
+        }
     }
 
     // MARK: - Plan Card
@@ -111,6 +119,9 @@ struct GroovePlansSheet: View {
     @ViewBuilder
     private func planCard(_ tier: PlanTier) -> some View {
         let isSelected = selectedTier == tier
+        let displayName = rcService.localizedDisplayName(for: tier)
+        let priceStr = rcService.localizedPrice(for: tier)
+        let isLoading = priceStr == nil
 
         Button {
             withAnimation(AppAnimation.snappy) {
@@ -121,11 +132,12 @@ struct GroovePlansSheet: View {
                 // Plan info
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     HStack(spacing: Spacing.sm) {
-                        Text(tier.name)
+                        Text(displayName ?? "Plan")
                             .font(.headline.weight(.bold))
                             .foregroundStyle(Color.textPrimary)
+                            .redacted(reason: isLoading ? .placeholder : [])
 
-                        if tier == .pro {
+                        if tier == .weeklyPro550 {
                             Text("RECOMMENDED")
                                 .font(.caption2.bold())
                                 .foregroundStyle(.white)
@@ -136,7 +148,7 @@ struct GroovePlansSheet: View {
                         }
 
                         if tier == .annual {
-                            Text("SAVE 89%")
+                            Text("BEST VALUE")
                                 .font(.caption2.bold())
                                 .foregroundStyle(Color.coinGold)
                                 .padding(.horizontal, 8)
@@ -150,7 +162,7 @@ struct GroovePlansSheet: View {
                         Image(systemName: "circle.fill")
                             .font(.system(size: 6))
                             .foregroundStyle(Color.coinGold)
-                        Text("\(tier.coinsPerWeek) coins/week")
+                        Text(tier.coinSummaryLabel)
                             .font(.caption)
                             .foregroundStyle(Color.textSecondary)
                     }
@@ -160,15 +172,10 @@ struct GroovePlansSheet: View {
 
                 // Price
                 VStack(alignment: .trailing, spacing: Spacing.xxs) {
-                    Text(tier.priceLabel)
+                    Text(priceStr ?? "$XX.XX")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(Color.textPrimary)
-
-                    if tier == .annual {
-                        Text("= $1.54/wk")
-                            .font(.caption2)
-                            .foregroundStyle(Color.textSecondary)
-                    }
+                        .redacted(reason: isLoading ? .placeholder : [])
                 }
 
                 // Radio
@@ -205,9 +212,9 @@ struct GroovePlansSheet: View {
     private var billingNote: String {
         switch selectedTier {
         case .annual:
-            return "Billed annually. Cancel anytime."
+            return "Auto-renews yearly \u{00B7} cancel anytime in Settings"
         default:
-            return "3-day free trial, then \(selectedTier.priceLabel). Cancel anytime."
+            return "Auto-renews weekly \u{00B7} cancel anytime in Settings"
         }
     }
 

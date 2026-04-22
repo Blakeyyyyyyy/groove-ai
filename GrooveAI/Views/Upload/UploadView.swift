@@ -28,6 +28,7 @@ struct UploadView: View {
                 uploadCard
             }
             .buttonStyle(ScaleButtonStyle())
+            .accessibilityIdentifier("upload_photo_button")
             .padding(.horizontal, Spacing.lg)
 
             Spacer()
@@ -69,7 +70,7 @@ struct UploadView: View {
                     .frame(height: 52)
                     .background(
                         selectedImage != nil
-                            ? AnyShapeStyle(LinearGradient.accent)
+                            ? AnyShapeStyle(Color(red: 0.545, green: 0.361, blue: 0.957)) // #8B5CF6 solid purple
                             : AnyShapeStyle(Color.bgElevated)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
@@ -92,11 +93,14 @@ struct UploadView: View {
         .sheet(isPresented: $showPhotoPicker) {
             PhotoPicker(
                 onImageSelected: { image in
+                    showPhotoPicker = false
                     withAnimation(AppAnimation.bouncy) {
                         selectedImage = image
                     }
                 },
-                onCancel: {}
+                onCancel: {
+                    showPhotoPicker = false
+                }
             )
         }
         .sheet(isPresented: $showNotificationModal) {
@@ -140,7 +144,7 @@ struct UploadView: View {
 
     @ViewBuilder
     private var uploadCard: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             RoundedRectangle(cornerRadius: Radius.xl)
                 .fill(Color.bgSecondary)
 
@@ -160,23 +164,28 @@ struct UploadView: View {
                         Text("Tap to add photo")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(Color.textPrimary)
+                            .multilineTextAlignment(.center)
 
                         Text("Person, pet, or baby — any photo works")
                             .font(.subheadline)
                             .foregroundStyle(Color.textSecondary)
+                            .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Hint for best results
+
                         Text("This dance works best with an image of 1 person, clearly visible of their body")
                             .font(.caption)
                             .foregroundStyle(Color.textTertiary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, Spacing.lg)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .frame(maxWidth: 260)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .padding(.horizontal, Spacing.xl)
+                .padding(.vertical, Spacing.xl)
             }
-
+        }
+        .overlay(alignment: .bottom) {
             if selectedImage != nil {
                 Text("Change Photo")
                     .font(.subheadline.weight(.medium))
@@ -279,9 +288,10 @@ struct CoinsPurchasePaywallView: View {
 
             // Coin packages
             VStack(spacing: Spacing.md) {
-                coinPackage(coins: 60, price: "$2.99", label: "1 Video")
-                coinPackage(coins: 180, price: "$6.99", label: "3 Videos", badge: "Popular")
-                coinPackage(coins: 600, price: "$19.99", label: "10 Videos", badge: "Best Value")
+                ForEach(CoinPackage.allCases, id: \.productID) { pkg in
+                    let price = RevenueCatService.shared.localizedPrice(for: pkg)
+                    coinPackage(coins: pkg.coins, price: price ?? "...", label: "\(pkg.coins) Coins", badge: pkg.specBadge?.text)
+                }
             }
             .padding(.horizontal, Spacing.lg)
 

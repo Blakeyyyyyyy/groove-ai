@@ -1,0 +1,29 @@
+appId: com.grooveai.app
+---
+# Quick Preset Test — Single Preset Flow
+# Purpose: Verify preset selection → preview → upload flow
+
+- launchApp
+
+# Verify app loaded
+- assertVisible:
+    text: "Groove AI"
+
+# Tap "Big Guy" preset
+- tapOn:
+    text: "Big Guy"
+
+# After tapping, sneak peek/preview screen appears
+# Verify preview loaded (should see "Use This Dance" button)
+- assertVisible:
+    text: "Use This Dance"
+
+# Tap "Use This Dance" to go to upload screen
+- tapOn:
+    text: "Use This Dance"
+
+# Verify upload screen loads (should see photo selection)
+- assertVisible:
+    text: "Select a Photo First"
+
+# Basic preset flow works ✓

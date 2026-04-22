@@ -1,56 +1,48 @@
-// PlanTier.swift
-// Groove AI — Subscription plan tiers
-
 import Foundation
 import RevenueCat
 
+/// PlanTier is an ID-only model for looking up RevenueCat packages.
+/// Display names and prices MUST come from RevenueCat/StoreKit — never hardcoded here.
 enum PlanTier: String, CaseIterable, Hashable {
-    case basic
-    case pro
+    case weeklyStarter300
+    case weeklyPro550
+    case weeklyMax1200
     case annual
 
-    var name: String {
+    /// Internal coin allocation per billing cycle.
+    /// These are app-defined feature quotas, NOT store prices.
+    var coinAmount: Int {
         switch self {
-        case .basic:  return "Starter"
-        case .pro:    return "Pro"
-        case .annual: return "Annual"
+        case .weeklyStarter300: return 300
+        case .weeklyPro550: return 550
+        case .weeklyMax1200: return 1200
+        case .annual: return 250
         }
     }
 
-    var priceLabel: String {
+    var coinSummaryLabel: String {
         switch self {
-        case .basic:  return "$9.99/wk"
-        case .pro:    return "$9.99/wk"
-        case .annual: return "$79.99/yr"
+        case .annual:
+            return "\(coinAmount) coins / year"
+        default:
+            return "\(coinAmount) coins / week"
         }
     }
 
-    var coinsPerWeek: Int {
-        switch self {
-        case .basic:  return 150
-        case .pro:    return 300
-        case .annual: return 500
-        }
-    }
-
-    var ctaLabel: String {
-        switch self {
-        case .basic:  return "Start Starter — \(priceLabel)"
-        case .pro:    return "Start Pro — \(priceLabel)"
-        case .annual: return "Start Annual — \(priceLabel)"
-        }
-    }
-
-    /// Weekly-only tiers for the coin purchase plans tab
     static var weeklyTiers: [PlanTier] {
-        [.basic, .pro]
+        [.weeklyStarter300, .weeklyPro550, .weeklyMax1200]
     }
 
     func resolvePackage(from rc: RevenueCatService) -> Package? {
         switch self {
-        case .basic:  return rc.weeklyPackage()
-        case .pro:    return rc.weeklyPackage()
-        case .annual: return rc.annualPackage()
+        case .weeklyStarter300:
+            return rc.weeklyBasicPackage()
+        case .weeklyPro550:
+            return rc.weeklyStandardPackage()
+        case .weeklyMax1200:
+            return rc.weeklyPremiumPackage()
+        case .annual:
+            return rc.annualPackage()
         }
     }
 }

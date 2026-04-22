@@ -21,7 +21,7 @@ struct DancePreset: Identifiable, Hashable {
     }
 
     // MARK: - R2 Base URL
-    private static let r2Base = "https://pub-7ff4cf5f3d0d431db23366638a4128e0.r2.dev/presets"
+    private static let r2Base = "https://videos.trygrooveai.com/presets"
 
     // MARK: - All Presets (matches backend IDs)
 
@@ -195,4 +195,17 @@ struct DancePreset: Identifiable, Hashable {
             return CategoryGroup(id: name, name: name, presets: presets)
         }
     }
+
+    // MARK: - Dog Demo Videos (mapped to presets for PET subjects)
+    static let dogDemoVideos: [String: String] = [
+        "big-guy": "https://videos.trygrooveai.com/demos/golden-retriever-big-guy.mp4",
+        "coco-channel": "https://videos.trygrooveai.com/demos/golden-retriever-coco-channel.mp4",
+        "c-walk": "https://videos.trygrooveai.com/demos/golden-retriever-c-walk.mp4"
+    ]
+
+    // MARK: - Woman Demo Videos (mapped to presets for HUMAN subjects)
+    static let womanDemoVideos: [String: String] = [
+        "big-guy": "https://videos.trygrooveai.com/demos/woman-big-guy.mp4",
+        "coco-channel": "https://v16-kling-fdl.klingai.com/bs2/upload-ylab-stunt-sgp/muse/864196381107044352/VIDEO/20260422/d85913e2512ac59a58f17a6068c5e2ea-9727ee72-ae52-4825-90fd-82ccbf283115.mp4"
+    ]
 }

@@ -1,0 +1,257 @@
+appId: com.grooveai.app
+---
+# Remaining Presets Test — 8 presets (Ophelia through Cotton Eye Joe)
+# Layout:
+#   Trending row (horizontal): Big Guy, Coco Channel, Trag, Ophelia, Jenny
+#   Classic row (below fold): Macarena, Milkshake, C Walk
+#   Face Dance row (below fold): Boombastic, Witch Doctor, Cotton Eye Joe
+#
+# Ophelia/Jenny need LEFT swipe on Trending carousel (de-virtualizes off-screen cells)
+# Classic/Face Dance need vertical scroll (scrollUntilVisible works for those)
+# Does NOT tap Generate — Kling rate limit (~1 per 43min in dev)
+
+# ════════════════════════════════════════════
+# PRESET 4: OPHELIA (Trending, 4th — 1 swipe left)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- tapOn:
+    text: "Ophelia"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ OPHELIA FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 5: JENNY (Trending, 5th — 2 swipes left)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- tapOn:
+    text: "Jenny"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ JENNY FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 6: MACARENA (Classic — vertical scroll)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Macarena"
+- tapOn:
+    text: "Macarena"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ MACARENA FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 7: MILKSHAKE (Classic — vertical scroll)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Macarena"
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- tapOn:
+    text: "Milkshake"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ MILKSHAKE FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 8: C WALK (Classic, 3rd — scroll + swipe left)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Macarena"
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- tapOn:
+    text: "C Walk"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ C WALK FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 9: BOOMBASTIC (Face Dance — vertical scroll)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Boombastic"
+- tapOn:
+    text: "Boombastic"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ BOOMBASTIC FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 10: WITCH DOCTOR (Face Dance — vertical scroll)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Witch Doctor"
+- tapOn:
+    text: "Witch Doctor"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ WITCH DOCTOR FLOW: PASS
+
+# ════════════════════════════════════════════
+# PRESET 11: COTTON EYE JOE (Face Dance, 3rd — scroll + swipe left)
+# ════════════════════════════════════════════
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+- scrollUntilVisible:
+    element:
+      text: "Witch Doctor"
+- swipe:
+    start: "80%,55%"
+    end: "20%,55%"
+    duration: 300
+- tapOn:
+    text: "Cotton Eye Joe"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- waitForAnimationToEnd
+- tapOn:
+    point: "17%,25%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Generate"
+
+# ✅ COTTON EYE JOE FLOW: PASS

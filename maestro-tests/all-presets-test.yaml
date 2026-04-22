@@ -1,0 +1,83 @@
+appId: com.grooveai.app
+---
+# All Presets Test — Flow Validation Across All Presets
+# No waiting for video generation, just verify each preset works
+
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+
+# ────── PRESET 1: BIG GUY ──────
+- tapOn:
+    text: "Big Guy"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 0
+- assertVisible:
+    text: "Generate"
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# Go back to home
+- tapOn:
+    id: "house.fill"
+- assertVisible:
+    text: "Groove AI"
+
+# ────── PRESET 2: COCO CHANNEL ──────
+- tapOn:
+    text: "Coco Channel"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 1
+- assertVisible:
+    text: "Generate"
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# Go back to home
+- tapOn:
+    id: "house.fill"
+- assertVisible:
+    text: "Groove AI"
+
+# ────── PRESET 3: TRAG ──────
+- tapOn:
+    text: "Trag"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 2
+- assertVisible:
+    text: "Generate"
+- tapOn:
+    text: "Generate"
+- tapOn:
+    text: "Not now"
+
+# ✓ ALL 3 PRESETS TESTED
+# If this completes: all presets work, no crashes

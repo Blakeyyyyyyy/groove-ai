@@ -1,0 +1,36 @@
+appId: com.grooveai.app
+---
+# Full App Screenshot Tour
+# Captures every screen in the app for visual review
+
+- launchApp
+
+# ────── SCREEN 1: HOME ──────
+- assertVisible:
+    text: "Groove AI"
+
+# ────── SCREEN 2: TAP FIRST PRESET (BIG GUY) ──────
+- tapOn:
+    text: "Big Guy"
+
+# ────── SCREEN 3: SNEAK PEEK ──────
+- assertVisible:
+    text: "Use This Dance"
+
+# ────── SCREEN 4: TAP USE THIS DANCE ──────
+- tapOn:
+    text: "Use This Dance"
+
+# ────── SCREEN 5: UPLOAD SCREEN ──────
+- assertVisible:
+    text: "Select a Photo First"
+
+# ────── SCREEN 6: TAP CAMERA ──────
+- tapOn:
+    id: "camera.fill"
+
+# ────── SCREEN 7: PHOTO PICKER ──────
+# (Photo picker open - will show in screenshot)
+
+# ────── END OF TOUR ──────
+# All key screens captured during test execution

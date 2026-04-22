@@ -53,7 +53,7 @@ struct ScaleButtonStyle: ButtonStyle {
 
 #Preview {
     VStack(spacing: Spacing.xl) {
-        GradientCTAButton("Start Dancing — $9.99") {}
+        GradientCTAButton("Start Dancing") {}
         GradientCTAButton("Select a Photo First", isEnabled: false) {}
     }
     .padding()

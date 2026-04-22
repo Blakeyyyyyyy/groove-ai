@@ -80,7 +80,7 @@ struct DancePreviewView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(LinearGradient.accent)
+                    .background(Color(red: 0.545, green: 0.361, blue: 0.957)) // #8B5CF6
                     .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
             }
             .buttonStyle(ScaleButtonStyle())

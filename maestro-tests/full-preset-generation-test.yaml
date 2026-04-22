@@ -1,0 +1,43 @@
+appId: com.grooveai.app
+---
+# Full Preset Generation Test — Flow Validation
+# Scope: Select Big Guy preset → pick photo → tap Generate (no wait for actual video)
+
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+
+# Select preset
+- tapOn:
+    text: "Big Guy"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+
+# Upload screen
+- assertVisible:
+    text: "Select a Photo First"
+
+# Tap camera icon
+- tapOn:
+    id: "camera.fill"
+
+# Select photo
+- tapOn:
+    index: 0
+
+# Verify Generate button
+- assertVisible:
+    text: "Generate"
+
+# Tap Generate to start generation
+- tapOn:
+    text: "Generate"
+
+# Dismiss notification modal
+- tapOn:
+    text: "Not now"
+
+# ✓ FLOW COMPLETE: All interactions work
+# (Video generation in background, no need to wait)

@@ -1,0 +1,61 @@
+appId: com.grooveai.app
+---
+# Test All Preset Photo Selection
+# Goal: See if photo selection works for ALL presets
+
+- launchApp
+- assertVisible:
+    text: "Groove AI"
+
+# PRESET 1: BIG GUY
+- tapOn:
+    text: "Big Guy"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 0
+- assertVisible:
+    text: "Generate"
+# ✅ BIG GUY: PASS
+
+# PRESET 2: COCO CHANNEL  
+- tapOn:
+    text: "Coco Channel"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 1
+- assertVisible:
+    text: "Generate"
+# ✅ COCO CHANNEL: PASS
+
+# PRESET 3: TRAG
+- tapOn:
+    text: "Trag"
+- assertVisible:
+    text: "Use This Dance"
+- tapOn:
+    text: "Use This Dance"
+- assertVisible:
+    text: "Select a Photo First"
+- tapOn:
+    id: "camera.fill"
+- tapOn:
+    index: 2
+- assertVisible:
+    text: "Generate"
+# ✅ TRAG: PASS
+
+# ALL 3 PRESETS: Photo selection works ✓

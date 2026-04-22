@@ -7,7 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4AF948399E17338937024D35 /* GrooveMagicMomentViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */; };
+		534B733B6AB9BD6593FE6D21 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */; };
+		59BD7E7E2BFE047410435F11 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */; };
+		8916D679313CCC0A007994C3 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */; };
 		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
+		BB424AD42F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */; };
+		BB424ADC2F919A2400158951 /* GrooveOnboardingViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */; };
+		BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */; };
+		BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */; };
+		BB424AE22F919A2400158951 /* GrooveDanceSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */; };
+		BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */; };
+		BB424AE62F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */; };
+		BB424AE82F919A2500158951 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */; };
+		BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */; };
+		BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */; };
+		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
 		BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */; };
@@ -20,7 +35,6 @@
 		BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */; };
 		BF_DESIGNTOKENS /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DESIGNTOKENS /* DesignTokens.swift */; };
 		BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EMPTYSTATEVIEW /* EmptyStateView.swift */; };
-		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
 		BF_GEMINISERVICE /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GEMINISERVICE /* GeminiService.swift */; };
 		BF_GENERATEDVIDEO /* GeneratedVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATEDVIDEO /* GeneratedVideo.swift */; };
 		BF_GENERATINGPILL /* GeneratingPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GENERATINGPILL /* GeneratingPill.swift */; };
@@ -31,15 +45,17 @@
 		BF_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */; };
 		BF_GROOVEDANCEPRESET /* GrooveDancePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */; };
 		BF_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */; };
-		BF_PLANTIER /* PlanTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PLANTIER /* PlanTier.swift */; };
 		BF_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */; };
 		BF_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */; };
-		BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */; };
+		BF_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift */; };
 		BF_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */; };
 		BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */; };
 		BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */; };
 		BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */; };
 		BF_GROOVEPLANSSHEET /* GroovePlansSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */; };
+		BF_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */; };
+		BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */; };
+		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
 		BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */; };
 		BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROBANNERVIEW /* HeroBannerView.swift */; };
 		BF_HOMEVIEW /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HOMEVIEW /* HomeView.swift */; };
@@ -57,6 +73,7 @@
 		BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */; };
 		BF_PAYWALLVIEW /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PAYWALLVIEW /* PaywallView.swift */; };
 		BF_PHOTOPICKER /* PhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PHOTOPICKER /* PhotoPicker.swift */; };
+		BF_PLANTIER /* PlanTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PLANTIER /* PlanTier.swift */; };
 		BF_R2SERVICE /* R2Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_R2SERVICE /* R2Service.swift */; };
 		BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */; };
 		BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_REVENUECATSERVICE /* RevenueCatService.swift */; };
@@ -69,11 +86,37 @@
 		BF_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */; };
 		BF_UPLOADVIEW /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW /* UploadView.swift */; };
 		BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */; };
+		BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */; };
 		BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */; };
+		C64096C3934F3BAD772C0890 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */; };
+		C828D2667EEA2B38EF2073A0 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */; };
+		CEF385386A4E7A31B2CE9454 /* GrooveDanceSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */; };
+		E8516E17FD4A01E1D9021A38 /* GroovePaywallScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */; };
+		F7BCACF90BAD48ED23B7706C /* GrooveOnboardingViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveResultCTAViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveResultCTAViewV2.swift"; sourceTree = "<group>"; };
+		09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveSubjectSelectViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveSubjectSelectViewV2.swift"; sourceTree = "<group>"; };
+		3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GroovePremiumMagicResultFlowViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GroovePremiumMagicResultFlowViewV2.swift"; sourceTree = "<group>"; };
 		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
+		AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GroovePaywallScreenV2.swift; path = "GrooveAI/Onboarding/Views-v2/GroovePaywallScreenV2.swift"; sourceTree = "<group>"; };
+		BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveHeroScrollViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveHeroScrollViewV2.swift"; sourceTree = "<group>"; };
+		BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowV2.swift; sourceTree = "<group>"; };
+		BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingViewV2.swift; sourceTree = "<group>"; };
+		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
+		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
+		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
+		BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveMagicMomentViewV2.swift; sourceTree = "<group>"; };
+		BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowViewV2.swift; sourceTree = "<group>"; };
+		BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAViewV2.swift; sourceTree = "<group>"; };
+		BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreenV2.swift; sourceTree = "<group>"; };
+		BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreenV2.swift; sourceTree = "<group>"; };
+		BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2PreviewGallery.swift; sourceTree = "<group>"; };
+		C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveMagicMomentViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveMagicMomentViewV2.swift"; sourceTree = "<group>"; };
+		DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveOnboardingViewV2.swift; path = GrooveAI/Onboarding/GrooveOnboardingViewV2.swift; sourceTree = "<group>"; };
+		E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TrialEnabledScreenV2.swift; path = "GrooveAI/Onboarding/Views-v2/TrialEnabledScreenV2.swift"; sourceTree = "<group>"; };
+		E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveDanceSelectViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveDanceSelectViewV2.swift"; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
@@ -86,7 +129,6 @@
 		FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanceStylePickerView.swift; sourceTree = "<group>"; };
 		FR_DESIGNTOKENS /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		FR_EMPTYSTATEVIEW /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
-		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
 		FR_GEMINISERVICE /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		FR_GENERATEDVIDEO /* GeneratedVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedVideo.swift; sourceTree = "<group>"; };
 		FR_GENERATINGPILL /* GeneratingPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPill.swift; sourceTree = "<group>"; };
@@ -97,15 +139,17 @@
 		FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveCoinPurchaseSheet.swift; sourceTree = "<group>"; };
 		FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDancePreset.swift; sourceTree = "<group>"; };
 		FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectView.swift; sourceTree = "<group>"; };
-		FR_PLANTIER /* PlanTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTier.swift; sourceTree = "<group>"; };
 		FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollView.swift; sourceTree = "<group>"; };
 		FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveMagicMomentView.swift; sourceTree = "<group>"; };
-		FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAView.swift; sourceTree = "<group>"; };
+		FR_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingFeatureFlags.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingState.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingTheme.swift; sourceTree = "<group>"; };
 		FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingView.swift; sourceTree = "<group>"; };
 		FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreen.swift; sourceTree = "<group>"; };
 		FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePlansSheet.swift; sourceTree = "<group>"; };
+		FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowView.swift; sourceTree = "<group>"; };
+		FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAView.swift; sourceTree = "<group>"; };
+		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
 		FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectView.swift; sourceTree = "<group>"; };
 		FR_HEROBANNERVIEW /* HeroBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroBannerView.swift; sourceTree = "<group>"; };
 		FR_HOMEVIEW /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -123,6 +167,7 @@
 		FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageIndicatorDots.swift; sourceTree = "<group>"; };
 		FR_PAYWALLVIEW /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		FR_PHOTOPICKER /* PhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPicker.swift; sourceTree = "<group>"; };
+		FR_PLANTIER /* PlanTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTier.swift; sourceTree = "<group>"; };
 		FR_R2SERVICE /* R2Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Service.swift; sourceTree = "<group>"; };
 		FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptService.swift; sourceTree = "<group>"; };
 		FR_REVENUECATSERVICE /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
@@ -134,6 +179,7 @@
 		FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreen.swift; sourceTree = "<group>"; };
 		FR_UPLOADVIEW /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReadyPopup.swift; sourceTree = "<group>"; };
+		FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSplashView.swift; sourceTree = "<group>"; };
 		FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
 		PRODUCT_REF /* GrooveAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrooveAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -150,6 +196,70 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BB424AC22F91991A00158951 /* GrooveAI */ = {
+			isa = PBXGroup;
+			children = (
+				BB424AC42F91992200158951 /* Onboarding */,
+			);
+			path = GrooveAI;
+			sourceTree = "<group>";
+		};
+		BB424AC32F91991A00158951 /* GrooveAI */ = {
+			isa = PBXGroup;
+			children = (
+				BB424AC52F91992200158951 /* Onboarding */,
+			);
+			path = GrooveAI;
+			sourceTree = "<group>";
+		};
+		BB424AC42F91992200158951 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		BB424AC52F91992200158951 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				BB424AC62F91992200158951 /* Views-v2 */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		BB424AC62F91992200158951 /* Views-v2 */ = {
+			isa = PBXGroup;
+			children = (
+				BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */,
+				BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */,
+				BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */,
+				BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */,
+				BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */,
+				BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */,
+				BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */,
+				BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */,
+				BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */,
+			);
+			path = "Views-v2";
+			sourceTree = "<group>";
+		};
+		C95ADBC9D03E9FAA4387E85E /* Views-v2 */ = {
+			isa = PBXGroup;
+			children = (
+				BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */,
+				09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */,
+				E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */,
+				C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */,
+				3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */,
+				06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */,
+				AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */,
+				E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */,
+				BB424AC32F91991A00158951 /* GrooveAI */,
+			);
+			path = "Views-v2";
+			sourceTree = "<group>";
+		};
 		GRP_APP /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -174,6 +284,7 @@
 				FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */,
 				FR_SETTINGSROW /* SettingsRow.swift */,
 				FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */,
+				FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */,
 				FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */,
 				51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */,
 			);
@@ -192,10 +303,15 @@
 			isa = PBXGroup;
 			children = (
 				FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */,
+				FR_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift */,
 				FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */,
 				FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */,
 				FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */,
 				GRP_GROOVEONBOARDING_VIEWS /* Views */,
+				DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */,
+				C95ADBC9D03E9FAA4387E85E /* Views-v2 */,
+				BB424AC22F91991A00158951 /* GrooveAI */,
+				BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -206,6 +322,7 @@
 				FR_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift */,
 				FR_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift */,
 				FR_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift */,
+				FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */,
 				FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */,
 				FR_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift */,
 				FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */,
@@ -440,11 +557,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */,
+				BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */,
 				BF_APPSTATE /* AppState.swift in Sources */,
 				BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */,
+				BB424ADC2F919A2400158951 /* GrooveOnboardingViewV2.swift in Sources */,
 				BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */,
 				BF_CONTENTVIEW /* ContentView.swift in Sources */,
 				BF_CREDITSINFOROW /* CreditsInfoRow.swift in Sources */,
+				BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */,
 				BF_CREDITSSERVICE /* CreditsService.swift in Sources */,
 				BF_DANCEPRESET /* DancePreset.swift in Sources */,
 				BF_DANCEPRESETCARD /* DancePresetCard.swift in Sources */,
@@ -452,6 +573,7 @@
 				BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */,
 				BF_DESIGNTOKENS /* DesignTokens.swift in Sources */,
 				BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */,
+				BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */,
 				BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */,
 				BF_PLANTIER /* PlanTier.swift in Sources */,
 				BF_GEMINISERVICE /* GeminiService.swift in Sources */,
@@ -466,8 +588,12 @@
 				BF_GROOVEDANCESELECTVIEW /* GrooveDanceSelectView.swift in Sources */,
 				BF_GROOVEHEROSCROLLVIEW /* GrooveHeroScrollView.swift in Sources */,
 				BF_GROOVEMAGICMOMENTVIEW /* GrooveMagicMomentView.swift in Sources */,
+				BF_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift in Sources */,
 				BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */,
+				BB424AE62F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */,
+				BF_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift in Sources */,
 				BF_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift in Sources */,
+				BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */,
 				BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */,
 				BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */,
 				BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */,
@@ -476,6 +602,7 @@
 				BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */,
 				BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */,
 				BF_HOMEVIEW /* HomeView.swift in Sources */,
+				BB424AE82F919A2500158951 /* GrooveResultCTAViewV2.swift in Sources */,
 				BF_KLINGSERVICE /* KlingService.swift in Sources */,
 				BF_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift in Sources */,
 				BF_LOOPINGVIDEOVIEW /* LoopingVideoView.swift in Sources */,
@@ -488,6 +615,7 @@
 				BF_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift in Sources */,
 				BF_ONBOARDINGSTATE /* OnboardingState.swift in Sources */,
 				BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */,
+				BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */,
 				BF_PAYWALLVIEW /* PaywallView.swift in Sources */,
 				BF_PHOTOPICKER /* PhotoPicker.swift in Sources */,
 				BF_R2SERVICE /* R2Service.swift in Sources */,
@@ -496,12 +624,24 @@
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_SETTINGSVIEW /* SettingsView.swift in Sources */,
 				BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */,
+				BB424AD42F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift in Sources */,
 				BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */,
 				BF_SUPABASESERVICE /* SupabaseService.swift in Sources */,
 				BF_UPLOADVIEW /* UploadView.swift in Sources */,
 				BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */,
+				BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */,
 				BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */,
 				98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */,
+				F7BCACF90BAD48ED23B7706C /* GrooveOnboardingViewV2.swift in Sources */,
+				C828D2667EEA2B38EF2073A0 /* GrooveHeroScrollViewV2.swift in Sources */,
+				BB424AE22F919A2400158951 /* GrooveDanceSelectViewV2.swift in Sources */,
+				534B733B6AB9BD6593FE6D21 /* GrooveSubjectSelectViewV2.swift in Sources */,
+				CEF385386A4E7A31B2CE9454 /* GrooveDanceSelectViewV2.swift in Sources */,
+				4AF948399E17338937024D35 /* GrooveMagicMomentViewV2.swift in Sources */,
+				59BD7E7E2BFE047410435F11 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */,
+				C64096C3934F3BAD772C0890 /* GrooveResultCTAViewV2.swift in Sources */,
+				E8516E17FD4A01E1D9021A38 /* GroovePaywallScreenV2.swift in Sources */,
+				8916D679313CCC0A007994C3 /* TrialEnabledScreenV2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

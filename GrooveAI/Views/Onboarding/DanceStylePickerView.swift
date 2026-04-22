@@ -1,28 +1,31 @@
 import SwiftUI
+import AVFoundation
 
-// MARK: - Screen 3: Dance Style Picker
-// Horizontal scrollable row of dance style cards with progress bar
+// MARK: - Screen 3: Dance Style Picker (Redesigned)
+// Three full-width horizontal cards (350×120pt). Left panel = video loop. Right panel = name + descriptor.
+// User selects → Continue button appears. NO auto-advance.
 struct DanceStylePickerView: View {
     let subject: OnboardingSubject
     @Binding var selectedStyle: OnboardingDanceStyle?
     let onContinue: () -> Void
 
     @State private var showContent = false
-    @State private var progressValue: CGFloat = 0.3 // Starts at 30% from Screen 2
+    @State private var progressValue: CGFloat = 0.3
 
     private var styles: [OnboardingDanceStyle] {
+        // Model now returns exactly 3 styles
         OnboardingDanceStyle.styles(for: subject)
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: 80)
+            Spacer().frame(height: 72)
 
             // Progress dots
             PageIndicatorDots(count: 4, current: 2)
                 .padding(.bottom, Spacing.lg)
 
-            // Progress bar (cosmetic — pure psychology)
+            // Progress bar (psychological momentum)
             VStack(spacing: Spacing.xs) {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -51,42 +54,44 @@ struct DanceStylePickerView: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.bottom, Spacing.xl)
 
-            Spacer()
-
-            // Horizontal scrollable dance style cards
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.md) {
-                    ForEach(styles) { style in
-                        DanceStyleCard(
-                            style: style,
-                            isSelected: selectedStyle?.id == style.id,
-                            onTap: {
-                                withAnimation(AppAnimation.bouncy) {
-                                    selectedStyle = style
-                                }
-                                // Auto-advance after 500ms
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    onContinue()
-                                }
+            // Dance style cards (3 full-width vertical cards)
+            VStack(spacing: 12) {
+                ForEach(Array(styles.enumerated()), id: \.element.id) { index, style in
+                    DanceStyleRowCard(
+                        style: style,
+                        isSelected: selectedStyle?.id == style.id,
+                        onTap: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.65)) {
+                                selectedStyle = style
                             }
-                        )
-                        .offset(y: showContent ? 0 : 20)
-                        .opacity(showContent ? 1 : 0)
-                    }
+                        }
+                    )
+                    .offset(y: showContent ? 0 : 24)
+                    .opacity(showContent ? 1 : 0)
+                    .animation(
+                        AppAnimation.cardTransition.delay(Double(index) * 0.08),
+                        value: showContent
+                    )
                 }
-                .padding(.horizontal, Spacing.lg)
             }
-            .scrollTargetBehavior(.viewAligned)
+            .padding(.horizontal, Spacing.lg)
 
             Spacer()
-            Spacer()
+
+            // Continue button — appears after selection
+            if selectedStyle != nil {
+                GradientCTAButton("Let's go →", action: onContinue)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.bottom, Spacing.xxl + 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: selectedStyle?.id)
         .background(Color.bgPrimary)
         .onAppear {
-            withAnimation(AppAnimation.cardTransition.delay(0.2)) {
+            withAnimation(AppAnimation.cardTransition.delay(0.15)) {
                 showContent = true
             }
-            // Animate progress bar to 60%
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 progressValue = 0.6
             }
@@ -94,80 +99,100 @@ struct DanceStylePickerView: View {
     }
 }
 
-// MARK: - Dance Style Card
-private struct DanceStyleCard: View {
+// MARK: - Dance Style Row Card
+// Full-width horizontal card: left video panel (120×120) + right text panel
+private struct DanceStyleRowCard: View {
     let style: OnboardingDanceStyle
     let isSelected: Bool
     let onTap: () -> Void
 
-    @State private var badgePulse = false
+    @State private var videoURL: URL?
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 0) {
-                // Thumbnail area
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: Radius.lg)
-                        .fill(Color.bgElevated.opacity(0.6))
-                        .overlay(
-                            Image(systemName: "music.note")
-                                .font(.system(size: 32))
-                                .foregroundStyle(
-                                    isSelected ? AnyShapeStyle(LinearGradient.accent) : AnyShapeStyle(Color.textSecondary.opacity(0.5))
-                                )
+            HStack(spacing: 0) {
+                // LEFT: Video preview panel (120×120)
+                ZStack {
+                    if let url = videoURL {
+                        LoopingVideoView(url: url, gravity: .resizeAspectFill)
+                            .disabled(true)
+                    } else {
+                        // Fallback: gradient + play icon
+                        LinearGradient(
+                            colors: [Color.bgElevated, Color.bgSecondary],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
 
-                    if let badge = style.badge {
-                        Text(badge)
-                            .font(.caption2.bold())
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, Spacing.xs)
-                            .background(LinearGradient.accent)
-                            .clipShape(Capsule())
-                            .padding(Spacing.sm)
-                            .scaleEffect(badgePulse ? 1.06 : 1.0)
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+
+                    // Subtle dark scrim on right edge for text panel separation
+                    HStack {
+                        Spacer()
+                        LinearGradient(
+                            colors: [Color.clear, Color.black.opacity(0.4)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: 24)
                     }
                 }
-                .frame(width: 140, height: 160)
+                .frame(width: 120, height: 120)
+                .clipped()
 
-                // Name
-                Text(style.name)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.textPrimary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.md)
+                // RIGHT: Name + descriptor + badge
+                VStack(alignment: .leading, spacing: 6) {
+                    // "Most popular" badge
+                    if let badge = style.badge {
+                        Text(badge)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(LinearGradient.accent)
+                            .clipShape(Capsule())
+                    }
+
+                    Text(style.name)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+
+                    Text(style.descriptor)
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(Color.textSecondary)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color.bgSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.xl)
-                    .stroke(
-                        isSelected ? Color.accentStart : Color.clear,
-                        lineWidth: 2
-                    )
-            )
-            .scaleEffect(isSelected ? 1.08 : 1.0)
-            .opacity(selectedOpacity)
         }
         .buttonStyle(.plain)
+        .frame(height: 120)
+        .background(Color.bgSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.xl)
+                .stroke(
+                    isSelected ? Color.accentStart : Color.white.opacity(0.06),
+                    lineWidth: isSelected ? 2 : 1
+                )
+        )
+        .shadow(
+            color: isSelected ? Color.accentStart.opacity(0.25) : Color.black.opacity(0.2),
+            radius: isSelected ? 14 : 6,
+            y: isSelected ? 4 : 2
+        )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isSelected)
         .onAppear {
-            if style.badge != nil {
-                withAnimation(
-                    .easeInOut(duration: 1.0)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    badgePulse = true
-                }
-            }
+            videoURL = Bundle.main.url(forResource: style.videoName, withExtension: "mp4")
         }
-    }
-
-    private var selectedOpacity: Double {
-        isSelected ? 1.0 : 0.88
     }
 }
 

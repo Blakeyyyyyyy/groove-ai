@@ -2,8 +2,28 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @State private var showSplash = true
 
     var body: some View {
+        ZStack {
+            if showSplash {
+                GrooveSplashView {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showSplash = false
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(1)
+            } else {
+                mainContent
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showSplash)
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
         @Bindable var state = appState
 
         Group {
@@ -79,28 +99,31 @@ struct ContentView: View {
                     .tag(AppTab.settings)
             }
             .tint(.white)
-            .safeAreaInset(edge: .bottom) {
-                Group {
-                    if appState.isGenerating {
-                        GeneratingPill(
-                            onTap: {
-                                if appState.generationFailed {
-                                    appState.resetGeneration()
-                                    appState.selectedTab = .home
-                                }
+            .toolbar(.hidden, for: .tabBar)
+
+            // GeneratingPill positioned ABOVE where tab bar would be
+            if appState.isGenerating {
+                VStack {
+                    Spacer()
+                    GeneratingPill(
+                        onTap: {
+                            if appState.generationFailed {
+                                appState.resetGeneration()
+                                appState.selectedTab = .home
                             }
+                        }
+                    )
+                    .transition(
+                        .asymmetric(
+                            insertion: .offset(y: 80).combined(with: .opacity),
+                            removal: .offset(y: 80).combined(with: .opacity)
                         )
-                        .transition(
-                            .asymmetric(
-                                insertion: .offset(y: 80).combined(with: .opacity),
-                                removal: .offset(y: 80).combined(with: .opacity)
-                            )
-                        )
-                        .animation(AppAnimation.bouncy, value: appState.isGenerating)
-                    }
+                    )
+                    .animation(AppAnimation.bouncy, value: appState.isGenerating)
+                    .padding(.horizontal, Spacing.lg)
+                    // Position pill above the hidden tab bar area
+                    .padding(.bottom, 60) // Leave space for where tab bar was
                 }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.sm)
             }
 
             // In-app "Video Ready" popup — slides in from top

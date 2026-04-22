@@ -18,15 +18,13 @@ struct TrialEnabledScreen: View {
             VStack(spacing: 24) {
                 Spacer()
 
-                // Native iOS-style toggle (non-interactive, visual only)
                 Toggle("", isOn: $isToggled)
                     .toggleStyle(SwitchToggleStyle(tint: Color(hex: 0x30D158)))
                     .labelsHidden()
                     .scaleEffect(1.8)
-                    .disabled(true) // NOT clickable
+                    .disabled(true)
                     .allowsHitTesting(false)
 
-                // Confirmation text
                 if showText {
                     Text("7 day trial enabled")
                         .font(.system(size: 22, weight: .semibold))
@@ -38,26 +36,22 @@ struct TrialEnabledScreen: View {
             }
         }
         .onAppear {
-            // After ~300ms: toggle animates ON
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                withAnimation(.spring(response: 0.85, dampingFraction: 0.78)) {
                     isToggled = true
                 }
 
-                // Haptic on toggle
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
             }
 
-            // Show text shortly after toggle
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 withAnimation(.easeOut(duration: 0.25)) {
                     showText = true
                 }
             }
 
-            // After ~800ms from toggle (1100ms total): auto-transition
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
                 onNext()
             }
         }

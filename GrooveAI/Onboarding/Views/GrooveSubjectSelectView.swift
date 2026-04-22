@@ -1,36 +1,46 @@
-// GrooveSubjectSelectView.swift
-// PAGE 2 — Subject selection with premium card design
-// Per spec: badge, left-aligned card text, gradient image fade, blue border selection
-
 import SwiftUI
 
-// ─── Subject Data ────────────────────────────────────────────────────────────
+private enum SubjectImageLoader {
+    private static let workspaceRoot = "/Users/blakeyyyclaw/.openclaw/workspace/groove-ai"
 
-private struct SubjectOption: Identifiable {
-    let id: String            // "dog" | "person"
-    let label: String
-    let subtitle: String
-    let videoURL: String
+    static func load(_ name: String, fallbackPaths: [String]) -> UIImage? {
+        if let image = UIImage(named: name) {
+            return image
+        }
+
+        for path in ([name] + fallbackPaths) {
+            let absolutePath = path.hasPrefix("/") ? path : "\(workspaceRoot)/\(path)"
+            if let image = UIImage(contentsOfFile: absolutePath) {
+                return image
+            }
+        }
+
+        return nil
+    }
 }
 
-private let r2Base = "https://pub-7ff4cf5f3d0d431db23366638a4128e0.r2.dev/presets"
+private struct SubjectOption: Identifiable {
+    let id: String
+    let displayName: String
+    let fallbackPaths: [String]
+}
 
 private let subjectOptions: [SubjectOption] = [
     SubjectOption(
-        id: "dog",
-        label: "My Pet",
-        subtitle: "Watch them dance",
-        videoURL: "\(r2Base)/big-guy-V5-AI.mp4"
+        id: "person",
+        displayName: "06183b6c390a4741f1cdfa11a3f06e82.jpg",
+        fallbackPaths: [
+            "GrooveAI/Assets.xcassets/subject-person.imageset/subject-person.jpg"
+        ]
     ),
     SubjectOption(
-        id: "person",
-        label: "A Person",
-        subtitle: "Anyone can groove",
-        videoURL: "\(r2Base)/baby-boombastic.mp4"
-    ),
+        id: "dog",
+        displayName: "Gemini_Generated_Image_1555co1555co1555.png",
+        fallbackPaths: [
+            "GrooveAI/Assets.xcassets/subject-pet.imageset/subject-pet.png"
+        ]
+    )
 ]
-
-// ─── View ─────────────────────────────────────────────────────────────────────
 
 struct GrooveSubjectSelectView: View {
     @ObservedObject var state: GrooveOnboardingState
@@ -43,22 +53,8 @@ struct GrooveSubjectSelectView: View {
             GrooveOnboardingTheme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer().frame(height: 96) // below progress dots
+                Spacer().frame(height: 96)
 
-                // "✨ Try it free" badge
-                Text("✨ Try it free")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(GrooveOnboardingTheme.badgeText)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(GrooveOnboardingTheme.badgeBG)
-                    .clipShape(Capsule())
-                    .opacity(cardsAppeared ? 1 : 0)
-                    .animation(.easeOut(duration: 0.2), value: cardsAppeared)
-
-                Spacer().frame(height: 16)
-
-                // Header
                 VStack(spacing: 8) {
                     Text("Who's dancing?")
                         .font(.system(size: 34, weight: .bold))
@@ -67,7 +63,7 @@ struct GrooveSubjectSelectView: View {
                         .multilineTextAlignment(.center)
                         .opacity(cardsAppeared ? 1 : 0)
 
-                    Text("Pick your subject to see the magic")
+                    Text("Choose your subject")
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(GrooveOnboardingTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -77,29 +73,34 @@ struct GrooveSubjectSelectView: View {
 
                 Spacer().frame(height: 28)
 
-                // Subject cards
-                HStack(spacing: 12) {
-                    ForEach(subjectOptions) { option in
-                        SubjectThumbnailCard(
-                            option: option,
-                            isSelected: state.selectedSubjectId == option.id
-                        ) {
-                            handleSelect(option.id)
+                GeometryReader { geometry in
+                    let cardSpacing: CGFloat = 16
+                    let cardWidth = floor((geometry.size.width - cardSpacing) / 2)
+
+                    HStack(spacing: cardSpacing) {
+                        ForEach(Array(subjectOptions.enumerated()), id: \.element.id) { index, option in
+                            SubjectCard(
+                                image: SubjectImageLoader.load(option.displayName, fallbackPaths: option.fallbackPaths),
+                                isSelected: state.selectedSubjectId == option.id
+                            ) {
+                                handleSelect(option)
+                            }
+                            .frame(width: cardWidth)
+                            .offset(y: cardsAppeared ? 0 : 24)
+                            .opacity(cardsAppeared ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                                    .delay(Double(index) * 0.07),
+                                value: cardsAppeared
+                            )
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
+                .frame(height: 352)
                 .padding(.horizontal, 20)
-                .offset(y: cardsAppeared ? 0 : 20)
-                .opacity(cardsAppeared ? 1 : 0)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.1), value: cardsAppeared)
 
                 Spacer()
-
-                // Footer hint
-                Text("Tap to see your preview")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(GrooveOnboardingTheme.textTertiary)
-                    .padding(.bottom, 32)
             }
         }
         .onAppear {
@@ -109,74 +110,58 @@ struct GrooveSubjectSelectView: View {
         }
     }
 
-    private func handleSelect(_ id: String) {
+    private func handleSelect(_ option: SubjectOption) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            state.selectedSubjectId = id
+            state.selectedSubjectId = option.id
+            state.selectedPreviewImage = SubjectImageLoader.load(option.displayName, fallbackPaths: option.fallbackPaths)
         }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()  // light per spec
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             onNext()
         }
     }
 }
 
-// ─── Subject card ────────────────────────────────────────────────────────────
-
-private struct SubjectThumbnailCard: View {
-    let option: SubjectOption
+private struct SubjectCard: View {
+    let image: UIImage?
     let isSelected: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            ZStack(alignment: .bottomLeading) {
-                // Video thumbnail fills card
-                RemoteVideoThumbnail(urlString: option.videoURL, cornerRadius: 20)
-
-                // Gradient fade from image to card bottom
-                VStack {
-                    Spacer()
-                    LinearGradient(
-                        colors: [Color.clear, GrooveOnboardingTheme.surfaceL1.opacity(0.9), GrooveOnboardingTheme.surfaceL1],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 80) // bottom 30% gradient
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(GrooveOnboardingTheme.surfaceL1)
+                .overlay {
+                    Group {
+                        if let image {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            GrooveOnboardingTheme.surfaceL1
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-
-                // Left-aligned text at bottom (premium editorial feel)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(option.label)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.6), radius: 4, y: 2)
-
-                    Text(option.subtitle)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.white.opacity(0.75))
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 14)
-            }
-            .frame(height: 220) // per spec
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        isSelected
-                            ? GrooveOnboardingTheme.blueAccent
-                            : Color.white.opacity(0.10),
-                        lineWidth: isSelected ? 2 : 1
-                    )
-            )
-            .shadow(
-                color: isSelected ? GrooveOnboardingTheme.blueAccent.opacity(0.05) : .clear,
-                radius: 16
-            )
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .frame(maxWidth: .infinity)
+                .frame(height: 332)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(
+                            isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.08),
+                            lineWidth: isSelected ? 2 : 1
+                        )
+                )
+                .shadow(
+                    color: isSelected ? GrooveOnboardingTheme.blueAccent.opacity(0.18) : .clear,
+                    radius: 14
+                )
         }
         .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isSelected)
+        .scaleEffect(isSelected ? 1.01 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isSelected)
     }
 }

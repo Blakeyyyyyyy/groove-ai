@@ -1,0 +1,5 @@
+appId: com.grooveai.app
+---
+- launchApp
+- assertVisible:
+    text: "Groove AI"

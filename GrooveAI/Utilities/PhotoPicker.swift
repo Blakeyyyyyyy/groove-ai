@@ -30,11 +30,11 @@ struct PhotoPicker: UIViewControllerRepresentable {
         }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            picker.dismiss(animated: true)
-
             guard let provider = results.first?.itemProvider,
                   provider.canLoadObject(ofClass: UIImage.self) else {
-                onCancel()
+                DispatchQueue.main.async {
+                    self.onCancel()
+                }
                 return
             }
 

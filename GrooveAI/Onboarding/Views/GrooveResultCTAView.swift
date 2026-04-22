@@ -137,7 +137,7 @@ struct GrooveResultCTAView: View {
            let url = preset.videoURL {
             return url
         }
-        let r2Base = "https://pub-7ff4cf5f3d0d431db23366638a4128e0.r2.dev/presets"
+        let r2Base = "https://videos.trygrooveai.com/presets"
         return "\(r2Base)/big-guy-V5-AI.mp4"
     }
 

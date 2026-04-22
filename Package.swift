@@ -8,6 +8,6 @@ let package = Package(
     name: "GrooveAIDeps",
     platforms: [.iOS(.v17)],
     dependencies: [
-        .package(url: "https://github.com/RevenueCat/purchases-ios.git", from: "5.0.0"),
+        .package(url: "https://github.com/RevenueCat/purchases-ios.git", exact: "5.66.0"),
     ]
 )

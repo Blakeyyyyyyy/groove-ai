@@ -35,6 +35,46 @@ struct GrooveSpecialOfferView: View {
         print("[SpecialOffer] \(message)")
     }
 
+    private var weeklyPackage: Package? {
+        rcService.weeklyPackage()
+    }
+
+    /// Whether StoreKit product data has loaded. If false, prices are unavailable.
+    private var hasProductData: Bool {
+        weeklyPackage != nil
+    }
+
+    private var regularWeeklyPrice: String? {
+        weeklyPackage?.localizedPriceString
+    }
+
+    private var introWeeklyPrice: String? {
+        weeklyPackage?.storeProduct.introductoryDiscount?.localizedPriceString ?? regularWeeklyPrice
+    }
+
+    private var introDiscountPercent: Int {
+        guard let introPrice = weeklyPackage?.storeProduct.introductoryDiscount?.price else { return 0 }
+        let regularPrice = weeklyPackage?.storeProduct.price ?? introPrice
+        guard regularPrice > 0 else { return 0 }
+        let discount = (1 - (introPrice / regularPrice)) * 100
+        return Int(NSDecimalNumber(decimal: discount).doubleValue.rounded())
+    }
+
+    private var offerBadgeText: String {
+        introDiscountPercent > 0 ? "\(introDiscountPercent)% OFF" : "LIMITED OFFER"
+    }
+
+    private var offerHeadlineText: String {
+        introDiscountPercent > 0 ? "\(introDiscountPercent)% Off." : "Special Offer."
+    }
+
+    private var offerCTAButtonText: String {
+        guard let introPrice = introWeeklyPrice else { return "Loading..." }
+        return introDiscountPercent > 0
+            ? "Claim \(introDiscountPercent)% Off \u{2014} \(introPrice) This Week"
+            : "Continue \u{2014} \(introPrice) This Week"
+    }
+
     // MARK: - One-Time Check
 
     private static let shownKey = "specialOfferShown_v1"
@@ -217,13 +257,20 @@ struct GrooveSpecialOfferView: View {
 
     private var headlineSection: some View {
         VStack(spacing: 6) {
-            Text("50% Off.")
+            Text(offerHeadlineText)
                 .font(.system(size: 34, weight: .heavy))
                 .foregroundStyle(accentBlue)
 
-            Text("Your first week, $4.99.")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.white)
+            if let introPrice = introWeeklyPrice {
+                Text("Your first week, \(introPrice).")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+            } else {
+                Text("Your first week, $XX.XX.")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .redacted(reason: .placeholder)
+            }
         }
         .multilineTextAlignment(.center)
     }
@@ -241,8 +288,8 @@ struct GrooveSpecialOfferView: View {
 
     private var priceCard: some View {
         VStack(spacing: 0) {
-            // 50% OFF badge above card
-            Text("50% OFF")
+            // Discount badge above card
+            Text(offerBadgeText)
                 .font(.system(size: 13, weight: .heavy))
                 .tracking(0.4)
                 .foregroundStyle(.white)
@@ -260,10 +307,17 @@ struct GrooveSpecialOfferView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(footerText)
 
-                    Text("$9.99/wk")
-                        .font(.system(size: 38, weight: .bold))
-                        .foregroundStyle(Color.red)
-                        .strikethrough(color: Color.red)
+                    if let regular = regularWeeklyPrice {
+                        Text("\(regular)/wk")
+                            .font(.system(size: 38, weight: .bold))
+                            .foregroundStyle(Color.red)
+                            .strikethrough(color: Color.red)
+                    } else {
+                        Text("$XX.XX/wk")
+                            .font(.system(size: 38, weight: .bold))
+                            .foregroundStyle(Color.red)
+                            .redacted(reason: .placeholder)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -279,9 +333,16 @@ struct GrooveSpecialOfferView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(tertiaryText)
 
-                    Text("$4.99")
-                        .font(.system(size: 34, weight: .heavy))
-                        .foregroundStyle(.white)
+                    if let intro = introWeeklyPrice {
+                        Text(intro)
+                            .font(.system(size: 34, weight: .heavy))
+                            .foregroundStyle(.white)
+                    } else {
+                        Text("$X.XX")
+                            .font(.system(size: 34, weight: .heavy))
+                            .foregroundStyle(.white)
+                            .redacted(reason: .placeholder)
+                    }
 
                     Text("first week")
                         .font(.system(size: 13, weight: .regular))
@@ -302,9 +363,18 @@ struct GrooveSpecialOfferView: View {
     // MARK: - Renewal Note
 
     private var renewalNote: some View {
-        Text("then $9.99/week after")
-            .font(.system(size: 12, weight: .regular))
-            .foregroundStyle(secondaryText)
+        Group {
+            if let regular = regularWeeklyPrice {
+                Text("then \(regular)/week after")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(secondaryText)
+            } else {
+                Text("then $XX.XX/week after")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(secondaryText)
+                    .redacted(reason: .placeholder)
+            }
+        }
     }
 
     // MARK: - Expiry Note
@@ -332,7 +402,7 @@ struct GrooveSpecialOfferView: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Text("Claim 50% Off — $4.99 This Week")
+                    Text(offerCTAButtonText)
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(.white)
                 }
@@ -344,7 +414,8 @@ struct GrooveSpecialOfferView: View {
             .shadow(color: accentBlue.opacity(0.31), radius: 12, y: 4)
         }
         .buttonStyle(ScaleButtonStyle())
-        .disabled(isPurchasing)
+        .disabled(isPurchasing || !hasProductData)
+        .opacity(hasProductData ? 1.0 : 0.5)
         .sensoryFeedback(.impact(weight: .medium), trigger: isPurchasing)
     }
 
@@ -375,10 +446,16 @@ struct GrooveSpecialOfferView: View {
 
     private var legalFooter: some View {
         VStack(spacing: 12) {
-            Text("$4.99 for first week, then $9.99/week. Cancel anytime in App Store settings.")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(tertiaryText)
-                .multilineTextAlignment(.center)
+            Group {
+                if let intro = introWeeklyPrice, let regular = regularWeeklyPrice {
+                    Text("\(intro) for first week, then \(regular)/week. Cancel anytime in App Store settings.")
+                } else {
+                    Text("Price shown at checkout. Cancel anytime in App Store settings.")
+                }
+            }
+            .font(.system(size: 11, weight: .regular))
+            .foregroundStyle(tertiaryText)
+            .multilineTextAlignment(.center)
 
             // Restore + Privacy Policy
             HStack(spacing: 16) {
