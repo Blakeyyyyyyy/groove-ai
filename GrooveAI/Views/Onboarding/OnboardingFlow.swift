@@ -51,7 +51,14 @@ struct OnboardingFlow: View {
             get: { appState.showPaywall },
             set: { appState.showPaywall = $0 }
         )) {
-            OnboardingPaywallView()
+            GroovePaywallScreen(
+                onPurchaseSuccess: {
+                    appState.showPaywall = false
+                },
+                onDismiss: {
+                    appState.showPaywall = false
+                }
+            )
         }
     }
 }

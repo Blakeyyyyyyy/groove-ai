@@ -163,13 +163,13 @@ struct GroovePaywallScreen: View {
             Text("Please check your connection and try again.")
         }
         .fullScreenCover(isPresented: $showExitPopup) {
-            GrooveSpecialOfferView(
+            GrooveSpecialOfferPaywallV2(
                 onPurchaseComplete: {
-                    log("Special offer purchase complete callback — calling onPurchaseSuccess()")
+                    log("V2 Special offer purchase complete — calling onPurchaseSuccess()")
                     onPurchaseSuccess()
                 },
                 onDismiss: {
-                    log("Special offer dismiss callback — calling onDismiss()")
+                    log("V2 Special offer dismissed — calling onDismiss()")
                     onDismiss()
                 }
             )
@@ -178,14 +178,8 @@ struct GroovePaywallScreen: View {
 
     private var dismissButton: some View {
         Button(action: {
-            if !GrooveSpecialOfferView.hasBeenShown {
-                log("Dismiss tapped — presenting special offer")
-                GrooveSpecialOfferView.markShown()
-                showExitPopup = true
-            } else {
-                log("Dismiss tapped — special offer already shown, calling onDismiss()")
-                onDismiss()
-            }
+            log("Dismiss tapped — presenting special offer V2")
+            showExitPopup = true
         }) {
             Image(systemName: "xmark")
                 .font(.system(size: 14, weight: .medium))

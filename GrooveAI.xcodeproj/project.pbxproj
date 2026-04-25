@@ -8,14 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
-		BB424ADC2F919A2400158951 /* GrooveOnboardingViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */; };
 		BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */; };
 		BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */; };
 		BB424AE22F919A2400158951 /* GrooveDanceSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */; };
 		BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */; };
 		BB424AE62F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */; };
 		BB424AE82F919A2500158951 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */; };
-		BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */; };
 		BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */; };
 		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
 		BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB9477262F9C45FF00B49AC7 /* Assets.xcassets */; };
@@ -71,10 +69,8 @@
 		BF_ONBOARDINGCARD /* OnboardingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGCARD /* OnboardingCard.swift */; };
 		BF_ONBOARDINGFLOW /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGFLOW /* OnboardingFlow.swift */; };
 		BF_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */; };
-		BF_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift */; };
 		BF_ONBOARDINGSTATE /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGSTATE /* OnboardingState.swift */; };
 		BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */; };
-		BF_PAYWALLVIEW /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PAYWALLVIEW /* PaywallView.swift */; };
 		BF_PHOTOPICKER /* PhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PHOTOPICKER /* PhotoPicker.swift */; };
 		BF_PLANTIER /* PlanTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PLANTIER /* PlanTier.swift */; };
 		BF_R2SERVICE /* R2Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_R2SERVICE /* R2Service.swift */; };
@@ -95,14 +91,12 @@
 
 /* Begin PBXFileReference section */
 		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
-		BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingViewV2.swift; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveMagicMomentViewV2.swift; sourceTree = "<group>"; };
 		BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowViewV2.swift; sourceTree = "<group>"; };
 		BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAViewV2.swift; sourceTree = "<group>"; };
-		BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreenV2.swift; sourceTree = "<group>"; };
 		BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreenV2.swift; sourceTree = "<group>"; };
 		BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2PreviewGallery.swift; sourceTree = "<group>"; };
 		BB9477262F9C45FF00B49AC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -158,10 +152,8 @@
 		FR_ONBOARDINGCARD /* OnboardingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCard.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGFLOW /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHookView.swift; sourceTree = "<group>"; };
-		FR_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPaywallView.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGSTATE /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageIndicatorDots.swift; sourceTree = "<group>"; };
-		FR_PAYWALLVIEW /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		FR_PHOTOPICKER /* PhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPicker.swift; sourceTree = "<group>"; };
 		FR_PLANTIER /* PlanTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTier.swift; sourceTree = "<group>"; };
 		FR_R2SERVICE /* R2Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Service.swift; sourceTree = "<group>"; };
@@ -201,7 +193,6 @@
 				BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */,
 				BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */,
 				BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */,
-				BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */,
 				BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */,
 			);
 			path = "Views-v2";
@@ -256,7 +247,6 @@
 				FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */,
 				FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */,
 				GRP_GROOVEONBOARDING_VIEWS /* Views */,
-				BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */,
 				BB424AC62F91992200158951 /* Views-v2 */,
 				BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */,
 			);
@@ -317,7 +307,6 @@
 				FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */,
 				FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */,
 				FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */,
-				FR_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -340,7 +329,6 @@
 				FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */,
 				FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */,
 				FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */,
-				FR_PAYWALLVIEW /* PaywallView.swift */,
 			);
 			path = Paywall;
 			sourceTree = "<group>";
@@ -526,11 +514,9 @@
 				BF_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift in Sources */,
 				BF_HEROVIDEOCELL /* HeroVideoCell.swift in Sources */,
 				BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */,
-				BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */,
 				BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */,
 				BF_APPSTATE /* AppState.swift in Sources */,
 				BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */,
-				BB424ADC2F919A2400158951 /* GrooveOnboardingViewV2.swift in Sources */,
 				BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */,
 				BF_CONTENTVIEW /* ContentView.swift in Sources */,
 				BF_CREDITSINFOROW /* CreditsInfoRow.swift in Sources */,
@@ -582,11 +568,9 @@
 				BF_ONBOARDINGCARD /* OnboardingCard.swift in Sources */,
 				BF_ONBOARDINGFLOW /* OnboardingFlow.swift in Sources */,
 				BF_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift in Sources */,
-				BF_ONBOARDINGPAYWALLVIEW /* OnboardingPaywallView.swift in Sources */,
 				BF_ONBOARDINGSTATE /* OnboardingState.swift in Sources */,
 				BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */,
 				BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */,
-				BF_PAYWALLVIEW /* PaywallView.swift in Sources */,
 				BF_PHOTOPICKER /* PhotoPicker.swift in Sources */,
 				BF_R2SERVICE /* R2Service.swift in Sources */,
 				BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */,
