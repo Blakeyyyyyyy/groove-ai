@@ -2,10 +2,19 @@ import Foundation
 
 class SupabaseService {
     static let shared = SupabaseService()
-    
-    private let baseURL = "https://groove-ai-backend-1.onrender.com/api"
-    
-    private init() {}
+
+    private let baseURL: String
+
+    private init() {
+        // Read SUPABASE_URL from Info.plist
+        if let url = Bundle.main.infoDictionary?["SUPABASE_URL"] as? String {
+            self.baseURL = url
+        } else {
+            // Fallback to default URL if not found in plist
+            self.baseURL = "https://groove-ai-backend-1.onrender.com/api"
+            print("[SupabaseService] ⚠️ SUPABASE_URL not found in Info.plist, using default URL")
+        }
+    }
     
     // MARK: - User
     
@@ -33,13 +42,64 @@ class SupabaseService {
         return result
     }
     
-    func addCoins(userId: String, amount: Int, type: String) async throws -> [String: Any] {
-        print("[Supabase] 📡 POST /add-coins userId=\(userId) amount=\(amount) type=\(type)")
+    /// Refund coins for a failed video generation. video_id is the idempotency key.
+    ///
+    /// Returns:
+    ///   (refunded: true,  coinsRemaining: Int?)   — first refund, coins credited
+    ///   (refunded: false, coinsRemaining: nil)    — server responded 409 already_refunded
+    /// Throws on any other error (network, 500, 404) — caller MUST NOT claim a refund happened.
+    func refundCoins(userId: String, videoId: String, amount: Int = 60) async throws -> (refunded: Bool, coinsRemaining: Int?) {
+        print("[Supabase] 📡 POST /refund-coins userId=\(userId) videoId=\(videoId) amount=\(amount)")
+        var request = URLRequest(url: URL(string: "\(baseURL)/refund-coins")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "user_id": userId,
+            "video_id": videoId,
+            "amount": amount
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSError(domain: "SupabaseService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "refundCoins: Invalid response"])
+        }
+
+        let result = (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+        print("[Supabase] 📨 refundCoins HTTP \(httpResponse.statusCode) — \(result)")
+
+        switch httpResponse.statusCode {
+        case 200:
+            let coins = result["coins_remaining"] as? Int
+            return (refunded: true, coinsRemaining: coins)
+        case 409:
+            // Already refunded — the user's balance was credited on a previous
+            // attempt. We treat this as "not a new refund" so the caller does
+            // not show a duplicate "refunded" message.
+            return (refunded: false, coinsRemaining: nil)
+        default:
+            let body = String(data: data, encoding: .utf8) ?? "No body"
+            throw NSError(
+                domain: "SupabaseService",
+                code: httpResponse.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: "refundCoins failed (HTTP \(httpResponse.statusCode)): \(body)"]
+            )
+        }
+    }
+
+    func addCoins(userId: String, amount: Int, type: String, appleJWS: String?) async throws -> [String: Any] {
+        print("[Supabase] 📡 POST /add-coins userId=\(userId) amount=\(amount) type=\(type) jws=\(appleJWS != nil ? "present" : "MISSING")")
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "amount": amount, "type": type])
-        
+
+        var body: [String: Any] = ["user_id": userId, "amount": amount, "type": type]
+        if let jws = appleJWS {
+            body["apple_jws"] = jws
+        }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "addCoins")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -164,13 +224,13 @@ class SupabaseService {
         return result
     }
     
-    func saveVideo(videoId: String, videoURL: String) async throws -> [String: Any] {
-        print("[Supabase] 📡 POST /save-video videoId=\(videoId)")
+    func saveVideo(userId: String, videoId: String, videoURL: String) async throws -> [String: Any] {
+        print("[Supabase] 📡 POST /save-video userId=\(userId) videoId=\(videoId)")
         var request = URLRequest(url: URL(string: "\(baseURL)/save-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["video_id": videoId, "video_url": videoURL])
-        
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "video_id": videoId, "video_url": videoURL])
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "saveVideo")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]

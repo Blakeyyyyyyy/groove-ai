@@ -4,7 +4,7 @@ import AVFoundation
 struct DancePresetCard: View {
     let preset: DancePreset
     @State private var isVisibleForPlayback = false
-    @State private var pooledPlayer: AVPlayer? = nil
+    @State private var pooledPlayer: AVQueuePlayer? = nil
     @StateObject private var playerPool = AVPlayerPoolManager.shared
 
     private let cornerRadius = Radius.lg

@@ -7,12 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4AF948399E17338937024D35 /* GrooveMagicMomentViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */; };
-		534B733B6AB9BD6593FE6D21 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */; };
-		59BD7E7E2BFE047410435F11 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */; };
-		8916D679313CCC0A007994C3 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */; };
 		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
-		BB424AD42F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */; };
 		BB424ADC2F919A2400158951 /* GrooveOnboardingViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */; };
 		BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */; };
 		BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */; };
@@ -23,7 +18,9 @@
 		BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */; };
 		BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */; };
 		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
+		BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB9477262F9C45FF00B49AC7 /* Assets.xcassets */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
+		BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
 		BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */; };
 		BF_CONTENTVIEW /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CONTENTVIEW /* ContentView.swift */; };
@@ -56,8 +53,13 @@
 		BF_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */; };
 		BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */; };
 		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
+		BF_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */; };
+		BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */; };
 		BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */; };
 		BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROBANNERVIEW /* HeroBannerView.swift */; };
+		BF_HEROVIDEOCELL /* HeroVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROVIDEOCELL /* HeroVideoCell.swift */; };
+		BF_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */; };
+		BF_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift */; };
 		BF_HOMEVIEW /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HOMEVIEW /* HomeView.swift */; };
 		BF_KLINGSERVICE /* KlingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_KLINGSERVICE /* KlingService.swift */; };
 		BF_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift */; };
@@ -65,6 +67,7 @@
 		BF_MYVIDEOSVIEW /* MyVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MYVIDEOSVIEW /* MyVideosView.swift */; };
 		BF_NOTIFICATIONSERVICE /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFICATIONSERVICE /* NotificationService.swift */; };
 		BF_NOTIFPERMVIEW /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */; };
+		BF_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift */; };
 		BF_ONBOARDINGCARD /* OnboardingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGCARD /* OnboardingCard.swift */; };
 		BF_ONBOARDINGFLOW /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGFLOW /* OnboardingFlow.swift */; };
 		BF_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */; };
@@ -85,24 +88,13 @@
 		BF_SUPABASESERVICE /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUPABASESERVICE /* SupabaseService.swift */; };
 		BF_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */; };
 		BF_UPLOADVIEW /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW /* UploadView.swift */; };
+		BF_VIDEOPRELOADER /* VideoPreloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOPRELOADER /* VideoPreloader.swift */; };
 		BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */; };
-		BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */; };
 		BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */; };
-		C64096C3934F3BAD772C0890 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */; };
-		C828D2667EEA2B38EF2073A0 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */; };
-		CEF385386A4E7A31B2CE9454 /* GrooveDanceSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */; };
-		E8516E17FD4A01E1D9021A38 /* GroovePaywallScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */; };
-		F7BCACF90BAD48ED23B7706C /* GrooveOnboardingViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveResultCTAViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveResultCTAViewV2.swift"; sourceTree = "<group>"; };
-		09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveSubjectSelectViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveSubjectSelectViewV2.swift"; sourceTree = "<group>"; };
-		3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GroovePremiumMagicResultFlowViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GroovePremiumMagicResultFlowViewV2.swift"; sourceTree = "<group>"; };
 		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
-		AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GroovePaywallScreenV2.swift; path = "GrooveAI/Onboarding/Views-v2/GroovePaywallScreenV2.swift"; sourceTree = "<group>"; };
-		BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveHeroScrollViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveHeroScrollViewV2.swift"; sourceTree = "<group>"; };
-		BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowV2.swift; sourceTree = "<group>"; };
 		BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveOnboardingViewV2.swift; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
@@ -113,11 +105,9 @@
 		BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePaywallScreenV2.swift; sourceTree = "<group>"; };
 		BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreenV2.swift; sourceTree = "<group>"; };
 		BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2PreviewGallery.swift; sourceTree = "<group>"; };
-		C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveMagicMomentViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveMagicMomentViewV2.swift"; sourceTree = "<group>"; };
-		DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveOnboardingViewV2.swift; path = GrooveAI/Onboarding/GrooveOnboardingViewV2.swift; sourceTree = "<group>"; };
-		E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TrialEnabledScreenV2.swift; path = "GrooveAI/Onboarding/Views-v2/TrialEnabledScreenV2.swift"; sourceTree = "<group>"; };
-		E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GrooveDanceSelectViewV2.swift; path = "GrooveAI/Onboarding/Views-v2/GrooveDanceSelectViewV2.swift"; sourceTree = "<group>"; };
+		BB9477262F9C45FF00B49AC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerPoolManager.swift; sourceTree = "<group>"; };
 		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
 		FR_CONTENTVIEW /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -150,8 +140,13 @@
 		FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowView.swift; sourceTree = "<group>"; };
 		FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAView.swift; sourceTree = "<group>"; };
 		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
+		FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferPaywallV2.swift; sourceTree = "<group>"; };
+		FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSplashView.swift; sourceTree = "<group>"; };
 		FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectView.swift; sourceTree = "<group>"; };
 		FR_HEROBANNERVIEW /* HeroBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroBannerView.swift; sourceTree = "<group>"; };
+		FR_HEROVIDEOCELL /* HeroVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroVideoCell.swift; sourceTree = "<group>"; };
+		FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroVideoColumnView.swift; sourceTree = "<group>"; };
+		FR_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroVideoWallView.swift; sourceTree = "<group>"; };
 		FR_HOMEVIEW /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		FR_KLINGSERVICE /* KlingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KlingService.swift; sourceTree = "<group>"; };
 		FR_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacySystemTabContainer.swift; sourceTree = "<group>"; };
@@ -159,6 +154,7 @@
 		FR_MYVIDEOSVIEW /* MyVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVideosView.swift; sourceTree = "<group>"; };
 		FR_NOTIFICATIONSERVICE /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
+		FR_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerPool.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGCARD /* OnboardingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCard.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGFLOW /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHookView.swift; sourceTree = "<group>"; };
@@ -178,8 +174,8 @@
 		FR_SUPABASESERVICE /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreen.swift; sourceTree = "<group>"; };
 		FR_UPLOADVIEW /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
+		FR_VIDEOPRELOADER /* VideoPreloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreloader.swift; sourceTree = "<group>"; };
 		FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReadyPopup.swift; sourceTree = "<group>"; };
-		FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSplashView.swift; sourceTree = "<group>"; };
 		FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
 		PRODUCT_REF /* GrooveAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrooveAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -196,42 +192,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		BB424AC22F91991A00158951 /* GrooveAI */ = {
-			isa = PBXGroup;
-			children = (
-				BB424AC42F91992200158951 /* Onboarding */,
-			);
-			path = GrooveAI;
-			sourceTree = "<group>";
-		};
-		BB424AC32F91991A00158951 /* GrooveAI */ = {
-			isa = PBXGroup;
-			children = (
-				BB424AC52F91992200158951 /* Onboarding */,
-			);
-			path = GrooveAI;
-			sourceTree = "<group>";
-		};
-		BB424AC42F91992200158951 /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */,
-			);
-			path = Onboarding;
-			sourceTree = "<group>";
-		};
-		BB424AC52F91992200158951 /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				BB424AC62F91992200158951 /* Views-v2 */,
-			);
-			path = Onboarding;
-			sourceTree = "<group>";
-		};
 		BB424AC62F91992200158951 /* Views-v2 */ = {
 			isa = PBXGroup;
 			children = (
-				BB424AD32F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift */,
 				BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */,
 				BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */,
 				BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */,
@@ -240,22 +203,6 @@
 				BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */,
 				BB424AE92F919A2500158951 /* GroovePaywallScreenV2.swift */,
 				BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */,
-			);
-			path = "Views-v2";
-			sourceTree = "<group>";
-		};
-		C95ADBC9D03E9FAA4387E85E /* Views-v2 */ = {
-			isa = PBXGroup;
-			children = (
-				BAC8322BFE9648782060FA55 /* GrooveHeroScrollViewV2.swift */,
-				09C7993D8B18A5FD50CC62FF /* GrooveSubjectSelectViewV2.swift */,
-				E942BCFF66A3D9856067540C /* GrooveDanceSelectViewV2.swift */,
-				C74090DF43231849675FCA56 /* GrooveMagicMomentViewV2.swift */,
-				3A7620AE8A7A9235475D1836 /* GroovePremiumMagicResultFlowViewV2.swift */,
-				06E139FD8F87DE2B8C08FD01 /* GrooveResultCTAViewV2.swift */,
-				AACDED9CE472306A95F8DCF0 /* GroovePaywallScreenV2.swift */,
-				E8EE5E7FFF00D8B9FA490191 /* TrialEnabledScreenV2.swift */,
-				BB424AC32F91991A00158951 /* GrooveAI */,
 			);
 			path = "Views-v2";
 			sourceTree = "<group>";
@@ -302,15 +249,15 @@
 		GRP_GROOVEONBOARDING /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				GRP_ONBOARDING_COMPONENTS /* Components */,
 				FR_GROOVEDANCEPRESET /* GrooveDancePreset.swift */,
 				FR_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift */,
 				FR_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift */,
 				FR_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift */,
 				FR_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift */,
 				GRP_GROOVEONBOARDING_VIEWS /* Views */,
-				DDEAEBADDD254CCF988F2B36 /* GrooveOnboardingViewV2.swift */,
-				C95ADBC9D03E9FAA4387E85E /* Views-v2 */,
-				BB424AC22F91991A00158951 /* GrooveAI */,
+				BB424ADB2F919A2400158951 /* GrooveOnboardingViewV2.swift */,
+				BB424AC62F91992200158951 /* Views-v2 */,
 				BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */,
 			);
 			path = Onboarding;
@@ -375,10 +322,22 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		GRP_ONBOARDING_COMPONENTS /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				FR_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift */,
+				FR_HEROVIDEOCELL /* HeroVideoCell.swift */,
+				FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */,
+				FR_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		GRP_PAYWALL /* Paywall */ = {
 			isa = PBXGroup;
 			children = (
 				FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */,
+				FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */,
 				FR_GROOVECOINPURCHASESHEET /* GrooveCoinPurchaseSheet.swift */,
 				FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */,
 				FR_PAYWALLVIEW /* PaywallView.swift */,
@@ -405,6 +364,8 @@
 		GRP_SERVICES /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FR_VIDEOPRELOADER /* VideoPreloader.swift */,
+				FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */,
 				FR_CREDITSSERVICE /* CreditsService.swift */,
 				FR_GEMINISERVICE /* GeminiService.swift */,
 				FR_GENERATIONSERVICE /* GenerationService.swift */,
@@ -477,6 +438,7 @@
 		SOURCE_GROUP /* GrooveAI */ = {
 			isa = PBXGroup;
 			children = (
+				BB9477262F9C45FF00B49AC7 /* Assets.xcassets */,
 				GRP_APP /* App */,
 				GRP_DESIGN /* Design */,
 				GRP_MODELS /* Models */,
@@ -547,6 +509,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -557,6 +520,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift in Sources */,
+				BF_VIDEOPRELOADER /* VideoPreloader.swift in Sources */,
+				BF_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift in Sources */,
+				BF_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift in Sources */,
+				BF_HEROVIDEOCELL /* HeroVideoCell.swift in Sources */,
+				BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */,
 				BB424AEA2F919A2500158951 /* GroovePaywallScreenV2.swift in Sources */,
 				BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */,
 				BF_APPSTATE /* AppState.swift in Sources */,
@@ -575,6 +544,7 @@
 				BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */,
 				BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */,
 				BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */,
+				BF_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift in Sources */,
 				BF_PLANTIER /* PlanTier.swift in Sources */,
 				BF_GEMINISERVICE /* GeminiService.swift in Sources */,
 				BF_GENERATEDVIDEO /* GeneratedVideo.swift in Sources */,
@@ -624,7 +594,6 @@
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_SETTINGSVIEW /* SettingsView.swift in Sources */,
 				BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */,
-				BB424AD42F9199CB00158951 /* GroovePremiumMagicResultFlowV2.swift in Sources */,
 				BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */,
 				BF_SUPABASESERVICE /* SupabaseService.swift in Sources */,
 				BF_UPLOADVIEW /* UploadView.swift in Sources */,
@@ -632,16 +601,7 @@
 				BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */,
 				BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */,
 				98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */,
-				F7BCACF90BAD48ED23B7706C /* GrooveOnboardingViewV2.swift in Sources */,
-				C828D2667EEA2B38EF2073A0 /* GrooveHeroScrollViewV2.swift in Sources */,
 				BB424AE22F919A2400158951 /* GrooveDanceSelectViewV2.swift in Sources */,
-				534B733B6AB9BD6593FE6D21 /* GrooveSubjectSelectViewV2.swift in Sources */,
-				CEF385386A4E7A31B2CE9454 /* GrooveDanceSelectViewV2.swift in Sources */,
-				4AF948399E17338937024D35 /* GrooveMagicMomentViewV2.swift in Sources */,
-				59BD7E7E2BFE047410435F11 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */,
-				C64096C3934F3BAD772C0890 /* GrooveResultCTAViewV2.swift in Sources */,
-				E8516E17FD4A01E1D9021A38 /* GroovePaywallScreenV2.swift in Sources */,
-				8916D679313CCC0A007994C3 /* TrialEnabledScreenV2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

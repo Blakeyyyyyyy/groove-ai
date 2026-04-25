@@ -200,13 +200,21 @@ final class RevenueCatService: ObservableObject {
             print("[RevenueCat] Skipping offerings fetch - not configured")
             return
         }
-        
+
         do {
             let offerings = try await Purchases.shared.offerings()
             self.offerings = offerings
 
             if let current = offerings.current {
                 self.currentPackages = current.availablePackages
+            }
+
+            print("[RevenueCat] 📋 fetchOfferings completed")
+            print("[RevenueCat]    offerings.current = \(offerings.current?.identifier ?? "nil")")
+            print("[RevenueCat]    currentPackages count = \(self.currentPackages.count)")
+            if !self.currentPackages.isEmpty {
+                let ids = self.currentPackages.map { $0.storeProduct.productIdentifier }.joined(separator: ", ")
+                print("[RevenueCat]    product IDs: \(ids)")
             }
         } catch {
             print("[RevenueCat] Error fetching offerings: \(error)")
@@ -236,31 +244,68 @@ final class RevenueCatService: ObservableObject {
     /// Returns weekly package with intro discount (if available).
     /// Prefers grooveai_weekly_799 (Special Offer with intro discount)
     func weeklyPackage() -> Package? {
+        print("[RevenueCat] 🔍 weeklyPackage() called")
+        print("[RevenueCat]    currentPackages count = \(currentPackages.count)")
+        print("[RevenueCat]    looking for targetProductID: grooveai_weekly_799")
+
         let targetProductID = "grooveai_weekly_799"
-        
+
         // 1. Exact product ID match (preferred)
         if let exact = currentPackages.first(where: {
             $0.storeProduct.productIdentifier == targetProductID
         }) {
+            print("[RevenueCat]    ✅ Found exact: \(exact.storeProduct.productIdentifier)")
             print("[WeeklyPkg] ✅ Exact match: \(exact.storeProduct.productIdentifier) | intro: \(exact.storeProduct.introductoryDiscount?.price ?? -1) | base: \(exact.storeProduct.price)")
             return exact
         }
         // 2. Fallback: any weekly package with intro discount
-        if let withIntro = currentPackages.first(where: { 
-            $0.storeProduct.introductoryDiscount != nil && $0.packageType == .weekly 
+        if let withIntro = currentPackages.first(where: {
+            $0.storeProduct.introductoryDiscount != nil && $0.packageType == .weekly
         }) {
+            print("[RevenueCat]    ⚠️ Found intro weekly: \(withIntro.storeProduct.productIdentifier)")
             print("[WeeklyPkg] ⚠️ Fallback intro weekly: \(withIntro.storeProduct.productIdentifier) | intro: \(withIntro.storeProduct.introductoryDiscount?.price ?? -1) | base: \(withIntro.storeProduct.price)")
             return withIntro
         }
         // 3. Fallback: any weekly package
         let fallback = currentPackages.first { $0.packageType == .weekly }
+        if let fallback = fallback {
+            print("[RevenueCat]    ⚠️ Generic fallback: \(fallback.storeProduct.productIdentifier)")
+        } else {
+            print("[RevenueCat]    ❌ No weekly packages found")
+        }
         print("[WeeklyPkg] ⚠️ Generic weekly fallback: \(fallback?.storeProduct.productIdentifier ?? "nil") | base: \(fallback?.storeProduct.price ?? -1)")
         return fallback
     }
     
+    /// Returns the Special Offer package (grooveai_weekly_special) used by the
+    /// exit-intent modal (GrooveSpecialOfferPaywallV2). Falls back to the
+    /// standard weekly package if the special-offer SKU isn't loaded.
+    func specialOfferPackage() -> Package? {
+        let targetProductID = "grooveai_weekly_special"
+        print("[RevenueCat] 🎁 specialOfferPackage() called, looking for: \(targetProductID)")
+
+        if let exact = currentPackages.first(where: {
+            $0.storeProduct.productIdentifier == targetProductID
+        }) {
+            print("[RevenueCat]    ✅ Found special offer: \(exact.storeProduct.productIdentifier)")
+            return exact
+        }
+
+        print("[RevenueCat]    ⚠️ \(targetProductID) not in offerings — falling back to weeklyPackage()")
+        return weeklyPackage()
+    }
+
     /// Returns annual package if available.
     func annualPackage() -> Package? {
-        currentPackages.first { $0.packageType == .annual }
+        print("[RevenueCat] 🔍 annualPackage() called, currentPackages count = \(currentPackages.count)")
+
+        if let annual = currentPackages.first(where: { $0.packageType == .annual }) {
+            print("[RevenueCat]    ✅ Found annual: \(annual.storeProduct.productIdentifier)")
+            return annual
+        }
+
+        print("[RevenueCat]    ❌ No annual package found")
+        return nil
     }
     
     // MARK: - Purchase
@@ -399,25 +444,27 @@ final class RevenueCatService: ObservableObject {
     // MARK: - Coin Purchases (StoreKit consumables)
     
     /// Purchase coin pack - uses StoreKit 2 directly
-    func purchaseCoins(_ package: CoinPackage) async throws -> Bool {
+    func purchaseCoins(_ package: CoinPackage) async throws -> (success: Bool, jws: String?) {
         let products = try await Product.products(for: [package.productID])
         guard let product = products.first else {
             throw PurchaseError.productNotFound
         }
-        
+
         let result = try await product.purchase()
-        
+
         switch result {
         case .success(let verification):
             let transaction = try verification.payloadValue
+            // Extract the JWS token (jwsRepresentation) from the verification result
+            let jws = verification.jwsRepresentation
             await transaction.finish()
-            return true
+            return (success: true, jws: jws)
         case .userCancelled:
-            return false
+            return (success: false, jws: nil)
         case .pending:
             throw PurchaseError.pendingApproval
         @unknown default:
-            return false
+            return (success: false, jws: nil)
         }
     }
     

@@ -5,11 +5,10 @@
 import AVFoundation
 import SwiftUI
 
-@MainActor
 final class AVPlayerPoolManager: NSObject, ObservableObject {
     static let shared = AVPlayerPoolManager()
 
-    private var playerPool: [AVPlayer] = []
+    private var playerPool: [AVQueuePlayer] = []
     private let poolSize = 6 // 3 columns × 2 videos per column
     private var playerIndex = 0
 
@@ -20,21 +19,22 @@ final class AVPlayerPoolManager: NSObject, ObservableObject {
 
     private func setupPool() {
         for _ in 0..<poolSize {
-            let player = AVPlayer()
+            let player = AVQueuePlayer()
             playerPool.append(player)
         }
     }
 
-    func getPlayer() -> AVPlayer {
+    func getPlayer() -> AVQueuePlayer {
         let player = playerPool[playerIndex % poolSize]
         playerIndex = (playerIndex + 1) % poolSize
         return player
     }
 
-    func loadVideo(url: URL, into player: AVPlayer) {
+    func loadVideo(url: URL, into player: AVQueuePlayer) {
         let asset = AVAsset(url: url)
         let playerItem = AVPlayerItem(asset: asset)
-        player.replaceCurrentItem(with: playerItem)
+        player.removeAllItems()
+        player.insert(playerItem, after: nil)
     }
 
     func stopAll() {

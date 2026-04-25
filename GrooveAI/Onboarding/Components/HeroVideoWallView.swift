@@ -5,7 +5,7 @@
 import SwiftUI
 
 struct HeroVideoWallView: View {
-    @State private var sharedPool: AVPlayerPool?
+    @State private var sharedPool: HeroVideoPlayerPool?
     
     // Video URLs for each column
     let videoURLs: [String]
@@ -22,21 +22,21 @@ struct HeroVideoWallView: View {
                     HeroVideoColumnView(
                         videoURLs: videoURLs,
                         scrollDirection: .down,
-                        sharedPool: sharedPool ?? AVPlayerPool(maxPlayers: 9)
+                        sharedPool: sharedPool ?? HeroVideoPlayerPool(maxPlayers: 9)
                     )
                     
                     // Column 2: Scroll UP (parallax)
                     HeroVideoColumnView(
                         videoURLs: videoURLs,
                         scrollDirection: .up,
-                        sharedPool: sharedPool ?? AVPlayerPool(maxPlayers: 9)
+                        sharedPool: sharedPool ?? HeroVideoPlayerPool(maxPlayers: 9)
                     )
                     
                     // Column 3: Scroll DOWN
                     HeroVideoColumnView(
                         videoURLs: videoURLs,
                         scrollDirection: .down,
-                        sharedPool: sharedPool ?? AVPlayerPool(maxPlayers: 9)
+                        sharedPool: sharedPool ?? HeroVideoPlayerPool(maxPlayers: 9)
                     )
                 }
                 .padding(.horizontal, 0)
@@ -45,7 +45,7 @@ struct HeroVideoWallView: View {
             .frame(height: geo.size.height * 0.55) // 55% of screen
             .onAppear {
                 if sharedPool == nil {
-                    sharedPool = AVPlayerPool(maxPlayers: 9)
+                    sharedPool = HeroVideoPlayerPool(maxPlayers: 9)
                 }
             }
         }

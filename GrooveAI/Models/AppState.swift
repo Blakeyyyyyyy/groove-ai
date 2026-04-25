@@ -2,6 +2,15 @@ import SwiftUI
 import SwiftData
 import Security
 
+// MARK: - API Response Models
+
+/// Response from POST /api/register
+struct RegisterResponse: Codable {
+    let user_id: String
+    let coins: Int
+    let subscription_status: String
+}
+
 // MARK: - Keychain Helper
 
 /// Simple Keychain wrapper for storing sensitive data like user ID
@@ -70,7 +79,11 @@ enum GenerationPhase: Equatable {
 @Observable
 final class AppState {
     var hasCompletedOnboarding: Bool {
-        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
+        didSet {
+            UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+            UserDefaults.standard.synchronize()
+            print("[AppState] 💾 hasCompletedOnboarding persisted to UserDefaults: \(hasCompletedOnboarding)")
+        }
     }
 
     var isSubscribed: Bool {
@@ -100,7 +113,7 @@ final class AppState {
         coinsRemaining >= coinCostPerGeneration
     }
 
-    // MARK: - User ID (auto-generated on first access, persisted in Keychain for security)
+    // MARK: - User ID (server-generated on first launch, persisted in Keychain for security)
 
     var userId: String? {
         get {
@@ -108,24 +121,72 @@ final class AppState {
             if let keychainId = KeychainHelper.get(forKey: "userId") {
                 return keychainId
             }
-            // Fallback: check UserDefaults for migration from older versions
+            // Fallback: check UserDefaults for migration from older versions (pre-security-fix)
             if let existing = UserDefaults.standard.string(forKey: "userId") {
                 // Migrate to Keychain and remove from UserDefaults (less secure store)
                 KeychainHelper.save(existing, forKey: "userId")
                 UserDefaults.standard.removeObject(forKey: "userId")
                 return existing
             }
-            // Auto-generate a stable userId on first access
-            let newId = UUID().uuidString
-            KeychainHelper.save(newId, forKey: "userId")
-            print("[AppState] 🆔 Generated new userId: \(newId)")
-            return newId
+            // No user ID found — must call /api/register to get server-generated UUID
+            // This is now a blocking async operation handled in AppState.initializeUser()
+            print("[AppState] ⚠️ userId requested but not in Keychain — call initializeUser() to register")
+            return nil
         }
         set {
             if let value = newValue {
                 KeychainHelper.save(value, forKey: "userId")
             } else {
                 KeychainHelper.delete(forKey: "userId")
+            }
+        }
+    }
+
+    // MARK: - User Registration (server-generated IDs)
+
+    /// Call this once at app launch to ensure user is registered.
+    /// If user_id already exists in Keychain, syncs with server.
+    /// If not, calls /api/register to get a server-generated UUID and stores it.
+    func initializeUser() async {
+        if let existingId = KeychainHelper.get(forKey: "userId") {
+            // User already registered — sync server state
+            print("[AppState] 👤 User already initialized: \(existingId). Syncing server state.")
+            await syncWithServer()
+            return
+        }
+
+        // First launch — call /api/register to get server-generated UUID
+        print("[AppState] 🔄 First launch detected. Registering with backend...")
+        do {
+            guard let apiUrl = URL(string: "https://groove-ai-api.example.com/api/register") else {
+                throw NSError(domain: "Invalid API URL", code: -1)
+            }
+
+            var request = URLRequest(url: apiUrl)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw NSError(domain: "Invalid response", code: -1)
+            }
+
+            if httpResponse.statusCode == 201 {
+                let decoded = try JSONDecoder().decode(RegisterResponse.self, from: data)
+                KeychainHelper.save(decoded.user_id, forKey: "userId")
+                serverCoins = decoded.coins
+                print("[AppState] ✅ User registered: user_id=\(decoded.user_id), coins=\(decoded.coins)")
+            } else {
+                let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                let errorMsg = (errorJson?["error"] as? String) ?? "Unknown error"
+                throw NSError(domain: errorMsg, code: httpResponse.statusCode)
+            }
+        } catch {
+            print("[AppState] ❌ Registration failed: \(error.localizedDescription)")
+            // Fail loudly — user cannot proceed without registration
+            await MainActor.run {
+                self.errorAlertMessage = "Failed to create account. Please restart the app."
             }
         }
     }
@@ -180,7 +241,12 @@ final class AppState {
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
         isSubscribed = defaults.bool(forKey: "isSubscribed")
         hasRequestedNotificationPermission = defaults.bool(forKey: "hasRequestedNotificationPermission")
-        
+
+        print("[AppState] 🔧 Initialized: hasCompletedOnboarding=\(hasCompletedOnboarding), isSubscribed=\(isSubscribed)")
+
+        // Register user on first launch (server generates UUID, stored in Keychain)
+        Task { await self.initializeUser() }
+
         // Listen for purchase completions to force-refresh coins from server
         NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] _ in
             guard let self else { return }
@@ -202,10 +268,12 @@ final class AppState {
     // MARK: - Sync with Server
 
     func syncWithServer() async {
-        guard let userId = userId else {
-            print("[AppState] ⚠️ syncWithServer skipped: no userId")
+        // Get user_id from Keychain (userId property may trigger nil if not properly initialized)
+        guard let userId = KeychainHelper.get(forKey: "userId") else {
+            print("[AppState] ⚠️ syncWithServer skipped: user not registered yet")
             return
         }
+
         print("[AppState] 🔄 Syncing with server for userId: \(userId)")
         do {
             let profile = try await SupabaseService.shared.getUser(id: userId)
@@ -242,6 +310,27 @@ final class AppState {
         generationPhase = .idle
         generatingPhotoData = nil
         showVideoReadyPopup = false
+    }
+
+    // MARK: - Debug Utilities
+
+    func verifyPersistence() -> [String: Any] {
+        let defaults = UserDefaults.standard
+        let onboarding = defaults.bool(forKey: "hasCompletedOnboarding")
+        let subscribed = defaults.bool(forKey: "isSubscribed")
+        let notifPerms = defaults.bool(forKey: "hasRequestedNotificationPermission")
+
+        let state: [String: Any] = [
+            "hasCompletedOnboarding_memory": hasCompletedOnboarding,
+            "hasCompletedOnboarding_disk": onboarding,
+            "isSubscribed_memory": isSubscribed,
+            "isSubscribed_disk": subscribed,
+            "hasRequestedNotificationPermission_memory": hasRequestedNotificationPermission,
+            "hasRequestedNotificationPermission_disk": notifPerms
+        ]
+
+        print("[AppState] 📋 Persistence Check: \(state)")
+        return state
     }
 
     // MARK: - Countdown (BUG-003 fix)

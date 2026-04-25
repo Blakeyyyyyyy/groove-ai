@@ -1,23 +1,5 @@
 import SwiftUI
 
-private enum DanceSubjectImageLoader {
-    private static let workspaceRoot = "/Users/blakeyyyclaw/.openclaw/workspace/groove-ai"
-
-    static func load(_ name: String, fallbackPaths: [String]) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-
-        for path in ([name] + fallbackPaths) {
-            let absolutePath = path.hasPrefix("/") ? path : "\(workspaceRoot)/\(path)"
-            if let image = UIImage(contentsOfFile: absolutePath) {
-                return image
-            }
-        }
-
-        return nil
-    }
-}
 
 private struct OnboardingDanceOption: Identifiable {
     let id: String
@@ -163,19 +145,9 @@ struct GrooveDanceSelectView: View {
 
         switch state.selectedSubjectId {
         case "dog":
-            return DanceSubjectImageLoader.load(
-                "Gemini_Generated_Image_1555co1555co1555.png",
-                fallbackPaths: [
-                    "GrooveAI/Assets.xcassets/subject-pet.imageset/subject-pet.png"
-                ]
-            )
+            return UIImage(named: "subject-pet")
         default:
-            return DanceSubjectImageLoader.load(
-                "06183b6c390a4741f1cdfa11a3f06e82.jpg",
-                fallbackPaths: [
-                    "GrooveAI/Assets.xcassets/subject-person.imageset/subject-person.jpg"
-                ]
-            )
+            return UIImage(named: "subject-person")
         }
     }
 }

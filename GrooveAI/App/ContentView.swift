@@ -20,6 +20,10 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSplash)
+        .onAppear {
+            print("[ContentView] 🎬 onAppear — checking onboarding state: hasCompletedOnboarding=\(appState.hasCompletedOnboarding)")
+            appState.verifyPersistence()
+        }
     }
 
     @ViewBuilder

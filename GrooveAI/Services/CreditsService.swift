@@ -25,7 +25,7 @@ enum CoinsService {
 
     /// Add coins via backend (e.g., after purchase or weekly reset)
     static func addCoins(userId: String, amount: Int, type: String = "purchase") async throws -> Int {
-        let result = try await SupabaseService.shared.addCoins(userId: userId, amount: amount, type: type)
+        let result = try await SupabaseService.shared.addCoins(userId: userId, amount: amount, type: type, appleJWS: nil)
         return result["coins"] as? Int ?? 0
     }
 }

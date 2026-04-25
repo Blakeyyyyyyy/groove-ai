@@ -29,6 +29,16 @@ enum PlanTier: String, CaseIterable, Hashable {
         }
     }
 
+    /// Number of coin emojis to display in plan cards (1/2/3 matching tier level).
+    var coinCount: Int {
+        switch self {
+        case .weeklyStarter300: return 1
+        case .weeklyPro550:     return 2
+        case .weeklyMax1200:    return 3
+        case .annual:           return 1
+        }
+    }
+
     static var weeklyTiers: [PlanTier] {
         [.weeklyStarter300, .weeklyPro550, .weeklyMax1200]
     }

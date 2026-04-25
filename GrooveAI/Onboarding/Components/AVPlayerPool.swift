@@ -3,7 +3,7 @@
 
 import AVFoundation
 
-class AVPlayerPool {
+class HeroVideoPlayerPool {
     private let maxPlayers: Int
     private var availablePlayers: [AVQueuePlayer] = []
     private var activePlayers: Set<AVQueuePlayer> = []

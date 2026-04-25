@@ -113,10 +113,10 @@ struct GroovePaywallScreen: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer().frame(height: 44)
+                Spacer().frame(height: 113)
 
                 heroCollage
-                    .frame(height: UIScreen.main.bounds.height * 0.28)
+                    .frame(height: UIScreen.main.bounds.height * 0.22)
                     .padding(.top, 4)
 
                 Spacer(minLength: 0)
@@ -368,15 +368,15 @@ struct GroovePaywallScreen: View {
             HStack(spacing: 4) {
                 Link("Terms", destination: URL(string: "https://grooveai.app/terms")!)
                     .font(.system(size: 11))
-                    .foregroundColor(textTertiary)
+                    .foregroundColor(.white)
 
                 Text("·")
                     .font(.system(size: 11))
-                    .foregroundColor(textTertiary.opacity(0.5))
+                    .foregroundColor(.white.opacity(0.5))
 
                 Link("Privacy", destination: URL(string: "https://grooveai.app/privacy")!)
                     .font(.system(size: 11))
-                    .foregroundColor(textTertiary)
+                    .foregroundColor(.white)
             }
         }
         .padding(.bottom, 12)

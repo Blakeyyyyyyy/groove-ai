@@ -22,16 +22,18 @@ final class GenerationService {
         print("[Generation] 📸 Photo data size: \(photoData.count) bytes")
 
         // Create local video record ON MAIN ACTOR (SwiftData requirement)
+        let userId = appState.userId ?? "anonymous"
         let video = GeneratedVideo(
             dancePresetID: preset.id,
             danceName: preset.name,
             photoData: photoData,
-            status: "generating"
+            status: "generating",
+            userId: userId  // Capture userId for persistence
         )
         modelContext.insert(video)
         do {
             try modelContext.save()
-            print("[Generation] 💾 Local video record saved: \(video.id)")
+            print("[Generation] 💾 Local video record saved: \(video.id) for userId: \(userId)")
         } catch {
             print("[Generation] ❌ Failed to save local record: \(error)")
         }
@@ -41,7 +43,6 @@ final class GenerationService {
         print("[Generation] 🔄 Generation phase set to .generating")
 
         let videoId = video.id
-        let userId = appState.userId ?? "anonymous"
         print("[Generation] 👤 Using userId: \(userId)")
 
         // Launch background generation task — retained so it survives view dismissal
@@ -67,6 +68,12 @@ final class GenerationService {
         appState: AppState,
         modelContext: ModelContext
     ) async {
+        // Tracks whether coins were actually deducted on the server for this run.
+        // Only set once /generate-video returns a backend video_id (coins are
+        // deducted inside that endpoint on success). If generation fails
+        // before this point, no refund is owed.
+        var backendVideoId: String? = nil
+
         do {
             // ── Step 1: Process image (classify + upload in one call) ──
             print("[Generation] 🔄 Step 1: Processing image (classify + upload)...")
@@ -108,29 +115,36 @@ final class GenerationService {
                                   lowerError.contains("image recognition") ||
                                   lowerError.contains("pose detect") ||
                                   lowerError.contains("no complete")
+                // No backendVideoId → coins never deducted → no refund to attempt
                 await handleGenerationError(
                     errorMsg: errorMsg,
                     isPoseError: isPoseError,
                     appState: appState,
                     modelContext: modelContext,
-                    videoId: videoId
+                    videoId: videoId,
+                    userId: userId,
+                    backendVideoId: nil
                 )
                 return
             }
-            guard let backendVideoId = Self.parseIdentifier(response["video_id"] ?? response["videoId"]) else {
+            guard let resolvedBackendVideoId = Self.parseIdentifier(response["video_id"] ?? response["videoId"]) else {
                 let errorMsg = response["error"] as? String ?? "No video_id in response"
                 print("[Generation] ❌ No video_id found. Full response: \(response)")
+                // No backendVideoId → coins never deducted → no refund to attempt
                 await handleGenerationError(
                     errorMsg: errorMsg,
                     isPoseError: false,
                     appState: appState,
                     modelContext: modelContext,
-                    videoId: videoId
+                    videoId: videoId,
+                    userId: userId,
+                    backendVideoId: nil
                 )
                 return
             }
+            backendVideoId = resolvedBackendVideoId
             print("[Generation] 🎫 Task ID received: \(taskId)")
-            print("[Generation] 🧾 Backend video ID received: \(backendVideoId)")
+            print("[Generation] 🧾 Backend video ID received: \(resolvedBackendVideoId)")
 
             // Update coins from server response IF provided, otherwise sync from server
             if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
@@ -157,7 +171,7 @@ final class GenerationService {
 
                 // ── Step 5: Save to backend ──
                 print("[Generation] 💾 Step 5: Saving video to backend...")
-                _ = try await SupabaseService.shared.saveVideo(videoId: backendVideoId, videoURL: videoUrl)
+                _ = try await SupabaseService.shared.saveVideo(userId: userId, videoId: resolvedBackendVideoId, videoURL: videoUrl)
 
                 // ── Step 6: Update local record on MainActor ──
                 await MainActor.run {
@@ -200,12 +214,16 @@ final class GenerationService {
                                   errorStr.contains("no complete") ||
                                   errorStr.contains("face-dance") ||
                                   errorStr.contains("no face")
+                // Polling reached this point → coins WERE deducted → pass
+                // backendVideoId so the handler issues a refund.
                 await handleGenerationError(
                     errorMsg: error.localizedDescription,
                     isPoseError: isPoseError,
                     appState: appState,
                     modelContext: modelContext,
-                    videoId: videoId
+                    videoId: videoId,
+                    userId: userId,
+                    backendVideoId: resolvedBackendVideoId
                 )
             }
 
@@ -224,39 +242,105 @@ final class GenerationService {
                               errorStr.contains("no complete") ||
                               errorStr.contains("transformation failed")
 
+            // backendVideoId is nil unless generate-video returned a video_id.
+            // If nil, no coins were deducted and no refund will be attempted.
             await handleGenerationError(
                 errorMsg: error.localizedDescription,
                 isPoseError: isPoseError,
                 appState: appState,
                 modelContext: modelContext,
-                videoId: videoId
+                videoId: videoId,
+                userId: userId,
+                backendVideoId: backendVideoId
             )
         }
     }
 
-    /// Centralized error handler: shows in-app alert, sends local notification if backgrounded
+    /// Centralized error handler: shows in-app alert, sends local notification if backgrounded.
+    ///
+    /// If `backendVideoId` is non-nil, coins were deducted server-side and we
+    /// MUST attempt a refund before claiming one in the UI. If the refund call
+    /// fails (network/500), we show a support-contact message instead of a
+    /// false "refunded" claim.
+    ///
+    /// If `backendVideoId` is nil, generation failed before coins were deducted
+    /// (e.g. processImage error, insufficient-coins rejection) — no refund is
+    /// owed and we do not mention refunds to the user.
     private func handleGenerationError(
         errorMsg: String,
         isPoseError: Bool,
         appState: AppState,
         modelContext: ModelContext,
-        videoId: String
+        videoId: String,
+        userId: String,
+        backendVideoId: String?
     ) async {
-        print("[Generation] 🚨 Handling generation error: \(errorMsg) (poseError: \(isPoseError))")
+        print("[Generation] 🚨 Handling generation error: \(errorMsg) (poseError: \(isPoseError), backendVideoId: \(backendVideoId ?? "nil"))")
 
-        // Determine user-friendly message
+        // Attempt refund only if coins were actually deducted for this run.
+        // Outcomes:
+        //   .notAttempted — no coins were deducted (no backendVideoId)
+        //   .succeeded    — refund call returned 200, user's balance increased
+        //   .alreadyDone  — refund call returned 409 (prior attempt already credited)
+        //   .failed       — refund call threw (network/500); DO NOT claim a refund
+        enum RefundOutcome { case notAttempted, succeeded, alreadyDone, failed }
+        var refundOutcome: RefundOutcome = .notAttempted
+        var refundedCoinBalance: Int? = nil
+
+        if let backendVideoId {
+            do {
+                let result = try await SupabaseService.shared.refundCoins(
+                    userId: userId,
+                    videoId: backendVideoId,
+                    amount: 60
+                )
+                if result.refunded {
+                    refundOutcome = .succeeded
+                    refundedCoinBalance = result.coinsRemaining
+                    print("[Generation] 💰 Refund succeeded. New balance: \(result.coinsRemaining.map(String.init) ?? "unknown")")
+                } else {
+                    refundOutcome = .alreadyDone
+                    print("[Generation] 🔄 Refund already applied previously (409) — treating as success")
+                }
+            } catch {
+                refundOutcome = .failed
+                print("[Generation] ⚠️ Refund call FAILED: \(error.localizedDescription). Will NOT claim refund to user.")
+            }
+        } else {
+            print("[Generation] ℹ️ No backend video_id — coins were never deducted, skipping refund call.")
+        }
+
+        // Determine user-friendly message based on error type AND refund outcome
         let userMessage: String
         let showRetryButton: Bool
 
         if isPoseError {
-            userMessage = "Couldn't detect a pose in this image. Try a photo where your pet is standing clearly facing the camera."
+            // Pose errors happen BEFORE or DURING generation. If we got far
+            // enough that coins were deducted, a refund was attempted above
+            // and the pose message should reflect that.
             showRetryButton = true
+            switch refundOutcome {
+            case .notAttempted:
+                userMessage = "Couldn't detect a pose in this image. Try a photo where your pet is standing clearly facing the camera."
+            case .succeeded, .alreadyDone:
+                userMessage = "Couldn't detect a pose in this image. Your coins have been refunded. Try a photo where your pet is standing clearly facing the camera."
+            case .failed:
+                userMessage = "Couldn't detect a pose in this image. We couldn't process your refund automatically — please contact support."
+            }
         } else {
-            userMessage = "Video generation failed: \(errorMsg). Your coins have been refunded."
             showRetryButton = false
+            switch refundOutcome {
+            case .notAttempted:
+                // No coins were ever deducted — don't claim a refund.
+                userMessage = "Video generation failed: \(errorMsg)"
+            case .succeeded, .alreadyDone:
+                userMessage = "Video generation failed. Your coins have been refunded."
+            case .failed:
+                userMessage = "Video generation failed. We couldn't process your refund automatically — please contact support."
+            }
         }
 
-        // Update local video record
+        // Update local video record and surface refunded balance if we have it
         await MainActor.run {
             let descriptor = FetchDescriptor<GeneratedVideo>(
                 predicate: #Predicate { $0.id == videoId }
@@ -264,6 +348,12 @@ final class GenerationService {
             if let video = try? modelContext.fetch(descriptor).first {
                 video.status = "failed"
                 try? modelContext.save()
+            }
+            // Update coin balance from refund response so the UI reflects
+            // the credit immediately without waiting for a server sync.
+            if let newBalance = refundedCoinBalance {
+                appState.serverCoins = newBalance
+                print("[Generation] 🪙 Updated appState.serverCoins to \(newBalance) from refund response")
             }
             appState.errorAlertMessage = userMessage
             appState.errorAlertIsPoseIssue = showRetryButton

@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS credits_log (
   amount INTEGER NOT NULL,
   type TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
-  video_id UUID REFERENCES videos(id) ON DELETE SET NULL
+  video_id UUID REFERENCES videos(id) ON DELETE SET NULL,
+  transaction_id TEXT UNIQUE,
+  apple_jws TEXT
 );
 
 -- Rate limiting table
@@ -94,6 +96,7 @@ CREATE POLICY "Service can insert requests" ON generation_requests
 
 CREATE INDEX idx_videos_user_id ON videos (user_id, created_at DESC);
 CREATE INDEX idx_credits_user_id ON credits_log (user_id, created_at DESC);
+CREATE INDEX idx_credits_transaction_id ON credits_log (transaction_id);
 CREATE INDEX idx_gen_requests_user_time ON generation_requests (user_id, created_at DESC);
 
 -- ============================================

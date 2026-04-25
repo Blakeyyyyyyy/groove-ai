@@ -45,31 +45,31 @@ struct GrooveCoinPurchaseSheet: View {
                 // Nav bar
                 navBar
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        // Hero coin
-                        heroSection
-                            .padding(.top, 24)
+                VStack(spacing: 0) {
+                    // Hero coin
+                    heroSection
+                        .padding(.top, 12)
 
-                        // Headline
-                        Text(selectedTab == .topUp ? "Top Up Your Coins" : "Choose Your Plan")
-                            .font(.system(size: 30, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.top, 16)
+                    // Headline
+                    Text(selectedTab == .topUp ? "Top Up Your Coins" : "Choose Your Plan")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.top, 10)
 
-                        // Tab toggle
-                        tabToggle
-                            .padding(.top, 20)
+                    // Tab toggle
+                    tabToggle
+                        .padding(.top, 14)
 
-                        // Content
-                        if selectedTab == .topUp {
-                            topUpContent
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        } else {
-                            plansContent
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        }
+                    // Content
+                    if selectedTab == .topUp {
+                        topUpContent
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    } else {
+                        plansContent
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
+
+                    Spacer(minLength: 0)
                 }
 
                 // Error
@@ -85,12 +85,12 @@ struct GrooveCoinPurchaseSheet: View {
                 // CTA
                 ctaButton
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
+                    .padding(.top, 16)
 
                 // Legal footer
                 legalFooter
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
             }
         }
         .task {
@@ -181,12 +181,12 @@ struct GrooveCoinPurchaseSheet: View {
         VStack(spacing: 0) {
             // Balance info card
             coinBalanceCard
-                .padding(.top, 24)
+                .padding(.top, 16)
                 .padding(.horizontal, 16)
 
             // Package cards
             packageCardsRow
-                .padding(.top, 24)
+                .padding(.top, 16)
                 .padding(.horizontal, 16)
 
         }
@@ -232,9 +232,9 @@ struct GrooveCoinPurchaseSheet: View {
                     .multilineTextAlignment(.center)
 
                 if appState.isSubscribed {
-                    Text("Your weekly coins refill every Monday.")
+                    Text(refillDynamicText)
                         .font(.system(size: 13))
-                        .foregroundStyle(textSecondarySpec)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -247,6 +247,34 @@ struct GrooveCoinPurchaseSheet: View {
 
     private var coinBalance: Int {
         appState.serverCoins ?? rcService.coinBalance
+    }
+
+    /// Dynamic refill text for subscribers based on their active plan.
+    /// Format: "Your coins refill in X hours, you get X coins"
+    private var refillDynamicText: String {
+        let hours = hoursUntilRefill()
+        let coins = currentPlanWeeklyCoins()
+        return "Your coins refill in \(hours) hours, you get \(coins) coins"
+    }
+
+    private func hoursUntilRefill() -> Int {
+        guard let renewalDate = rcService.subscriptionRenewalDate else {
+            // Fallback: weekly plans refill in 168h max
+            return 168
+        }
+        let seconds = max(0, renewalDate.timeIntervalSinceNow)
+        return max(0, Int(ceil(seconds / 3600.0)))
+    }
+
+    private func currentPlanWeeklyCoins() -> Int {
+        // Map active subscription product ID back to plan coin amount
+        switch rcService.activeSubscriptionProductID {
+        case "grooveai_weekly_300":  return PlanTier.weeklyStarter300.coinAmount
+        case "grooveai_weekly_550":  return PlanTier.weeklyPro550.coinAmount
+        case "grooveai_weekly_1200": return PlanTier.weeklyMax1200.coinAmount
+        case "grooveai_annual":      return PlanTier.annual.coinAmount
+        default:                     return PlanTier.weeklyStarter300.coinAmount
+        }
     }
 
     // MARK: - Package Cards Row
@@ -280,11 +308,6 @@ struct GrooveCoinPurchaseSheet: View {
                     .font(.system(size: 36, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.top, 6)
-
-                Text("coins")
-                    .font(.system(size: 13))
-                    .foregroundStyle(textSecondarySpec)
-                    .padding(.top, 2)
 
                 // Divider
                 Rectangle()
@@ -352,88 +375,83 @@ struct GrooveCoinPurchaseSheet: View {
                 .font(.system(size: 15))
                 .foregroundStyle(textSecondarySpec)
                 .multilineTextAlignment(.center)
-                .padding(.top, 16)
-                .padding(.bottom, 24)
+                .padding(.top, 10)
+                .padding(.bottom, 16)
 
-            // Plan cards
-            VStack(spacing: 12) {
-                ForEach(PlanTier.weeklyTiers, id: \.self) { tier in
-                    planCard(tier)
-                }
+            // Coin balance card — same as Top Up tab
+            coinBalanceCard
+                .padding(.horizontal, 16)
+
+            // Plan cards — horizontal grid matching Coins tab layout
+            planCardsRow
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+        }
+    }
+
+    private var planCardsRow: some View {
+        HStack(spacing: 10) {
+            ForEach(PlanTier.weeklyTiers, id: \.self) { tier in
+                planCard(tier)
             }
-            .padding(.horizontal, 16)
         }
     }
 
     @ViewBuilder
     private func planCard(_ tier: PlanTier) -> some View {
         let isSelected = selectedPlanTier == tier
+        let cardWidth = (UIScreen.main.bounds.width - 32 - 20) / 3
+        let badge = tier.tierBadge
 
         Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                 selectedPlanTier = tier
             }
         } label: {
-            HStack(spacing: 12) {
-                // Plan info
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        let displayName = rcService.localizedDisplayName(for: tier)
-                        Text(displayName ?? "Plan")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .redacted(reason: displayName == nil ? .placeholder : [])
-
-                        if tier == .weeklyPro550 {
-                            Text("POPULAR")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(
-                                    LinearGradient(
-                                        colors: [accentBlue, accentPurple],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .clipShape(Capsule())
-                        }
+            VStack(spacing: 0) {
+                // Coin icons — count matches tier level (1/2/3), matching Top Up tab style
+                HStack(spacing: 2) {
+                    ForEach(0..<tier.coinCount, id: \.self) { _ in
+                        Text("🪙")
+                            .font(.system(size: 28))
                     }
-
-                    Text(tier.coinSummaryLabel)
-                        .font(.system(size: 14))
-                        .foregroundStyle(textSecondarySpec)
                 }
+                .padding(.top, 14)
 
-                Spacer()
+                // Coin amount only (no "coins" text)
+                Text("\(tier.coinAmount)")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.top, 6)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+
+                // Divider
+                Rectangle()
+                    .fill(surfaceElevated)
+                    .frame(height: 1)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
 
                 // Price
-                VStack(alignment: .trailing, spacing: 2) {
-                    let priceStr = rcService.localizedPrice(for: tier)
-                    Text(priceStr ?? "$XX.XX")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                        .redacted(reason: priceStr == nil ? .placeholder : [])
-                }
-
-                // Selection radio
-                Circle()
-                    .fill(isSelected ? accentBlue : Color.clear)
-                    .frame(width: 22, height: 22)
-                    .overlay(
-                        Circle()
-                            .stroke(isSelected ? accentBlue : surfaceElevated, lineWidth: 2)
-                    )
-                    .overlay {
-                        if isSelected {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 8, height: 8)
-                        }
+                Group {
+                    if let price = rcService.localizedPrice(for: tier) {
+                        Text(price.components(separatedBy: "/").first ?? price)
+                    } else {
+                        Text("$X.XX")
+                            .redacted(reason: .placeholder)
                     }
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
+
+                Text("/week")
+                    .font(.system(size: 12))
+                    .foregroundStyle(textSecondarySpec)
+                    .padding(.top, 2)
+                    .padding(.bottom, 16)
             }
-            .padding(18)
+            .frame(width: cardWidth, height: 180)
             .background(surfaceColor)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
@@ -447,6 +465,17 @@ struct GrooveCoinPurchaseSheet: View {
                 color: isSelected ? accentBlue.opacity(0.4) : .clear,
                 radius: isSelected ? 6 : 0
             )
+            .overlay(alignment: .top) {
+                // Tier badge — Gold / Platinum / Diamond
+                Text(badge.text)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(badge.color)
+                    .clipShape(Capsule())
+                    .offset(y: -12)
+            }
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.impact(weight: .light), trigger: isSelected)
@@ -455,68 +484,55 @@ struct GrooveCoinPurchaseSheet: View {
     // MARK: - CTA Button
 
     private var ctaButton: some View {
-        Button {
-            handlePurchase()
-        } label: {
-            VStack(spacing: 2) {
-                if isPurchasing {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Text(ctaLabel)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-
-                    Text(ctaSubtitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.white.opacity(0.75))
+        VStack(spacing: 8) {
+            Button {
+                handlePurchase()
+            } label: {
+                Group {
+                    if isPurchasing {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text(ctaLabel)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(
-                LinearGradient(
-                    colors: [accentBlue, accentPurple],
-                    startPoint: .leading,
-                    endPoint: .trailing
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    LinearGradient(
+                        colors: [accentBlue, accentPurple],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .disabled(isPurchasing)
+
+            Text(ctaSubtitle)
+                .font(.system(size: 13))
+                .foregroundStyle(Color.white.opacity(0.85))
+                .multilineTextAlignment(.center)
         }
-        .buttonStyle(ScaleButtonStyle())
-        .disabled(isPurchasing)
     }
 
     private var ctaLabel: String {
-        switch selectedTab {
-        case .topUp:
-            return "Get \(selectedCoinPackage.coins) Coins"
-        case .plans:
-            let name = rcService.localizedDisplayName(for: selectedPlanTier) ?? "Plan"
-            return "Upgrade to \(name)"
-        }
+        "Continue"
     }
 
     private var ctaSubtitle: String {
-        switch selectedTab {
-        case .topUp:
-            return rcService.localizedPrice(for: selectedCoinPackage) ?? "Loading..."
-        case .plans:
-            return rcService.localizedPrice(for: selectedPlanTier) ?? "Loading..."
-        }
+        selectedTab == .topUp
+            ? "One-time purchase. Coins don't expire."
+            : "No commitment. Easy to cancel."
     }
 
     // MARK: - Legal Footer
 
     private var legalFooter: some View {
         VStack(spacing: 8) {
-            Text(selectedTab == .topUp
-                 ? "One-time purchase. Coins don't expire."
-                 : "Subscription billed automatically until canceled.")
-                .font(.system(size: 12))
-                .foregroundStyle(textTertiary)
-                .multilineTextAlignment(.center)
-
             HStack(spacing: 4) {
                 Text("Terms")
                     .font(.system(size: 13))
@@ -585,9 +601,10 @@ struct GrooveCoinPurchaseSheet: View {
             do {
                 switch selectedTab {
                 case .topUp:
-                    let success = try await RevenueCatService.shared.purchaseCoins(selectedCoinPackage)
-                    guard success else {
+                    let (success, jws) = try await RevenueCatService.shared.purchaseCoins(selectedCoinPackage)
+                    guard success, let jws = jws else {
                         await MainActor.run {
+                            purchaseError = success ? "Purchase succeeded but receipt verification failed." : "Purchase was cancelled."
                             isPurchasing = false
                         }
                         return
@@ -604,7 +621,8 @@ struct GrooveCoinPurchaseSheet: View {
                     _ = try await SupabaseService.shared.addCoins(
                         userId: userId,
                         amount: selectedCoinPackage.coins,
-                        type: "purchase"
+                        type: "purchase",
+                        appleJWS: jws
                     )
                     let updatedCoins = try await CoinsService.getBalance(userId: userId)
 
@@ -670,6 +688,38 @@ extension CoinPackage {
         case .small:  return "🪙"
         case .medium: return "🪙🪙"
         case .large:  return "🪙🪙🪙"
+        }
+    }
+}
+
+// MARK: - PlanTier Spec Extensions
+
+extension PlanTier {
+    struct TierBadge {
+        let text: String
+        let color: Color
+    }
+
+    var tierBadge: TierBadge {
+        switch self {
+        case .weeklyStarter300:
+            return TierBadge(text: "Gold", color: Color(hex: 0xF59E0B))       // Gold amber
+        case .weeklyPro550:
+            return TierBadge(text: "Platinum", color: Color(hex: 0x9CA3AF))   // Platinum grey
+        case .weeklyMax1200:
+            return TierBadge(text: "Diamond", color: Color(hex: 0x38BDF8))    // Diamond blue
+        case .annual:
+            return TierBadge(text: "Annual", color: Color(hex: 0x5E5CE6))
+        }
+    }
+
+    /// Gold or emerald SF Symbol color (not silver emoji).
+    var coinIconColor: Color {
+        switch self {
+        case .weeklyStarter300: return Color(hex: 0xF59E0B)   // gold
+        case .weeklyPro550:     return Color(hex: 0x10B981)   // emerald
+        case .weeklyMax1200:    return Color(hex: 0x38BDF8)   // diamond blue (still gold/emerald family vs silver)
+        case .annual:           return Color(hex: 0xF59E0B)
         }
     }
 }

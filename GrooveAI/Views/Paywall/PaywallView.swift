@@ -20,24 +20,6 @@
 import SwiftUI
 import RevenueCat
 
-private enum AppPaywallImageLoader {
-    private static let workspaceRoot = "/Users/blakeyyyclaw/.openclaw/workspace/groove-ai"
-
-    static func load(_ name: String, fallbackPaths: [String]) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-
-        for path in ([name] + fallbackPaths) {
-            let absolutePath = path.hasPrefix("/") ? path : "\(workspaceRoot)/\(path)"
-            if let image = UIImage(contentsOfFile: absolutePath) {
-                return image
-            }
-        }
-
-        return nil
-    }
-}
 
 struct PaywallView: View {
     @Environment(AppState.self) private var appState
@@ -174,10 +156,10 @@ struct PaywallView: View {
                     .padding(.top, Spacing.sm)
                     .frame(height: 44)
 
-                // ── HERO COLLAGE (30% screen height) ─────────────────────
+                // ── HERO COLLAGE (22% screen height) ─────────────────────
                 heroCollage
-                    .frame(height: UIScreen.main.bounds.height * 0.30)
-                    .padding(.top, Spacing.sm)
+                    .frame(height: UIScreen.main.bounds.height * 0.22)
+                    .padding(.top, Spacing.md)
 
                 // ── HEADLINE + SOCIAL PROOF ──────────────────────────────
                 headlineBlock
@@ -205,10 +187,15 @@ struct PaywallView: View {
         }
         .task { loadPricing() }
         .fullScreenCover(isPresented: $showExitOffer) {
-            GrooveSpecialOfferView(
+            // V2 — 2-page surprise offer modal targeting grooveai_weekly_special
+            GrooveSpecialOfferPaywallV2(
                 onPurchaseComplete: {
                     showExitOffer = false
                     appState.isSubscribed = true
+                    Task {
+                        await RevenueCatService.shared.refreshSubscriptionStatus()
+                        await appState.syncWithServer()
+                    }
                     exitToHome()
                 },
                 onDismiss: {
@@ -268,30 +255,19 @@ struct PaywallView: View {
     // Creates "alive" triangular rhythm that draws the eye to center
 
     private var heroCollage: some View {
-        Group {
-            if let collage = AppPaywallImageLoader.load(
-                "Fashion Photo Collages (Instagram Story) (1080 x 500 px) (1080 x 750 px) (1080 x 1200 px) (1).png",
-                fallbackPaths: [
-                    "GrooveAI/Assets.xcassets/paywall-collage.imageset/paywall-collage.png"
-                ]
-            ) {
-                Image(uiImage: collage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Color.bgSecondary
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
-        .padding(.horizontal, Spacing.xl)
-        .overlay(
-            LinearGradient(
-                colors: [Color.clear, Color.bgPrimary],
-                startPoint: UnitPoint(x: 0.5, y: 0.7),
-                endPoint: .bottom
+        Image("paywall-collage")
+            .resizable()
+            .scaledToFill()
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
+            .padding(.horizontal, Spacing.xl)
+            .overlay(
+                LinearGradient(
+                    colors: [Color.clear, Color.bgPrimary],
+                    startPoint: UnitPoint(x: 0.5, y: 0.7),
+                    endPoint: .bottom
+                )
             )
-        )
     }
 
     @ViewBuilder
@@ -642,13 +618,13 @@ struct PaywallView: View {
             HStack(spacing: 4) {
                 Button("Terms of Service") { }
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.textTertiary.opacity(0.6))
+                    .foregroundStyle(.white)
                 Text("·")
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.textTertiary.opacity(0.6))
+                    .foregroundStyle(.white)
                 Button("Privacy Policy") { }
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.textTertiary.opacity(0.6))
+                    .foregroundStyle(.white)
             }
         }
         .padding(.horizontal, Spacing.lg)

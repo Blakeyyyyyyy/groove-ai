@@ -11,10 +11,10 @@ enum ScrollDirection {
     case up
 }
 
-struct HeroVideoColumnView: UIViewRepresentable {
+struct HeroVideoColumnView: UIViewControllerRepresentable {
     let videoURLs: [String]
     let scrollDirection: ScrollDirection
-    let sharedPool: AVPlayerPool
+    let sharedPool: HeroVideoPlayerPool
     
     func makeUIViewController(context: Context) -> UIViewController {
         let controller = ColumnViewController(
@@ -35,7 +35,7 @@ struct HeroVideoColumnView: UIViewRepresentable {
 class ColumnViewController: UIViewController {
     private let videoURLs: [String]
     private let scrollDirection: ScrollDirection
-    private let sharedPool: AVPlayerPool
+    private let sharedPool: HeroVideoPlayerPool
     
     private var collectionView: UICollectionView!
     private var timer: Timer?
@@ -50,7 +50,7 @@ class ColumnViewController: UIViewController {
     private let cornerRadius: CGFloat = 12
     private let cardGap: CGFloat = 12
     
-    init(videoURLs: [String], scrollDirection: ScrollDirection, sharedPool: AVPlayerPool) {
+    init(videoURLs: [String], scrollDirection: ScrollDirection, sharedPool: HeroVideoPlayerPool) {
         self.videoURLs = videoURLs
         self.scrollDirection = scrollDirection
         self.sharedPool = sharedPool
@@ -113,7 +113,7 @@ class ColumnViewController: UIViewController {
     }
     
     private func startAutoScroll() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.016, block: { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true, block: { [weak self] _ in
             self?.updateScroll()
         })
     }

@@ -1,45 +1,12 @@
 import SwiftUI
 
-private enum SubjectImageLoader {
-    private static let workspaceRoot = "/Users/blakeyyyclaw/.openclaw/workspace/groove-ai"
-
-    static func load(_ name: String, fallbackPaths: [String]) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-
-        for path in ([name] + fallbackPaths) {
-            let absolutePath = path.hasPrefix("/") ? path : "\(workspaceRoot)/\(path)"
-            if let image = UIImage(contentsOfFile: absolutePath) {
-                return image
-            }
-        }
-
-        return nil
-    }
-}
-
 private struct SubjectOption: Identifiable {
     let id: String
-    let displayName: String
-    let fallbackPaths: [String]
 }
 
 private let subjectOptions: [SubjectOption] = [
-    SubjectOption(
-        id: "person",
-        displayName: "06183b6c390a4741f1cdfa11a3f06e82.jpg",
-        fallbackPaths: [
-            "GrooveAI/Assets.xcassets/subject-person.imageset/subject-person.jpg"
-        ]
-    ),
-    SubjectOption(
-        id: "dog",
-        displayName: "Gemini_Generated_Image_1555co1555co1555.png",
-        fallbackPaths: [
-            "GrooveAI/Assets.xcassets/subject-pet.imageset/subject-pet.png"
-        ]
-    )
+    SubjectOption(id: "person"),
+    SubjectOption(id: "dog")
 ]
 
 struct GrooveSubjectSelectView: View {
@@ -80,7 +47,7 @@ struct GrooveSubjectSelectView: View {
                     HStack(spacing: cardSpacing) {
                         ForEach(Array(subjectOptions.enumerated()), id: \.element.id) { index, option in
                             SubjectCard(
-                                image: SubjectImageLoader.load(option.displayName, fallbackPaths: option.fallbackPaths),
+                                subjectId: option.id,
                                 isSelected: state.selectedSubjectId == option.id
                             ) {
                                 handleSelect(option)
@@ -113,8 +80,8 @@ struct GrooveSubjectSelectView: View {
     private func handleSelect(_ option: SubjectOption) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             state.selectedSubjectId = option.id
-            state.selectedPreviewImage = SubjectImageLoader.load(option.displayName, fallbackPaths: option.fallbackPaths)
         }
+
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             onNext()
@@ -123,26 +90,20 @@ struct GrooveSubjectSelectView: View {
 }
 
 private struct SubjectCard: View {
-    let image: UIImage?
+    let subjectId: String
     let isSelected: Bool
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
+        let imageName = subjectId == "person" ? "subject-person-1" : "subject-pet"
+
+        return Button(action: onTap) {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(GrooveOnboardingTheme.surfaceL1)
                 .overlay {
-                    Group {
-                        if let image {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                        } else {
-                            GrooveOnboardingTheme.surfaceL1
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFill()
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))

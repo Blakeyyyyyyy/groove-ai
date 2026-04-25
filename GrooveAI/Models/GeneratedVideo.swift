@@ -12,6 +12,7 @@ final class GeneratedVideo {
     var createdAt: Date
     var completedAt: Date?
     var minutesRemaining: Int
+    var userId: String?  // For syncing across reinstalls
 
     init(
         id: String = UUID().uuidString,
@@ -22,7 +23,8 @@ final class GeneratedVideo {
         status: String = "generating",
         createdAt: Date = .now,
         completedAt: Date? = nil,
-        minutesRemaining: Int = 10
+        minutesRemaining: Int = 10,
+        userId: String? = nil
     ) {
         self.id = id
         self.dancePresetID = dancePresetID
@@ -33,5 +35,6 @@ final class GeneratedVideo {
         self.createdAt = createdAt
         self.completedAt = completedAt
         self.minutesRemaining = minutesRemaining
+        self.userId = userId
     }
 }
