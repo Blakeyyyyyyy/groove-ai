@@ -27,6 +27,29 @@ struct CompletedVideoView: View {
     }
 
     private var videoURL: URL? {
+        videoURLToPlay
+    }
+
+    private var videoURLToPlay: URL? {
+        // First, check if user selected a preset demo
+        let presetVideoURL: URL? = {
+            switch video.dancePresetID {
+            case "coco-channel":
+                return URL(string: "https://videos.trygrooveai.com/presets/coco-channel-75fcae6c.mp4")
+            case "big-guy":
+                return URL(string: "https://videos.trygrooveai.com/presets/big-guy-V5-AI.mp4")
+            case "c-walk":
+                return URL(string: "https://videos.trygrooveai.com/presets/c-walk-V5-AI.mp4")
+            default:
+                return nil
+            }
+        }()
+
+        if let presetURL = presetVideoURL {
+            return presetURL  // Show preset demo
+        }
+
+        // Fallback: show user-generated video
         guard let urlString = video.videoURL else { return nil }
         return URL(string: urlString)
     }

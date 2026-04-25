@@ -80,6 +80,10 @@ struct GrooveSubjectSelectView: View {
     private func handleSelect(_ option: SubjectOption) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             state.selectedSubjectId = option.id
+
+            // Capture the preview image when subject is selected
+            let imageName = option.id == "person" ? "subject-person-1" : "subject-pet"
+            state.selectedPreviewImage = UIImage(named: imageName)
         }
 
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
