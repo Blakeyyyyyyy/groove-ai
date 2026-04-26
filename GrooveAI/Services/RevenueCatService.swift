@@ -82,6 +82,15 @@ final class RevenueCatService: ObservableObject {
         isSubscribed = premiumIsActive
         activeSubscriptionProductID = Array(customerInfo.activeSubscriptions).first
         subscriptionRenewalDate = customerInfo.latestExpirationDate
+
+        // Push the expiry to the server so the lazy-expiry check in get-user
+        // (and the cancelled-but-still-active window) has authoritative data
+        // even if the RevenueCat → server webhook is delayed or missing.
+        if premiumIsActive, let expiresAt = customerInfo.latestExpirationDate {
+            Task {
+                await SupabaseService.shared.updateSubscriptionExpiry(expiresAt)
+            }
+        }
     }
     
     // MARK: - Coin Balance

@@ -3,6 +3,7 @@ import RevenueCat
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.openURL) private var openURL
     @ObservedObject private var rcService = RevenueCatService.shared
     @State private var showPlansSheet = false
 
@@ -97,13 +98,13 @@ struct SettingsView: View {
                 .padding(.leading, Spacing.xs)
 
             VStack(spacing: 0) {
-                SettingsRow(icon: nil, label: "Help & FAQ") {}
+                SettingsRow(icon: nil, label: "Help & FAQ") { openURL(URL(string: "https://trygrooveai.com/contact.html")!) }
                 Divider().overlay(Color.bgElevated)
-                SettingsRow(icon: nil, label: "Contact Support") {}
+                SettingsRow(icon: nil, label: "Contact Support") { openURL(URL(string: "https://trygrooveai.com/contact.html")!) }
                 Divider().overlay(Color.bgElevated)
-                SettingsRow(icon: nil, label: "Privacy Policy") {}
+                SettingsRow(icon: nil, label: "Privacy Policy") { openURL(URL(string: "https://trygrooveai.com/privacy.html")!) }
                 Divider().overlay(Color.bgElevated)
-                SettingsRow(icon: nil, label: "Terms of Service") {}
+                SettingsRow(icon: nil, label: "Terms of Service") { openURL(URL(string: "https://trygrooveai.com/terms.html")!) }
             }
             .padding(.horizontal, Spacing.lg)
             .background(Color.bgSecondary)

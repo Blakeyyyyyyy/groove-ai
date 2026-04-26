@@ -87,6 +87,45 @@ class SupabaseService {
         }
     }
 
+    /// Push the RevenueCat-reported subscription expiry up to the server so
+    /// the `users.subscription_expires_at` column stays populated even if the
+    /// RevenueCat → Supabase webhook is delayed or missing. Best-effort: logs
+    /// failures but does not throw to the caller's UI path.
+    @discardableResult
+    func updateSubscriptionExpiry(_ date: Date) async -> Bool {
+        guard let userId = KeychainHelper.get(forKey: "userId") else {
+            print("[Supabase] ⚠️ updateSubscriptionExpiry skipped: no userId in Keychain")
+            return false
+        }
+
+        let iso = ISO8601DateFormatter.supabaseFormatter.string(from: date)
+        print("[Supabase] 📡 POST /update-subscription-expiry userId=\(userId) expiresAt=\(iso)")
+
+        guard let url = URL(string: "\(baseURL)/update-subscription-expiry") else {
+            print("[Supabase] ❌ updateSubscriptionExpiry: invalid URL")
+            return false
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: [
+                "user_id": userId,
+                "subscription_expires_at": iso
+            ])
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            try checkHTTPResponse(response, data: data, context: "updateSubscriptionExpiry")
+            print("[Supabase] ✅ updateSubscriptionExpiry succeeded")
+            return true
+        } catch {
+            print("[Supabase] ⚠️ updateSubscriptionExpiry failed (non-fatal): \(error.localizedDescription)")
+            return false
+        }
+    }
+
     func addCoins(userId: String, amount: Int, type: String, appleJWS: String?) async throws -> [String: Any] {
         print("[Supabase] 📡 POST /add-coins userId=\(userId) amount=\(amount) type=\(type) jws=\(appleJWS != nil ? "present" : "MISSING")")
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
@@ -256,4 +295,15 @@ class SupabaseService {
             )
         }
     }
+}
+
+// MARK: - Date Formatting
+
+extension ISO8601DateFormatter {
+    /// Formatter that matches Postgres / Supabase TIMESTAMPTZ string output.
+    static let supabaseFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 }

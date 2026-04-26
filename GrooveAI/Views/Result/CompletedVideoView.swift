@@ -31,7 +31,19 @@ struct CompletedVideoView: View {
     }
 
     private var videoURLToPlay: URL? {
-        // First, check if user selected a preset demo
+        // Woman demo videos
+        if let subjectId = video.selectedSubjectId, subjectId == "woman" {
+            switch video.dancePresetID {
+            case "coco-channel":
+                return URL(string: "https://videos.trygrooveai.com/woman-coco-channel.mp4")
+            case "big-guy":
+                return URL(string: "https://videos.trygrooveai.com/woman-big-guy.mp4")
+            default:
+                break  // Fall through to user video
+            }
+        }
+
+        // Dog videos and other presets (existing logic)
         let presetVideoURL: URL? = {
             switch video.dancePresetID {
             case "coco-channel":

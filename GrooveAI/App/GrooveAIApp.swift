@@ -7,6 +7,7 @@ import UserNotifications
 struct GrooveAIApp: App {
     @State private var appState = AppState()
     @Environment(\.modelContext) var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         Self.configureTabBarAppearance()
@@ -27,11 +28,12 @@ struct GrooveAIApp: App {
                     // Sync user data from server
                     await appState.syncWithServer()
 
-                    // Check subscription status via RevenueCat
+                    // Check subscription status via RevenueCat. Always assign
+                    // both ways — the previous code only flipped to true and
+                    // never demoted, so a cancelled / expired user stayed
+                    // "subscribed" forever in the local state.
                     let isPremium = await RevenueCatService.shared.checkPremium()
-                    if isPremium {
-                        appState.isSubscribed = true
-                    }
+                    appState.isSubscribed = isPremium
 
                     // Check weekly coin reset
                     CoinsService.checkWeeklyReset()
@@ -39,6 +41,19 @@ struct GrooveAIApp: App {
                     // Fetch and hydrate videos from Supabase if user is authenticated
                     if let userId = appState.userId {
                         await hydrateVideosFromSupabase(userId: userId)
+                    }
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Re-check entitlements every time the app returns to the
+                    // foreground. Users may have cancelled/refunded in
+                    // Settings → Subscriptions while the app was backgrounded.
+                    guard newPhase == .active else { return }
+                    Task {
+                        await appState.syncWithServer()
+                        let isPremium = await RevenueCatService.shared.checkPremium()
+                        await MainActor.run {
+                            appState.isSubscribed = isPremium
+                        }
                     }
                 }
         }

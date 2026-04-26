@@ -205,7 +205,7 @@ struct DancePreset: Identifiable, Hashable {
 
     // MARK: - Woman Demo Videos (mapped to presets for HUMAN subjects)
     static let womanDemoVideos: [String: String] = [
-        "big-guy": "https://videos.trygrooveai.com/demos/woman-big-guy.mp4",
-        "coco-channel": "https://videos.trygrooveai.com/demos/woman-coco-channel.mp4"
+        "big-guy": "https://videos.trygrooveai.com/woman-big-guy.mp4",
+        "coco-channel": "https://videos.trygrooveai.com/woman-coco-channel.mp4"
     ]
 }

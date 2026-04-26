@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "onboarding_video_wall_poster.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

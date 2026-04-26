@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */; };
+		BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */; };
+		BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */; };
 		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
 		BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */; };
 		BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */; };
@@ -91,6 +94,9 @@
 
 /* Begin PBXFileReference section */
 		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
+		FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleVideoWallView.swift; sourceTree = "<group>"; };
+		FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onboarding_video_wall.mp4; sourceTree = "<group>"; };
+		FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onboarding_video_wall_poster.png; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
@@ -318,6 +324,7 @@
 				FR_HEROVIDEOCELL /* HeroVideoCell.swift */,
 				FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */,
 				FR_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift */,
+				FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -423,6 +430,15 @@
 			);
 			sourceTree = "<group>";
 		};
+		GRP_RESOURCES /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */,
+				FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		SOURCE_GROUP /* GrooveAI */ = {
 			isa = PBXGroup;
 			children = (
@@ -431,6 +447,7 @@
 				GRP_DESIGN /* Design */,
 				GRP_MODELS /* Models */,
 				GRP_GROOVEONBOARDING /* Onboarding */,
+				GRP_RESOURCES /* Resources */,
 				GRP_SERVICES /* Services */,
 				GRP_UTILITIES /* Utilities */,
 				GRP_VIEWS /* Views */,
@@ -498,6 +515,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */,
+				BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */,
+				BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -508,6 +527,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift in Sources */,
 				BF_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift in Sources */,
 				BF_VIDEOPRELOADER /* VideoPreloader.swift in Sources */,
 				BF_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift in Sources */,

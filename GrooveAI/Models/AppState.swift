@@ -277,10 +277,33 @@ final class AppState {
         print("[AppState] 🔄 Syncing with server for userId: \(userId)")
         do {
             let profile = try await SupabaseService.shared.getUser(id: userId)
+            // Capture the RevenueCat-side state OFF the main actor before
+            // hopping over — avoids reading @Published while we mutate state.
+            let revenueCatSaysSubscribed = await MainActor.run {
+                RevenueCatService.shared.isSubscribed
+            }
+
             await MainActor.run {
                 self.serverCoins = profile["coins"] as? Int
-                self.isSubscribed = (profile["subscription_status"] as? String ?? "free") != "free"
-                print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed)")
+
+                let serverSaysSubscribed =
+                    (profile["subscription_status"] as? String ?? "free") != "free"
+
+                // Belt-and-suspenders: only demote (true → false) when BOTH
+                // the server and RevenueCat agree the user is no longer
+                // subscribed. Protects against the race where the user
+                // purchases, RevenueCat updates locally, but the
+                // revenuecat-webhook hasn't yet flipped the row in Supabase.
+                // Promoting (false → true) is always safe.
+                if serverSaysSubscribed {
+                    self.isSubscribed = true
+                } else if !revenueCatSaysSubscribed {
+                    self.isSubscribed = false
+                } else {
+                    print("[AppState] ⏸ Skipping demote — server=free but RevenueCat=subscribed (webhook race?)")
+                }
+
+                print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed))")
             }
         } catch {
             print("[AppState] ⚠️ Server sync failed (using local state): \(error)")

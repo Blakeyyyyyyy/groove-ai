@@ -68,7 +68,12 @@ serve(async (req) => {
       throw fetchError;
     }
 
-    // Check subscription expiry
+    // Lazy expiry check: if the cached expiry has passed and the row is still
+    // marked subscribed (e.g. the EXPIRATION webhook hasn't arrived yet, or
+    // RevenueCat is delayed), demote the user inline so the client gets the
+    // correct status on its next get-user call. This is now real code — the
+    // revenuecat-webhook function populates subscription_expires_at on
+    // INITIAL_PURCHASE / RENEWAL / CANCELLATION events.
     if (
       userData.subscription_status !== "free" &&
       userData.subscription_expires_at &&
@@ -76,9 +81,13 @@ serve(async (req) => {
     ) {
       await supabase
         .from("users")
-        .update({ subscription_status: "free" })
+        .update({
+          subscription_status: "free",
+          subscription_expires_at: null,
+        })
         .eq("id", user.id);
       userData.subscription_status = "free";
+      userData.subscription_expires_at = null;
     }
 
     return new Response(JSON.stringify({ user: userData }), {

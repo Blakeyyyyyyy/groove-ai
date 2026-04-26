@@ -360,7 +360,7 @@ struct GroovePaywallScreen: View {
             .foregroundColor(Color.white.opacity(0.85))
 
             HStack(spacing: 4) {
-                Link("Terms", destination: URL(string: "https://grooveai.app/terms")!)
+                Link("Terms", destination: URL(string: "https://trygrooveai.com/terms")!)
                     .font(.system(size: 11))
                     .foregroundColor(.white)
 
@@ -368,7 +368,7 @@ struct GroovePaywallScreen: View {
                     .font(.system(size: 11))
                     .foregroundColor(.white.opacity(0.5))
 
-                Link("Privacy", destination: URL(string: "https://grooveai.app/privacy")!)
+                Link("Privacy", destination: URL(string: "https://trygrooveai.com/privacy")!)
                     .font(.system(size: 11))
                     .foregroundColor(.white)
             }

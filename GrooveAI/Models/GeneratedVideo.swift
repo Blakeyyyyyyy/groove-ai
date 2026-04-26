@@ -13,6 +13,7 @@ final class GeneratedVideo {
     var completedAt: Date?
     var minutesRemaining: Int
     var userId: String?  // For syncing across reinstalls
+    var selectedSubjectId: String?  // "woman" or "dog" — for demo video routing
 
     init(
         id: String = UUID().uuidString,
@@ -24,7 +25,8 @@ final class GeneratedVideo {
         createdAt: Date = .now,
         completedAt: Date? = nil,
         minutesRemaining: Int = 10,
-        userId: String? = nil
+        userId: String? = nil,
+        selectedSubjectId: String? = nil
     ) {
         self.id = id
         self.dancePresetID = dancePresetID
@@ -36,5 +38,6 @@ final class GeneratedVideo {
         self.completedAt = completedAt
         self.minutesRemaining = minutesRemaining
         self.userId = userId
+        self.selectedSubjectId = selectedSubjectId
     }
 }
