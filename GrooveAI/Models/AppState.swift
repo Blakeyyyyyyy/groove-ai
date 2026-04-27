@@ -254,12 +254,26 @@ final class AppState {
 
     // MARK: - Coins (local fallback — server is authoritative)
 
+    /// Optimistic deduction for instant UI feedback. Server response from
+    /// /api/generate-video reconciles `serverCoins` to the authoritative value.
+    /// Decrements both the legacy local counter (coinsUsed) and the
+    /// server-synced balance (serverCoins) so the user sees the drop the
+    /// moment they tap Generate, instead of waiting for the full pipeline.
     func useCoins() {
         coinsUsed += coinCostPerGeneration
+        if let current = serverCoins {
+            serverCoins = max(0, current - coinCostPerGeneration)
+        }
     }
 
+    /// Optimistic refund (mirrors useCoins). Used when generation is rejected
+    /// locally before any server call. Server-side refunds go through
+    /// SupabaseService.refundCoins and write the authoritative value back.
     func refundCoins() {
         coinsUsed = max(0, coinsUsed - coinCostPerGeneration)
+        if let current = serverCoins {
+            serverCoins = current + coinCostPerGeneration
+        }
     }
 
     // MARK: - Sync with Server
@@ -284,7 +298,7 @@ final class AppState {
                 self.serverCoins = profile["coins"] as? Int
 
                 let serverSaysSubscribed =
-                    (profile["subscription_status"] as? String ?? "free") != "free"
+                    (profile["subscription_status"] as? String) == "active"
 
                 // Belt-and-suspenders: only demote (true → false) when BOTH
                 // the server and RevenueCat agree the user is no longer

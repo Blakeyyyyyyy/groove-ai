@@ -354,6 +354,13 @@ final class GenerationService {
             if let newBalance = refundedCoinBalance {
                 appState.serverCoins = newBalance
                 print("[Generation] 🪙 Updated appState.serverCoins to \(newBalance) from refund response")
+            } else if refundOutcome == .notAttempted {
+                // No server-side deduction happened (failed before generate-video
+                // returned a video_id) — but iOS already optimistically dropped
+                // serverCoins by 60 when the user tapped Generate. Roll that
+                // back locally so the user sees their balance restored.
+                appState.refundCoins()
+                print("[Generation] 🪙 Rolled back optimistic deduction (no server deduction occurred)")
             }
             appState.errorAlertMessage = userMessage
             appState.errorAlertIsPoseIssue = showRetryButton

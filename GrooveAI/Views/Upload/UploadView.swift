@@ -127,18 +127,18 @@ struct UploadView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(.black)
         }
-        .sheet(isPresented: $showSubscriptionPaywall) {
-            // Show subscription plans at highest intent moment
-            GroovePlansSheet(onPurchaseComplete: {
-                showSubscriptionPaywall = false
-                // After upgrade, retry generation if image is ready
-                if selectedImage != nil {
-                    startGeneration()
+        .fullScreenCover(isPresented: $showSubscriptionPaywall) {
+            GroovePaywallScreen(
+                onPurchaseSuccess: {
+                    showSubscriptionPaywall = false
+                    if selectedImage != nil {
+                        startGeneration()
+                    }
+                },
+                onDismiss: {
+                    showSubscriptionPaywall = false
                 }
-            })
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color.bgPrimary)
+            )
         }
     }
 
@@ -229,6 +229,14 @@ struct UploadView: View {
 
     private func fireGeneration(photoData: Data) {
         print("[UploadView] 🚀 fireGeneration called — starting real generation")
+
+        // Optimistic UI deduction — drop balance by 60 immediately so the
+        // user sees feedback the moment they tap Generate. Server response
+        // from /api/generate-video reconciles serverCoins to the authoritative
+        // value once the pipeline returns. If generation fails before the
+        // server deducts, GenerationService issues a refund + server sync.
+        appState.useCoins()
+        print("[UploadView] 🪙 Optimistically deducted \(appState.coinCostPerGeneration) coins. Local balance: \(appState.coinsRemaining)")
 
         // Start generation ON MAIN ACTOR before navigating away
         // This ensures modelContext operations happen on the main queue
