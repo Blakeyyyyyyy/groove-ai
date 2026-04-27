@@ -17,7 +17,24 @@ class SupabaseService {
     }
     
     // MARK: - User
-    
+
+    /// Creates a new server-side user account. Returns the new user_id and initial coin balance.
+    func register() async throws -> (userId: String, coins: Int) {
+        print("[Supabase] 📡 POST /register")
+        var request = URLRequest(url: URL(string: "\(baseURL)/register")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try checkHTTPResponse(response, data: data, context: "register")
+        let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        guard let userId = result["user_id"] as? String, let coins = result["coins"] as? Int else {
+            throw NSError(domain: "SupabaseService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "register: missing user_id or coins in response"])
+        }
+        print("[Supabase] ✅ register: user_id=\(userId), coins=\(coins)")
+        return (userId, coins)
+    }
+
     func getUser(id: String) async throws -> [String: Any] {
         print("[Supabase] 📡 GET /user/\(id)")
         let url = URL(string: "\(baseURL)/user/\(id)")!

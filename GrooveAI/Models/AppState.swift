@@ -158,33 +158,14 @@ final class AppState {
         // First launch — call /api/register to get server-generated UUID
         print("[AppState] 🔄 First launch detected. Registering with backend...")
         do {
-            guard let apiUrl = URL(string: "https://groove-ai-api.example.com/api/register") else {
-                throw NSError(domain: "Invalid API URL", code: -1)
+            let (newUserId, initialCoins) = try await SupabaseService.shared.register()
+            KeychainHelper.save(newUserId, forKey: "userId")
+            await MainActor.run {
+                self.serverCoins = initialCoins
             }
-
-            var request = URLRequest(url: apiUrl)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw NSError(domain: "Invalid response", code: -1)
-            }
-
-            if httpResponse.statusCode == 201 {
-                let decoded = try JSONDecoder().decode(RegisterResponse.self, from: data)
-                KeychainHelper.save(decoded.user_id, forKey: "userId")
-                serverCoins = decoded.coins
-                print("[AppState] ✅ User registered: user_id=\(decoded.user_id), coins=\(decoded.coins)")
-            } else {
-                let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-                let errorMsg = (errorJson?["error"] as? String) ?? "Unknown error"
-                throw NSError(domain: errorMsg, code: httpResponse.statusCode)
-            }
+            print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
         } catch {
             print("[AppState] ❌ Registration failed: \(error.localizedDescription)")
-            // Fail loudly — user cannot proceed without registration
             await MainActor.run {
                 self.errorAlertMessage = "Failed to create account. Please restart the app."
             }
@@ -304,6 +285,16 @@ final class AppState {
                 }
 
                 print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed))")
+            }
+        } catch let error as NSError {
+            if error.domain == "SupabaseService" && error.code == 404 {
+                // User deleted from backend while device still has stale Keychain UUID.
+                // Clear the stale ID and re-register so coins and subscription can sync correctly.
+                print("[AppState] ⚠️ User not found on server — clearing stale ID and re-registering")
+                await MainActor.run { KeychainHelper.delete(forKey: "userId") }
+                await initializeUser()
+            } else {
+                print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
             }
         } catch {
             print("[AppState] ⚠️ Server sync failed (using local state): \(error)")

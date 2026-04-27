@@ -200,12 +200,7 @@ struct GroovePaywallScreen: View {
 
     private var heroCollage: some View {
         Group {
-            if let collage = OnboardingPaywallImageLoader.load(
-                "Fashion Photo Collages (Instagram Story) (1080 x 500 px) (1080 x 750 px) (1080 x 1200 px) (1).png",
-                fallbackPaths: [
-                    "GrooveAI/Assets.xcassets/paywall-collage.imageset/paywall-collage.png"
-                ]
-            ) {
+            if let collage = UIImage(named: "paywall-collage") {
                 Image(uiImage: collage)
                     .resizable()
                     .scaledToFill()
