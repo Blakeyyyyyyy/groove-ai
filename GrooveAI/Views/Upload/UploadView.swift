@@ -166,12 +166,6 @@ struct UploadView: View {
                             .foregroundStyle(Color.textPrimary)
                             .multilineTextAlignment(.center)
 
-                        Text("Person, pet, or baby — any photo works")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-
                         Text("This dance works best with an image of 1 person, clearly visible of their body")
                             .font(.caption)
                             .foregroundStyle(Color.textTertiary)

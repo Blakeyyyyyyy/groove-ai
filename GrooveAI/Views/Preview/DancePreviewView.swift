@@ -5,6 +5,7 @@ struct DancePreviewView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToUpload = false
+    @State private var isVideoPlaying = true
 
     private var videoURL: URL? {
         guard let urlString = preset.videoURL else { return nil }
@@ -51,7 +52,7 @@ struct DancePreviewView: View {
 
                 // Using AudioLoopingVideoView for sneak peek — sound matters here
                 if let videoURL {
-                    AudioLoopingVideoView(url: videoURL)
+                    AudioLoopingVideoView(url: videoURL, isPlaying: isVideoPlaying)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
                 } else {
                     // Fallback placeholder while loading
@@ -91,6 +92,8 @@ struct DancePreviewView: View {
         .background(Color.bgPrimary)
         .navigationTitle(preset.name)
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear { isVideoPlaying = false }
+        .onAppear { isVideoPlaying = true }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(preset.name)
