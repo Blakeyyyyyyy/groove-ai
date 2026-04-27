@@ -90,6 +90,13 @@ final class AppState {
         didSet { UserDefaults.standard.set(isSubscribed, forKey: "isSubscribed") }
     }
 
+    /// True once the user has ever held a paid subscription (active or expired).
+    /// Once flipped to true, never resets to false — used to route expired
+    /// subscribers to the coin packages paywall instead of the onboarding paywall.
+    var hasHadSubscription: Bool = false {
+        didSet { UserDefaults.standard.set(hasHadSubscription, forKey: "hasHadSubscription") }
+    }
+
     // MARK: - Server-Synced Coins
 
     /// Server-authoritative coin balance. Falls back to local if not synced yet.
@@ -235,11 +242,14 @@ final class AppState {
 
     init() {
         let defaults = UserDefaults.standard
+        let storedIsSubscribed = defaults.bool(forKey: "isSubscribed")
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
-        isSubscribed = defaults.bool(forKey: "isSubscribed")
+        isSubscribed = storedIsSubscribed
+        // If we already know they're subscribed locally, they've had a subscription.
+        hasHadSubscription = defaults.bool(forKey: "hasHadSubscription") || storedIsSubscribed
         hasRequestedNotificationPermission = defaults.bool(forKey: "hasRequestedNotificationPermission")
 
-        print("[AppState] 🔧 Initialized: hasCompletedOnboarding=\(hasCompletedOnboarding), isSubscribed=\(isSubscribed)")
+        print("[AppState] 🔧 Initialized: hasCompletedOnboarding=\(hasCompletedOnboarding), isSubscribed=\(isSubscribed), hasHadSubscription=\(hasHadSubscription)")
 
         // Register user on first launch (server generates UUID, stored in Keychain)
         Task { await self.initializeUser() }
@@ -297,8 +307,8 @@ final class AppState {
             await MainActor.run {
                 self.serverCoins = profile["coins"] as? Int
 
-                let serverSaysSubscribed =
-                    (profile["subscription_status"] as? String) == "active"
+                let subscriptionStatus = profile["subscription_status"] as? String ?? "free"
+                let serverSaysSubscribed = subscriptionStatus == "active"
 
                 // Belt-and-suspenders: only demote (true → false) when BOTH
                 // the server and RevenueCat agree the user is no longer
@@ -314,7 +324,15 @@ final class AppState {
                     print("[AppState] ⏸ Skipping demote — server=free but RevenueCat=subscribed (webhook race?)")
                 }
 
-                print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed))")
+                // Once the user has held any non-free subscription state
+                // (active OR expired), latch hasHadSubscription = true forever.
+                // Routes expired subscribers to coin packages instead of the
+                // onboarding paywall. Never reset back to false.
+                if subscriptionStatus != "free" {
+                    self.hasHadSubscription = true
+                }
+
+                print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed), status=\(subscriptionStatus), hasHadSubscription=\(self.hasHadSubscription))")
             }
         } catch let error as NSError {
             if error.domain == "SupabaseService" && error.code == 404 {

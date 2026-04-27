@@ -1,15 +1,27 @@
 import SwiftUI
+import AVFoundation
 
 struct DancePreviewView: View {
     let preset: DancePreset
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToUpload = false
-    @State private var isVideoPlaying = true
+    @State private var player: AVQueuePlayer? = nil
+    @State private var playerLooper: AVPlayerLooper? = nil
 
     private var videoURL: URL? {
         guard let urlString = preset.videoURL else { return nil }
         return URL(string: urlString)
+    }
+
+    private func setupPlayer(url: URL) {
+        let item = AVPlayerItem(url: url)
+        let queuePlayer = AVQueuePlayer(playerItem: item)
+        queuePlayer.isMuted = false
+        let looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+        self.player = queuePlayer
+        self.playerLooper = looper
+        queuePlayer.play()
     }
 
     var body: some View {
@@ -50,10 +62,16 @@ struct DancePreviewView: View {
                         )
                     )
 
-                // Using AudioLoopingVideoView for sneak peek — sound matters here
+                // ControlledVideoView with view-owned AVQueuePlayer so we can pause
+                // directly in .onDisappear (no SwiftUI render cycle dependency).
                 if let videoURL {
-                    AudioLoopingVideoView(url: videoURL, isPlaying: isVideoPlaying)
+                    ControlledVideoView(player: player)
                         .clipShape(RoundedRectangle(cornerRadius: Radius.xxl))
+                        .onAppear {
+                            if player == nil {
+                                setupPlayer(url: videoURL)
+                            }
+                        }
                 } else {
                     // Fallback placeholder while loading
                     VStack(spacing: Spacing.md) {
@@ -92,8 +110,15 @@ struct DancePreviewView: View {
         .background(Color.bgPrimary)
         .navigationTitle(preset.name)
         .navigationBarTitleDisplayMode(.inline)
-        .onDisappear { isVideoPlaying = false }
-        .onAppear { isVideoPlaying = true }
+        .onAppear {
+            if let videoURL, player == nil {
+                setupPlayer(url: videoURL)
+            }
+            player?.play()
+        }
+        .onDisappear {
+            player?.pause()
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(preset.name)

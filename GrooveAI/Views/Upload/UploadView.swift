@@ -51,16 +51,17 @@ struct UploadView: View {
             // Generate button — contained width, softer styling
             Button {
                 if selectedImage == nil { return }
-                // CRITICAL: Show SUBSCRIPTION paywall for non-subscribers at this highest intent moment
-                // This is where user is most likely to convert
-                if !appState.isSubscribed {
-                    showSubscriptionPaywall = true
-                } else if !appState.hasEnoughCoins {
-                    // Subscribed but no coins → show coin purchase
+                // Routing rules:
+                //  - Active subscriber + enough coins → generate
+                //  - Active subscriber + not enough coins → coin packages paywall
+                //  - Expired subscriber OR has any coins → coin packages paywall
+                //  - True free user (never subscribed, no coins) → onboarding paywall
+                if appState.hasEnoughCoins {
+                    startGeneration()
+                } else if appState.hasHadSubscription {
                     showCoinsPurchasePaywall = true
                 } else {
-                    // Has subscription AND coins → generate
-                    startGeneration()
+                    showSubscriptionPaywall = true
                 }
             } label: {
                 Text(selectedImage != nil ? "Generate" : "Select a Photo First")
