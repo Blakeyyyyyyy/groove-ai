@@ -155,6 +155,17 @@ final class AppState {
             return
         }
 
+        // Prevent concurrent registrations (e.g. from parallel syncWithServer 404 handlers)
+        let alreadyRegistering = await MainActor.run {
+            if self.isRegistering { return true }
+            self.isRegistering = true
+            return false
+        }
+        guard !alreadyRegistering else {
+            print("[AppState] ⏭ initializeUser skipped — registration already in progress")
+            return
+        }
+
         // First launch — call /api/register to get server-generated UUID
         print("[AppState] 🔄 First launch detected. Registering with backend...")
         do {
@@ -162,15 +173,20 @@ final class AppState {
             KeychainHelper.save(newUserId, forKey: "userId")
             await MainActor.run {
                 self.serverCoins = initialCoins
+                self.isRegistering = false
             }
             print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
         } catch {
             print("[AppState] ❌ Registration failed: \(error.localizedDescription)")
             await MainActor.run {
+                self.isRegistering = false
                 self.errorAlertMessage = "Failed to create account. Please restart the app."
             }
         }
     }
+
+    // Prevents concurrent /register calls when multiple syncWithServer() calls race on 404
+    private var isRegistering: Bool = false
 
     // Generation state — state-driven flow (BUG-004 fix)
     var generationPhase: GenerationPhase = .idle
@@ -289,10 +305,20 @@ final class AppState {
         } catch let error as NSError {
             if error.domain == "SupabaseService" && error.code == 404 {
                 // User deleted from backend while device still has stale Keychain UUID.
-                // Clear the stale ID and re-register so coins and subscription can sync correctly.
+                // Guard prevents concurrent syncWithServer() calls from all re-registering simultaneously.
+                let shouldRegister = await MainActor.run {
+                    guard !self.isRegistering else { return false }
+                    self.isRegistering = true
+                    KeychainHelper.delete(forKey: "userId")
+                    return true
+                }
+                guard shouldRegister else {
+                    print("[AppState] ⏭ Re-registration already in progress — skipping duplicate")
+                    return
+                }
                 print("[AppState] ⚠️ User not found on server — clearing stale ID and re-registering")
-                await MainActor.run { KeychainHelper.delete(forKey: "userId") }
                 await initializeUser()
+                await MainActor.run { self.isRegistering = false }
             } else {
                 print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
             }
