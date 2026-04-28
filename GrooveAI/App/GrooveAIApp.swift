@@ -9,6 +9,9 @@ struct GrooveAIApp: App {
     @State private var appState = AppState()
     @Environment(\.modelContext) var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    // Guards against the first scenePhase → .active firing on launch (same sync
+    // already runs in .task below — without this flag, syncWithServer fires twice).
+    @State private var hasCompletedInitialLaunch = false
 
     init() {
         Self.configureTabBarAppearance()
@@ -35,10 +38,13 @@ struct GrooveAIApp: App {
                     // Check weekly coin reset
                     CoinsService.checkWeeklyReset()
 
-                    // Fetch and hydrate videos from Supabase if user is authenticated
+                    // Hydrate videos in background — don't await, avoids blocking launch path
                     if let userId = appState.userId {
-                        await hydrateVideosFromSupabase(userId: userId)
+                        Task(priority: .utility) {
+                            await hydrateVideosFromSupabase(userId: userId)
+                        }
                     }
+                    hasCompletedInitialLaunch = true
                 }
                 // Catch any StoreKit 2 consumable transactions that were never finished
                 // (e.g. app killed between purchase confirmation and server ACK).
@@ -54,9 +60,9 @@ struct GrooveAIApp: App {
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Re-check entitlements every time the app returns to the
-                    // foreground. Users may have cancelled/refunded in
-                    // Settings → Subscriptions while the app was backgrounded.
-                    guard newPhase == .active else { return }
+                    // foreground. Guard against first .active on launch — that
+                    // sync already runs in .task above.
+                    guard newPhase == .active, hasCompletedInitialLaunch else { return }
                     Task {
                         await appState.syncWithServer()
                         let isPremium = await RevenueCatService.shared.checkPremium()
