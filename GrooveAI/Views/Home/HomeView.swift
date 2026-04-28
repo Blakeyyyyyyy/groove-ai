@@ -83,8 +83,6 @@ struct HomeView: View {
         // Fix 1: inject pool into environment for all descendant views
         .environment(\.playerPool, playerPool)
         .task {
-            // BUG-001 fix: use .task for reliable state init
-            try? await Task.sleep(for: .milliseconds(200))
             withAnimation(AppAnimation.cardTransition) {
                 showContent = true
             }

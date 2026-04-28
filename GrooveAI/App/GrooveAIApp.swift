@@ -115,45 +115,39 @@ struct GrooveAIApp: App {
         do {
             let remoteVideos = try await SupabaseService.shared.getVideos(userId: userId)
             print("[App] ✅ Fetched \(remoteVideos.count) videos from Supabase")
+            guard !remoteVideos.isEmpty else { return }
 
-            // Map Supabase video data to GeneratedVideo models
             await MainActor.run {
+                // One batch fetch for all local IDs — avoids N separate queries that each
+                // block the main thread. Old code called modelContext.fetch() once per video.
+                let existingIds = Set(
+                    (try? modelContext.fetch(FetchDescriptor<GeneratedVideo>()))?.map { $0.id } ?? []
+                )
+
+                var inserted = 0
                 for videoData in remoteVideos {
-                    guard let videoId = videoData["video_id"] as? String else { continue }
+                    guard let videoId = videoData["video_id"] as? String,
+                          !existingIds.contains(videoId) else { continue }
 
-                    // Check if video already exists locally
-                    let descriptor = FetchDescriptor<GeneratedVideo>(
-                        predicate: #Predicate { $0.id == videoId }
-                    )
-                    let existingVideos = try? modelContext.fetch(descriptor)
+                    let presetId = videoData["dance_style"] as? String ?? "unknown"
+                    let videoURL = videoData["video_url"] as? String
+                    let completedAt = Self.parseDate(videoData["completed_at"] as? String)
 
-                    if existingVideos?.isEmpty ?? true {
-                        // Create new local record from Supabase data
-                        let presetId = videoData["dance_style"] as? String ?? "unknown"
-                        let videoURL = videoData["video_url"] as? String
-                        let completedAtString = videoData["completed_at"] as? String
-                        let completedAt = Self.parseDate(completedAtString)
-
-                        let generatedVideo = GeneratedVideo(
-                            id: videoId,
-                            dancePresetID: presetId,
-                            danceName: presetId,
-                            videoURL: videoURL,
-                            status: "completed",
-                            completedAt: completedAt,
-                            userId: userId
-                        )
-                        modelContext.insert(generatedVideo)
-                        print("[App] 💾 Hydrated video: \(videoId)")
-                    }
+                    modelContext.insert(GeneratedVideo(
+                        id: videoId,
+                        dancePresetID: presetId,
+                        danceName: presetId,
+                        videoURL: videoURL,
+                        status: "completed",
+                        completedAt: completedAt,
+                        userId: userId
+                    ))
+                    inserted += 1
                 }
 
-                // Save all hydrated videos to SwiftData
-                do {
-                    try modelContext.save()
-                    print("[App] ✅ Video hydration complete")
-                } catch {
-                    print("[App] ⚠️ Failed to save hydrated videos: \(error)")
+                if inserted > 0 {
+                    try? modelContext.save()
+                    print("[App] ✅ Hydrated \(inserted) new videos")
                 }
             }
         } catch {

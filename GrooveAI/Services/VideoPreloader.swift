@@ -12,33 +12,44 @@ final class VideoPreloader: NSObject {
         super.init()
     }
 
-    /// Preload a video URL to trigger DNS + HTTP handshake.
-    /// This warms the connection so playback is faster when the card becomes visible.
+    /// Preload a video URL asynchronously — does NOT block the calling thread.
+    /// AVAsset(url:) does DNS + HTTP handshake; running it on the main thread
+    /// causes multi-second hangs when many cards appear simultaneously.
     func preload(url: URL) {
-        lock.lock()
         let key = url.absoluteString as NSString
+
+        lock.lock()
+        let alreadyCached = preloadedAssets.object(forKey: key) != nil
         lock.unlock()
 
-        // Skip if already preloading
-        if preloadedAssets.object(forKey: key) != nil {
-            return
-        }
+        guard !alreadyCached else { return }
 
-        let asset = AVAsset(url: url)
-        preloadedAssets.setObject(asset, forKey: key)
+        Task.detached(priority: .background) { [weak self] in
+            guard let self else { return }
 
-        // Async load metadata. This triggers initial HTTP connection.
-        asset.loadValuesAsynchronously(forKeys: ["playable", "duration"]) { [weak asset] in
-            guard let asset else { return }
+            // Guard against duplicate concurrent preloads
+            self.lock.lock()
+            let stillNeeded = self.preloadedAssets.object(forKey: key) == nil
+            self.lock.unlock()
+            guard stillNeeded else { return }
 
-            let status = asset.statusOfValue(forKey: "playable", error: nil)
-            switch status {
-            case .loaded:
-                print("[VideoPreloader] Preloaded: \(url.lastPathComponent)")
-            case .failed, .cancelled, .unknown:
-                print("[VideoPreloader] Preload failed for: \(url.lastPathComponent)")
-            @unknown default:
-                break
+            let asset = AVAsset(url: url)
+
+            self.lock.lock()
+            self.preloadedAssets.setObject(asset, forKey: key)
+            self.lock.unlock()
+
+            asset.loadValuesAsynchronously(forKeys: ["playable", "duration"]) { [weak asset] in
+                guard let asset else { return }
+                let status = asset.statusOfValue(forKey: "playable", error: nil)
+                switch status {
+                case .loaded:
+                    print("[VideoPreloader] Preloaded: \(url.lastPathComponent)")
+                case .failed, .cancelled, .unknown:
+                    print("[VideoPreloader] Preload failed for: \(url.lastPathComponent)")
+                @unknown default:
+                    break
+                }
             }
         }
     }
