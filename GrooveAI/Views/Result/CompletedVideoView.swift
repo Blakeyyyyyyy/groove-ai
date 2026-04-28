@@ -27,41 +27,10 @@ struct CompletedVideoView: View {
     }
 
     private var videoURL: URL? {
-        videoURLToPlay
-    }
-
-    private var videoURLToPlay: URL? {
-        // Woman demo videos
-        if let subjectId = video.selectedSubjectId, subjectId == "woman" {
-            switch video.dancePresetID {
-            case "coco-channel":
-                return URL(string: "https://videos.trygrooveai.com/woman-coco-channel.mp4")
-            case "big-guy":
-                return URL(string: "https://videos.trygrooveai.com/woman-big-guy.mp4")
-            default:
-                break  // Fall through to user video
-            }
-        }
-
-        // Dog videos and other presets (existing logic)
-        let presetVideoURL: URL? = {
-            switch video.dancePresetID {
-            case "coco-channel":
-                return URL(string: "https://videos.trygrooveai.com/presets/coco-channel-75fcae6c.mp4")
-            case "big-guy":
-                return URL(string: "https://videos.trygrooveai.com/presets/big-guy-V5-AI.mp4")
-            case "c-walk":
-                return URL(string: "https://videos.trygrooveai.com/presets/c-walk-V5-AI.mp4")
-            default:
-                return nil
-            }
-        }()
-
-        if let presetURL = presetVideoURL {
-            return presetURL  // Show preset demo
-        }
-
-        // Fallback: show user-generated video
+        // Always play the user's generated video stored on the model.
+        // (Previously this method returned hardcoded preset demo URLs for
+        // coco-channel / big-guy / c-walk, which silently overwrote the
+        // user's actual generation in the result view.)
         guard let urlString = video.videoURL else { return nil }
         return URL(string: urlString)
     }
