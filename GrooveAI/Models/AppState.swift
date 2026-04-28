@@ -305,7 +305,16 @@ final class AppState {
             }
 
             await MainActor.run {
-                self.serverCoins = profile["coins"] as? Int
+                // RACE GUARD: If a generation is in flight, skip overwriting
+                // serverCoins. The /generate-video response is the authoritative
+                // post-deduction value; a concurrent GET /user can return the
+                // pre-deduction balance and cause a 90 → 150 → 90 flash.
+                // Other fields (subscription status etc.) are still safe to sync.
+                if self.isGenerating {
+                    print("[AppState] ⏸ syncWithServer: generation in flight — skipping serverCoins overwrite (would have set: \(profile["coins"] as? Int ?? -1))")
+                } else {
+                    self.serverCoins = profile["coins"] as? Int
+                }
 
                 let subscriptionStatus = profile["subscription_status"] as? String ?? "free"
                 let serverSaysSubscribed = subscriptionStatus == "active"
