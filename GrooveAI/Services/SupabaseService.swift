@@ -143,6 +143,35 @@ class SupabaseService {
         }
     }
 
+    /// Called after a confirmed subscription purchase to grant coins immediately
+    /// without waiting for the RevenueCat webhook. Non-throwing — failure is non-fatal
+    /// (webhook will still grant coins eventually).
+    @discardableResult
+    func confirmSubscription(productId: String) async -> Int? {
+        guard let userId = KeychainHelper.get(forKey: "userId") else { return nil }
+
+        guard let url = URL(string: "\(baseURL)/confirm-subscription") else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: [
+                "user_id": userId,
+                "product_id": productId
+            ])
+            let (data, response) = try await URLSession.shared.data(for: request)
+            try checkHTTPResponse(response, data: data, context: "confirmSubscription")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let totalCoins = json?["total_coins"] as? Int
+            print("[Supabase] ✅ confirmSubscription: product=\(productId) coins_granted=\(json?["coins_granted"] as? Bool ?? false) total=\(totalCoins ?? -1)")
+            return totalCoins
+        } catch {
+            print("[Supabase] ⚠️ confirmSubscription failed (non-fatal, webhook will retry): \(error.localizedDescription)")
+            return nil
+        }
+    }
+
     func addCoins(userId: String, amount: Int, type: String, appleJWS: String?) async throws -> [String: Any] {
         print("[Supabase] 📡 POST /add-coins userId=\(userId) amount=\(amount) type=\(type) jws=\(appleJWS != nil ? "present" : "MISSING")")
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)

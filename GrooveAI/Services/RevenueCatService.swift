@@ -323,7 +323,11 @@ final class RevenueCatService: ObservableObject {
             
             // Notify AppState to force-refresh coins from server
             // AppState listens for this and calls syncWithServer()
-            NotificationCenter.default.post(name: .revenueCatPurchaseCompleted, object: nil)
+            NotificationCenter.default.post(
+                name: .revenueCatPurchaseCompleted,
+                object: nil,
+                userInfo: ["productId": package.storeProduct.productIdentifier]
+            )
             
             return true
         }

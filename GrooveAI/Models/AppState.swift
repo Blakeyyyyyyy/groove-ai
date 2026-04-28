@@ -255,10 +255,20 @@ final class AppState {
         Task { await self.initializeUser() }
 
         // Listen for purchase completions to force-refresh coins from server
-        NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] _ in
+        NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] notification in
             guard let self else { return }
-            print("[AppState] 🔔 Purchase completed notification — syncing with server")
-            Task { await self.syncWithServer() }
+            let productId = notification.userInfo?["productId"] as? String
+            print("[AppState] 🔔 Purchase completed notification — syncing with server (product=\(productId ?? "unknown"))")
+            Task {
+                // Directly confirm subscription to beat webhook timing race
+                if let productId {
+                    let totalCoins = await SupabaseService.shared.confirmSubscription(productId: productId)
+                    if let totalCoins {
+                        await MainActor.run { self.serverCoins = totalCoins }
+                    }
+                }
+                await self.syncWithServer()
+            }
         }
     }
 
