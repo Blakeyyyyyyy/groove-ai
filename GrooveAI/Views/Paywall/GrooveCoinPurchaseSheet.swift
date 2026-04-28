@@ -601,8 +601,8 @@ struct GrooveCoinPurchaseSheet: View {
             do {
                 switch selectedTab {
                 case .topUp:
-                    let (success, jws) = try await RevenueCatService.shared.purchaseCoins(selectedCoinPackage)
-                    guard success, let jws = jws else {
+                    let (success, jws, finishTransaction) = try await RevenueCatService.shared.purchaseCoins(selectedCoinPackage)
+                    guard success, let jws = jws, let finishTransaction = finishTransaction else {
                         await MainActor.run {
                             purchaseError = success ? "Purchase succeeded but receipt verification failed." : "Purchase was cancelled."
                             isPurchasing = false
@@ -618,20 +618,34 @@ struct GrooveCoinPurchaseSheet: View {
                         return
                     }
 
-                    _ = try await SupabaseService.shared.addCoins(
-                        userId: userId,
-                        amount: selectedCoinPackage.coins,
-                        type: "purchase",
-                        appleJWS: jws
-                    )
-                    let updatedCoins = try await CoinsService.getBalance(userId: userId)
-
-                    await MainActor.run {
-                        RevenueCatService.shared.setCoinBalance(updatedCoins)
-                        appState.serverCoins = updatedCoins
-                        isPurchasing = false
-                        onPurchaseComplete?()
-                        dismiss()
+                    do {
+                        let result = try await SupabaseService.shared.addCoins(
+                            userId: userId,
+                            amount: selectedCoinPackage.coins,
+                            type: "purchase",
+                            appleJWS: jws
+                        )
+                        // Server confirmed — now safe to finish the StoreKit transaction
+                        await finishTransaction()
+                        let updatedCoins = result["coins"] as? Int
+                        await MainActor.run {
+                            if let coins = updatedCoins {
+                                RevenueCatService.shared.setCoinBalance(coins)
+                                appState.serverCoins = coins
+                            }
+                            isPurchasing = false
+                            onPurchaseComplete?()
+                            dismiss()
+                        }
+                    } catch let nsError as NSError where nsError.code == 409 {
+                        // Already credited (idempotent replay) — finish and refresh balance
+                        await finishTransaction()
+                        await appState.syncWithServer()
+                        await MainActor.run {
+                            isPurchasing = false
+                            onPurchaseComplete?()
+                            dismiss()
+                        }
                     }
 
                 case .plans:

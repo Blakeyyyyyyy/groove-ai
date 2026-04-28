@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import UIKit
 import UserNotifications
+import StoreKit
 
 @main
 struct GrooveAIApp: App {
@@ -39,6 +40,18 @@ struct GrooveAIApp: App {
                         await hydrateVideosFromSupabase(userId: userId)
                     }
                 }
+                // Catch any StoreKit 2 consumable transactions that were never finished
+                // (e.g. app killed between purchase confirmation and server ACK).
+                .task(id: "storeKitTransactionUpdates") {
+                    for await verificationResult in Transaction.updates {
+                        await processTransactionUpdate(verificationResult)
+                    }
+                }
+                .task(id: "storeKitUnfinished") {
+                    for await verificationResult in Transaction.unfinished {
+                        await processTransactionUpdate(verificationResult)
+                    }
+                }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Re-check entitlements every time the app returns to the
                     // foreground. Users may have cancelled/refunded in
@@ -54,6 +67,45 @@ struct GrooveAIApp: App {
                 }
         }
         .modelContainer(for: [GeneratedVideo.self])
+    }
+
+    /// Handles a StoreKit 2 transaction update — used for recovery of interrupted coin purchases.
+    /// Called from Transaction.updates (external transactions) and Transaction.unfinished (crash recovery).
+    private func processTransactionUpdate(_ verificationResult: VerificationResult<Transaction>) async {
+        guard case .verified(let transaction) = verificationResult else { return }
+
+        // Only handle consumable coin purchases — subscriptions go through RevenueCat
+        guard transaction.productType == .consumable else {
+            await transaction.finish()
+            return
+        }
+
+        guard let coins = CoinPackage.coinAmount(for: transaction.productID) else {
+            print("[App] ⚠️ Unknown consumable productID in transaction: \(transaction.productID) — finishing without crediting")
+            await transaction.finish()
+            return
+        }
+
+        guard let userId = appState.userId else {
+            print("[App] ⚠️ Transaction recovery skipped — userId not available yet for \(transaction.id)")
+            return
+        }
+
+        let jws = verificationResult.jwsRepresentation
+        do {
+            _ = try await SupabaseService.shared.addCoins(userId: userId, amount: coins, type: "purchase", appleJWS: jws)
+            await transaction.finish()
+            print("[App] ✅ Recovered transaction \(transaction.id): +\(coins) coins")
+            await appState.syncWithServer()
+        } catch let nsError as NSError where nsError.code == 409 {
+            // Already credited on a previous attempt — safe to finish
+            await transaction.finish()
+            print("[App] ✅ Transaction \(transaction.id) already credited (409) — finishing")
+            await appState.syncWithServer()
+        } catch {
+            // Server error — do NOT finish. StoreKit will re-deliver on next launch.
+            print("[App] ⚠️ Transaction recovery failed for \(transaction.id): \(error). Will retry.")
+        }
     }
 
     /// Fetch videos from Supabase for the current user and hydrate SwiftData.

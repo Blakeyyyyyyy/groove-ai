@@ -452,8 +452,11 @@ final class RevenueCatService: ObservableObject {
     
     // MARK: - Coin Purchases (StoreKit consumables)
     
-    /// Purchase coin pack - uses StoreKit 2 directly
-    func purchaseCoins(_ package: CoinPackage) async throws -> (success: Bool, jws: String?) {
+    /// Purchase coin pack - uses StoreKit 2 directly.
+    /// Returns a `finishTransaction` closure that the caller MUST invoke only after the server
+    /// confirms coins were credited. Finishing early (before server ACK) means a network failure
+    /// permanently loses the purchase with no recovery path.
+    func purchaseCoins(_ package: CoinPackage) async throws -> (success: Bool, jws: String?, finishTransaction: (() async -> Void)?) {
         let products = try await Product.products(for: [package.productID])
         guard let product = products.first else {
             throw PurchaseError.productNotFound
@@ -464,16 +467,14 @@ final class RevenueCatService: ObservableObject {
         switch result {
         case .success(let verification):
             let transaction = try verification.payloadValue
-            // Extract the JWS token (jwsRepresentation) from the verification result
             let jws = verification.jwsRepresentation
-            await transaction.finish()
-            return (success: true, jws: jws)
+            return (success: true, jws: jws, finishTransaction: { await transaction.finish() })
         case .userCancelled:
-            return (success: false, jws: nil)
+            return (success: false, jws: nil, finishTransaction: nil)
         case .pending:
             throw PurchaseError.pendingApproval
         @unknown default:
-            return (success: false, jws: nil)
+            return (success: false, jws: nil, finishTransaction: nil)
         }
     }
     
@@ -573,6 +574,10 @@ enum CoinPackage: CaseIterable {
         case .medium: return 300
         case .large:  return 600
         }
+    }
+
+    static func coinAmount(for productID: String) -> Int? {
+        CoinPackage.allCases.first { $0.productID == productID }?.coins
     }
 }
 
