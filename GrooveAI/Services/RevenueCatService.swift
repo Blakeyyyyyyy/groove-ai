@@ -250,40 +250,23 @@ final class RevenueCatService: ObservableObject {
 
     // MARK: - Package Helpers (per spec product IDs)
     
-    /// Returns weekly package with intro discount (if available).
-    /// Prefers grooveai_weekly_799 (Special Offer with intro discount)
+    /// Returns weekly package, preferring the standard weekly SKU (grooveai_weekly_300).
+    /// Falls back to any weekly with intro discount, then any weekly.
     func weeklyPackage() -> Package? {
-        print("[RevenueCat] 🔍 weeklyPackage() called")
-        print("[RevenueCat]    currentPackages count = \(currentPackages.count)")
-        print("[RevenueCat]    looking for targetProductID: grooveai_weekly_799")
-
-        let targetProductID = "grooveai_weekly_799"
-
-        // 1. Exact product ID match (preferred)
-        if let exact = currentPackages.first(where: {
-            $0.storeProduct.productIdentifier == targetProductID
+        // 1. Prefer the standard weekly SKU
+        if let standard = currentPackages.first(where: {
+            $0.storeProduct.productIdentifier == ProductID.weeklyBasic
         }) {
-            print("[RevenueCat]    ✅ Found exact: \(exact.storeProduct.productIdentifier)")
-            print("[WeeklyPkg] ✅ Exact match: \(exact.storeProduct.productIdentifier) | intro: \(exact.storeProduct.introductoryDiscount?.price ?? -1) | base: \(exact.storeProduct.price)")
-            return exact
+            return standard
         }
-        // 2. Fallback: any weekly package with intro discount
+        // 2. Any weekly with intro discount
         if let withIntro = currentPackages.first(where: {
             $0.storeProduct.introductoryDiscount != nil && $0.packageType == .weekly
         }) {
-            print("[RevenueCat]    ⚠️ Found intro weekly: \(withIntro.storeProduct.productIdentifier)")
-            print("[WeeklyPkg] ⚠️ Fallback intro weekly: \(withIntro.storeProduct.productIdentifier) | intro: \(withIntro.storeProduct.introductoryDiscount?.price ?? -1) | base: \(withIntro.storeProduct.price)")
             return withIntro
         }
-        // 3. Fallback: any weekly package
-        let fallback = currentPackages.first { $0.packageType == .weekly }
-        if let fallback = fallback {
-            print("[RevenueCat]    ⚠️ Generic fallback: \(fallback.storeProduct.productIdentifier)")
-        } else {
-            print("[RevenueCat]    ❌ No weekly packages found")
-        }
-        print("[WeeklyPkg] ⚠️ Generic weekly fallback: \(fallback?.storeProduct.productIdentifier ?? "nil") | base: \(fallback?.storeProduct.price ?? -1)")
-        return fallback
+        // 3. Any weekly
+        return currentPackages.first { $0.packageType == .weekly }
     }
     
     /// Returns the Special Offer package (grooveai_weekly_special) used by the
