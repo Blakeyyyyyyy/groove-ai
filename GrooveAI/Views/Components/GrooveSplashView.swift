@@ -4,7 +4,7 @@
 // Pixel-perfect animated splash: three dancer silhouettes fly in as a
 // motion-trail trio, followed by a letter-by-letter wordmark build.
 //
-// Total runtime: ~3.0s then onDismiss() is called.
+// Total runtime: 3.4s then onDismiss() is called.
 //
 // DROP-IN USAGE (unchanged from previous version):
 //   GrooveSplashView { showSplash = false }
@@ -67,12 +67,14 @@ private struct DancerView: View {
     }
 
     private func scheduleEntry() {
+        // Kick off entry slide after delay
         DispatchQueue.main.asyncAfter(deadline: .now() + config.entryDelay) {
             visible = true
             withAnimation(.timingCurve(0.0, 0.0, 0.2, 1.0, duration: 0.5)) {
                 arrived = true
             }
         }
+        // Start breath bob after entry finishes
         DispatchQueue.main.asyncAfter(deadline: .now() + config.breathDelay) {
             withAnimation(.easeInOut(duration: 1.745).repeatForever(autoreverses: true)) {
                 breathOffset = -4
@@ -91,6 +93,10 @@ struct GrooveSplashView: View {
 
     // ── Wordmark letter animation (0→1 drives all chars)
     @State private var wordmarkProgress: Double = 0
+
+    // ── Tagline
+    @State private var taglineOpacity: Double = 0
+    @State private var taglineOffsetY: CGFloat = 8
 
     // ── Global fade-out
     @State private var globalOpacity: Double = 1.0
@@ -120,34 +126,48 @@ struct GrooveSplashView: View {
                 .ignoresSafeArea()
 
                 // ── Dancer trio (back → front) ────────────────────────────
+                // Only rendered when we have real dimensions
                 if sz.width > 0 && sz.height > 0 {
                     ForEach(kDancers.indices, id: \.self) { i in
                         DancerView(config: kDancers[i], screenSize: sz)
                     }
                 }
 
-                // ── Wordmark only — letter-by-letter ─────────────────────
-                HStack(spacing: 0) {
-                    ForEach(Array(wordmarkChars.enumerated()), id: \.offset) { idx, ch in
-                        let p = sliceProgress(idx: idx, total: wordmarkChars.count, overall: wordmarkProgress)
-                        Text(ch)
-                            .font(.system(size: 48, weight: .heavy, design: .default))
-                            .kerning(-1.44)
-                            .foregroundColor(.white)
-                            .opacity(p)
-                            .offset(y: (1.0 - p) * 26)
-                            .scaleEffect(
-                                x: 0.7 + 0.3 * p,
-                                y: 0.7 + 0.3 * p,
-                                anchor: .bottom
-                            )
-                            .animation(
-                                .timingCurve(0.34, 1.56, 0.64, 1.0,
-                                             duration: 0.8 / Double(wordmarkChars.count)),
-                                value: p
-                            )
+                // ── Wordmark + tagline ────────────────────────────────────
+                VStack(spacing: 12) {
+                    // Letter-by-letter wordmark
+                    HStack(spacing: 0) {
+                        ForEach(Array(wordmarkChars.enumerated()), id: \.offset) { idx, ch in
+                            let p = sliceProgress(idx: idx, total: wordmarkChars.count, overall: wordmarkProgress)
+                            Text(ch)
+                                .font(.system(size: 48, weight: .heavy, design: .default))
+                                .kerning(-1.44)          // 48pt * -0.03
+                                .foregroundColor(.white)
+                                .opacity(p)
+                                .offset(y: (1.0 - p) * 26)
+                                .scaleEffect(
+                                    x: 0.7 + 0.3 * p,
+                                    y: 0.7 + 0.3 * p,
+                                    anchor: .bottom
+                                )
+                                // easeOutBack curve per character
+                                .animation(
+                                    .timingCurve(0.34, 1.56, 0.64, 1.0,
+                                                 duration: 0.8 / Double(wordmarkChars.count)),
+                                    value: p
+                                )
+                        }
                     }
+
+                    // Tagline
+                    Text("FIND YOUR RHYTHM")
+                        .font(.system(size: 15, weight: .semibold, design: .default))
+                        .kerning(0.9)                   // 15pt * 0.06
+                        .foregroundColor(Color.white.opacity(0.78))
+                        .opacity(taglineOpacity)
+                        .offset(y: taglineOffsetY)
                 }
+                // Bottom of group sits 14% from bottom edge
                 .position(x: sz.width * 0.5,
                           y: sz.height - sz.height * 0.14 - 44)
             }
@@ -168,29 +188,35 @@ struct GrooveSplashView: View {
         return max(0, min(1, (overall - start) / slice))
     }
 
-    // MARK: - Timeline (total ~3.0s)
-    // Dancers fly in at 0.30–1.10s (unchanged — original feel preserved).
-    // Wordmark types out at 0.80s over 0.85s (done at 1.65s).
-    // No tagline — cleaner, faster.
-    // Brief hold → fade out at 2.60s over 0.30s → dismiss at 2.90s.
+    // MARK: - Timeline (total 3.4s)
 
     private func runTimeline() {
-        // 0.80s — start wordmark letter-by-letter (animates over 0.85s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.80) {
-            withAnimation(.linear(duration: 0.85)) {
+        // Dancers are handled by DancerView.onAppear internally.
+
+        // 1.20s — start wordmark letter-by-letter (animates over 0.80s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.20) {
+            withAnimation(.linear(duration: 0.80)) {
                 wordmarkProgress = 1.0
             }
         }
 
-        // 2.60s — fade out entire view (over 0.30s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.60) {
-            withAnimation(.easeIn(duration: 0.30)) {
+        // 1.60s — tagline fade in (over 0.60s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.60) {
+            withAnimation(.easeOut(duration: 0.60)) {
+                taglineOpacity  = 1.0
+                taglineOffsetY  = 0
+            }
+        }
+
+        // 3.20s — fade out entire view (over 0.20s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.20) {
+            withAnimation(.linear(duration: 0.20)) {
                 globalOpacity = 0
             }
         }
 
-        // 2.90s — dismiss
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.90) {
+        // 3.40s — dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.40) {
             onDismiss()
         }
     }

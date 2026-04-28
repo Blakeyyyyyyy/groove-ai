@@ -14,28 +14,29 @@ final class AVPlayerPoolManager: NSObject, ObservableObject {
 
     override private init() {
         super.init()
-        // Build the pool on a background thread — AVQueuePlayer allocations are heavy
-        // and would stall the main thread for 2-4 seconds if done synchronously here.
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let self else { return }
-            let players = (0..<self.poolSize).map { _ in AVQueuePlayer() }
-            await MainActor.run { self.playerPool = players }
+        // Synchronous — but GrooveAIApp.init() forces this on a background thread
+        // so the pool is ready before HomeView renders (splash takes 3.4s of cover).
+        setupPool()
+    }
+
+    private func setupPool() {
+        for _ in 0..<poolSize {
+            let player = AVQueuePlayer()
+            playerPool.append(player)
         }
     }
 
     func getPlayer() -> AVQueuePlayer {
-        guard !playerPool.isEmpty else {
-            // Pool not ready yet (background init still running) — create a throwaway player.
-            // Once the pool is warm subsequent cards use pooled instances.
-            return AVQueuePlayer()
-        }
+        // Pool is always ready because GrooveAIApp.init() pre-warms it.
+        // Fallback init in case something calls getPlayer() before pre-warm completes.
+        if playerPool.isEmpty { setupPool() }
         let player = playerPool[playerIndex % playerPool.count]
         playerIndex = (playerIndex + 1) % poolSize
         return player
     }
 
     func loadVideo(url: URL, into player: AVQueuePlayer) {
-        // Create the asset on a background thread to avoid blocking the main thread.
+        // AVAsset creation off main thread to avoid blocking UI
         Task.detached(priority: .userInitiated) {
             let asset = AVAsset(url: url)
             let playerItem = AVPlayerItem(asset: asset)
