@@ -188,35 +188,35 @@ struct GrooveSplashView: View {
         return max(0, min(1, (overall - start) / slice))
     }
 
-    // MARK: - Timeline (total 3.4s)
+    // MARK: - Timeline (total 2.5s)
 
     private func runTimeline() {
         // Dancers are handled by DancerView.onAppear internally.
 
-        // 1.20s — start wordmark letter-by-letter (animates over 0.80s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.20) {
-            withAnimation(.linear(duration: 0.80)) {
+        // 0.80s — start wordmark letter-by-letter (animates over 0.70s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.80) {
+            withAnimation(.linear(duration: 0.70)) {
                 wordmarkProgress = 1.0
             }
         }
 
-        // 1.60s — tagline fade in (over 0.60s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.60) {
-            withAnimation(.easeOut(duration: 0.60)) {
+        // 1.20s — tagline fade in (over 0.50s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.20) {
+            withAnimation(.easeOut(duration: 0.50)) {
                 taglineOpacity  = 1.0
                 taglineOffsetY  = 0
             }
         }
 
-        // 3.20s — fade out entire view (over 0.20s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.20) {
+        // 2.30s — fade out entire view (over 0.20s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.30) {
             withAnimation(.linear(duration: 0.20)) {
                 globalOpacity = 0
             }
         }
 
-        // 3.40s — dismiss
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.40) {
+        // 2.50s — dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.50) {
             onDismiss()
         }
     }

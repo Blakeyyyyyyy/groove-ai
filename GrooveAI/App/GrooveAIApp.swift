@@ -25,14 +25,10 @@ struct GrooveAIApp: App {
                         RevenueCatService.shared.configure()
                     }
 
-                    // Sync user data from server
-                    await appState.syncWithServer()
-
-                    // Check subscription status via RevenueCat. Always assign
-                    // both ways — the previous code only flipped to true and
-                    // never demoted, so a cancelled / expired user stayed
-                    // "subscribed" forever in the local state.
-                    let isPremium = await RevenueCatService.shared.checkPremium()
+                    // Run server sync and RevenueCat premium check in parallel
+                    async let serverSync: Void = appState.syncWithServer()
+                    async let premiumCheck = RevenueCatService.shared.checkPremium()
+                    let (_, isPremium) = await (serverSync, premiumCheck)
                     appState.isSubscribed = isPremium
 
                     // Check weekly coin reset

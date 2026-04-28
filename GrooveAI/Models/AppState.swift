@@ -156,9 +156,9 @@ final class AppState {
     /// If not, calls /api/register to get a server-generated UUID and stores it.
     func initializeUser() async {
         if let existingId = KeychainHelper.get(forKey: "userId") {
-            // User already registered — sync server state
+            // User already registered — .task in GrooveAIApp handles the sync
             print("[AppState] 👤 User already initialized: \(existingId). Syncing server state.")
-            await syncWithServer()
+            _ = existingId
             return
         }
 
