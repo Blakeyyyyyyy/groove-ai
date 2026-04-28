@@ -43,12 +43,12 @@ struct GrooveAIApp: App {
                 // Catch any StoreKit 2 consumable transactions that were never finished
                 // (e.g. app killed between purchase confirmation and server ACK).
                 .task(id: "storeKitTransactionUpdates") {
-                    for await verificationResult in Transaction.updates {
+                    for await verificationResult in StoreKit.Transaction.updates {
                         await processTransactionUpdate(verificationResult)
                     }
                 }
                 .task(id: "storeKitUnfinished") {
-                    for await verificationResult in Transaction.unfinished {
+                    for await verificationResult in StoreKit.Transaction.unfinished {
                         await processTransactionUpdate(verificationResult)
                     }
                 }
@@ -71,7 +71,7 @@ struct GrooveAIApp: App {
 
     /// Handles a StoreKit 2 transaction update — used for recovery of interrupted coin purchases.
     /// Called from Transaction.updates (external transactions) and Transaction.unfinished (crash recovery).
-    private func processTransactionUpdate(_ verificationResult: VerificationResult<Transaction>) async {
+    private func processTransactionUpdate(_ verificationResult: VerificationResult<StoreKit.Transaction>) async {
         guard case .verified(let transaction) = verificationResult else { return }
 
         // Only handle consumable coin purchases — subscriptions go through RevenueCat
