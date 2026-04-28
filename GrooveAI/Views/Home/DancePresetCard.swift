@@ -32,11 +32,17 @@ struct DancePresetCard: View {
             }
             .modifier(HomePresetVisibilityPlayback(isVisibleForPlayback: $isVisibleForPlayback))
             .onAppear {
-                if videoURL != nil && pooledPlayer == nil {
-                    pooledPlayer = playerPool.getPlayer()
-                }
                 if let videoURL {
                     VideoPreloader.shared.preload(url: videoURL)
+                }
+            }
+            .onChange(of: isVisibleForPlayback) { _, isVisible in
+                guard videoURL != nil else { return }
+
+                if isVisible, pooledPlayer == nil {
+                    pooledPlayer = playerPool.getPlayer()
+                } else if !isVisible {
+                    pooledPlayer?.pause()
                 }
             }
             .onDisappear {

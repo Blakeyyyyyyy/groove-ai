@@ -250,14 +250,14 @@ final class RevenueCatService: ObservableObject {
 
     // MARK: - Package Helpers (per spec product IDs)
     
-    /// Returns weekly package, preferring the standard weekly SKU (grooveai_weekly_300).
+    /// Returns weekly package for the main paywall, preferring grooveai_weekly_799.
     /// Falls back to any weekly with intro discount, then any weekly.
     func weeklyPackage() -> Package? {
-        // 1. Prefer the standard weekly SKU
-        if let standard = currentPackages.first(where: {
-            $0.storeProduct.productIdentifier == ProductID.weeklyBasic
+        // 1. Prefer the main paywall SKU (grooveai_weekly_799)
+        if let exact = currentPackages.first(where: {
+            $0.storeProduct.productIdentifier == "grooveai_weekly_799"
         }) {
-            return standard
+            return exact
         }
         // 2. Any weekly with intro discount
         if let withIntro = currentPackages.first(where: {

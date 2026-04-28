@@ -21,6 +21,7 @@ struct LoopingVideoView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
+        uiView.setVideoURL(url)
         uiView.setMuted(isMuted)
         uiView.setPlaying(isPlaying)
     }
@@ -35,45 +36,75 @@ final class LoopingPlayerUIView: UIView {
     private var player: AVQueuePlayer?
     private let pooledPlayer: AVQueuePlayer?
     private var isUsingPooledPlayer: Bool = false
+    private var loadTask: Task<Void, Never>?
+    private var currentURL: URL?
+    private var shouldPlayWhenReady = true
 
     init(url: URL, gravity: AVLayerVideoGravity, isMuted: Bool, isPlaying: Bool, pooledPlayer: AVQueuePlayer? = nil) {
         self.pooledPlayer = pooledPlayer
         super.init(frame: .zero)
         backgroundColor = .clear
 
-        let item = AVPlayerItem(url: url)
-        
         if let pooledPlayer {
-            // Use the pooled player (Fix 1)
             isUsingPooledPlayer = true
-            pooledPlayer.removeAllItems()
-            pooledPlayer.insert(item, after: nil)
             player = pooledPlayer
-            playerLooper = AVPlayerLooper(player: pooledPlayer, templateItem: item)
         } else {
-            // Fallback: create own player (for backward compatibility)
-            player = AVQueuePlayer(playerItem: item)
-            playerLooper = AVPlayerLooper(player: player!, templateItem: item)
+            player = AVQueuePlayer()
         }
-        
+
         player?.isMuted = isMuted
-        if isPlaying {
-            player?.play()
-        }
-        
+        shouldPlayWhenReady = isPlaying
         playerLayer.player = player
         playerLayer.videoGravity = gravity
         playerLayer.backgroundColor = UIColor.clear.cgColor
         layer.addSublayer(playerLayer)
-        
+
         queuePlayer = player
+        setVideoURL(url)
     }
 
     func setMuted(_ muted: Bool) {
         player?.isMuted = muted
     }
 
+    func setVideoURL(_ url: URL) {
+        guard currentURL != url else { return }
+
+        currentURL = url
+        loadTask?.cancel()
+        playerLooper = nil
+        player?.pause()
+        player?.removeAllItems()
+
+        guard let player else { return }
+
+        loadTask = Task(priority: .userInitiated) { [weak self] in
+            let asset = AVURLAsset(url: url)
+
+            do {
+                _ = try await asset.load(.isPlayable)
+                guard !Task.isCancelled else { return }
+
+                let item = AVPlayerItem(asset: asset)
+                await MainActor.run {
+                    guard let self, self.currentURL == url else { return }
+                    player.removeAllItems()
+                    self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
+                    player.isMuted = self.player?.isMuted ?? true
+
+                    if self.shouldPlayWhenReady {
+                        player.play()
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                print("[LoopingVideoView] Failed to prepare video: \(url.lastPathComponent) - \(error.localizedDescription)")
+            }
+        }
+    }
+
     func setPlaying(_ playing: Bool) {
+        shouldPlayWhenReady = playing
         guard let player else { return }
         if playing {
             player.play()
@@ -84,6 +115,10 @@ final class LoopingPlayerUIView: UIView {
 
     required init?(coder: NSCoder) {
         fatalError()
+    }
+
+    deinit {
+        loadTask?.cancel()
     }
 
     override func layoutSubviews() {
