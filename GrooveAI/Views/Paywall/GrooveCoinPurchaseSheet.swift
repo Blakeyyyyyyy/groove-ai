@@ -568,7 +568,7 @@ struct GrooveCoinPurchaseSheet: View {
 
             infoRow(icon: "circle.fill", color: Color(hex: 0xF59E0B), text: "Coins are used for premium creation features")
             infoRow(icon: "wand.and.stars", color: accentBlue, text: "Top up anytime to keep creating")
-            infoRow(icon: "arrow.clockwise", color: accentGreen, text: "Subscribers get weekly coin refills every Monday")
+            infoRow(icon: "arrow.clockwise", color: accentGreen, text: "Subscribers get weekly coin refills every week")
             infoRow(icon: "infinity", color: accentPurple, text: "Purchased coins never expire")
 
             Spacer()
