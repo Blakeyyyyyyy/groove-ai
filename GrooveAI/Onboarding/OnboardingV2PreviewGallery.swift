@@ -36,7 +36,3 @@ private struct GrooveOnboardingStatePreviewHost<Content: View>: View {
         GrooveDanceSelectViewV2(state: state, onNext: {})
     }
 }
-
-#Preview("V2 Trial") {
-    TrialEnabledScreenV2(onNext: {})
-}
