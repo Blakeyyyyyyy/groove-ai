@@ -128,12 +128,16 @@ final class RevenueCatService: ObservableObject {
 
     func configure() {
         guard !apiKey.isEmpty else {
+            #if DEBUG
             print("[RevenueCat] ⚠️ Skipping configuration - no API key configured")
+            #endif
             return
         }
         guard !hasConfigured else { return }
-        
+
+        #if DEBUG
         Purchases.logLevel = .debug
+        #endif
         Purchases.configure(withAPIKey: apiKey)
         hasConfigured = true
 
@@ -145,12 +149,16 @@ final class RevenueCatService: ObservableObject {
 
     func configureWithUserId(_ userId: String) {
         guard !apiKey.isEmpty else {
+            #if DEBUG
             print("[RevenueCat] ⚠️ Skipping configuration - no API key configured")
+            #endif
             return
         }
         guard !(hasConfigured && configuredAppUserId == userId) else { return }
-        
+
+        #if DEBUG
         Purchases.logLevel = .debug
+        #endif
         Purchases.configure(withAPIKey: apiKey, appUserID: userId)
         configuredAppUserId = userId
         hasConfigured = true
@@ -165,38 +173,50 @@ final class RevenueCatService: ObservableObject {
     @MainActor
     func refreshSubscriptionStatus() async {
         guard isConfigured else {
+            #if DEBUG
             print("[RevenueCat] Skipping refresh - not configured")
+            #endif
             return
         }
-        
+
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
             let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
             let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive == true
+            #if DEBUG
             print("[RevenueCat] refreshSubscriptionStatus activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+            #endif
             applyCustomerInfo(customerInfo)
         } catch {
+            #if DEBUG
             print("[RevenueCat] Error fetching customer info: \(error)")
+            #endif
         }
     }
 
     func checkPremium() async -> Bool {
         guard isConfigured else {
+            #if DEBUG
             print("[RevenueCat] Skipping premium check - not configured")
+            #endif
             return false
         }
-        
+
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
             let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
             let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive ?? false
+            #if DEBUG
             print("[RevenueCat] checkPremium activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+            #endif
             await MainActor.run {
                 self.applyCustomerInfo(customerInfo)
             }
             return premiumIsActive
         } catch {
+            #if DEBUG
             print("[RevenueCat] Error checking premium: \(error)")
+            #endif
             return false
         }
     }
@@ -206,7 +226,9 @@ final class RevenueCatService: ObservableObject {
     @MainActor
     func fetchOfferings() async {
         guard isConfigured else {
+            #if DEBUG
             print("[RevenueCat] Skipping offerings fetch - not configured")
+            #endif
             return
         }
 
@@ -218,6 +240,7 @@ final class RevenueCatService: ObservableObject {
                 self.currentPackages = current.availablePackages
             }
 
+            #if DEBUG
             print("[RevenueCat] 📋 fetchOfferings completed")
             print("[RevenueCat]    offerings.current = \(offerings.current?.identifier ?? "nil")")
             print("[RevenueCat]    currentPackages count = \(self.currentPackages.count)")
@@ -225,8 +248,11 @@ final class RevenueCatService: ObservableObject {
                 let ids = self.currentPackages.map { $0.storeProduct.productIdentifier }.joined(separator: ", ")
                 print("[RevenueCat]    product IDs: \(ids)")
             }
+            #endif
         } catch {
+            #if DEBUG
             print("[RevenueCat] Error fetching offerings: \(error)")
+            #endif
         }
     }
 
@@ -244,7 +270,9 @@ final class RevenueCatService: ObservableObject {
             }
             coinProducts = mapped
         } catch {
+            #if DEBUG
             print("[RevenueCat] Error fetching coin products: \(error)")
+            #endif
         }
     }
 
@@ -274,29 +302,41 @@ final class RevenueCatService: ObservableObject {
     /// standard weekly package if the special-offer SKU isn't loaded.
     func specialOfferPackage() -> Package? {
         let targetProductID = "grooveai_weekly_special"
+        #if DEBUG
         print("[RevenueCat] 🎁 specialOfferPackage() called, looking for: \(targetProductID)")
+        #endif
 
         if let exact = currentPackages.first(where: {
             $0.storeProduct.productIdentifier == targetProductID
         }) {
+            #if DEBUG
             print("[RevenueCat]    ✅ Found special offer: \(exact.storeProduct.productIdentifier)")
+            #endif
             return exact
         }
 
+        #if DEBUG
         print("[RevenueCat]    ⚠️ \(targetProductID) not in offerings — falling back to weeklyPackage()")
+        #endif
         return weeklyPackage()
     }
 
     /// Returns annual package if available.
     func annualPackage() -> Package? {
+        #if DEBUG
         print("[RevenueCat] 🔍 annualPackage() called, currentPackages count = \(currentPackages.count)")
+        #endif
 
         if let annual = currentPackages.first(where: { $0.packageType == .annual }) {
+            #if DEBUG
             print("[RevenueCat]    ✅ Found annual: \(annual.storeProduct.productIdentifier)")
+            #endif
             return annual
         }
 
+        #if DEBUG
         print("[RevenueCat]    ❌ No annual package found")
+        #endif
         return nil
     }
     
@@ -305,22 +345,30 @@ final class RevenueCatService: ObservableObject {
     @MainActor
     func purchase(package: Package) async throws -> Bool {
         guard isConfigured else {
+            #if DEBUG
             print("[RevenueCat] Skipping purchase - not configured")
+            #endif
             return false
         }
 
+        #if DEBUG
         print("[RevenueCat] Starting purchase package=\(package.identifier) product=\(package.storeProduct.productIdentifier)")
+        #endif
         let result = try await Purchases.shared.purchase(package: package)
         let activeEntitlementKeys = result.customerInfo.entitlements.active.keys.sorted()
         let premiumIsActive = premiumEntitlement(from: result.customerInfo)?.isActive == true
         let activeSubscriptions = result.customerInfo.activeSubscriptions.sorted()
 
+        #if DEBUG
         print("[RevenueCat] Purchase completed product=\(package.storeProduct.productIdentifier) activeEntitlements=\(activeEntitlementKeys) activeSubscriptions=\(activeSubscriptions) premiumActive=\(premiumIsActive)")
+        #endif
 
         if premiumIsActive {
             applyCustomerInfo(result.customerInfo)
+            #if DEBUG
             print("[RevenueCat] Purchase returning success=true — posting sync notification")
-            
+            #endif
+
             // Notify AppState to force-refresh coins from server
             // AppState listens for this and calls syncWithServer()
             NotificationCenter.default.post(
@@ -328,11 +376,13 @@ final class RevenueCatService: ObservableObject {
                 object: nil,
                 userInfo: ["productId": package.storeProduct.productIdentifier]
             )
-            
+
             return true
         }
 
+        #if DEBUG
         print("[RevenueCat] Purchase returning success=false")
+        #endif
         return false
     }
 
@@ -341,14 +391,18 @@ final class RevenueCatService: ObservableObject {
     @MainActor
     func restorePurchases() async throws -> Bool {
         guard isConfigured else {
+            #if DEBUG
             print("[RevenueCat] Skipping restore - not configured")
+            #endif
             return false
         }
 
         let customerInfo = try await Purchases.shared.restorePurchases()
         let activeEntitlementKeys = customerInfo.entitlements.active.keys.sorted()
         let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive == true
+        #if DEBUG
         print("[RevenueCat] restorePurchases activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
+        #endif
         applyCustomerInfo(customerInfo)
         return isSubscribed
     }
@@ -470,7 +524,9 @@ final class RevenueCatService: ObservableObject {
         do {
             return try await restorePurchases()
         } catch {
+            #if DEBUG
             print("[RevenueCat] Restore failed: \(error)")
+            #endif
             return false
         }
     }

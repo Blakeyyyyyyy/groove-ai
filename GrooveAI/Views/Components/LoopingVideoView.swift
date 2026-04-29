@@ -98,7 +98,9 @@ final class LoopingPlayerUIView: UIView {
                 }
             } catch {
                 guard !Task.isCancelled else { return }
+                #if DEBUG
                 print("[LoopingVideoView] Failed to prepare video: \(url.lastPathComponent) - \(error.localizedDescription)")
+                #endif
             }
         }
     }

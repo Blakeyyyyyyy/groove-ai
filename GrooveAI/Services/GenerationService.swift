@@ -18,8 +18,10 @@ final class GenerationService {
         appState: AppState,
         modelContext: ModelContext
     ) {
+        #if DEBUG
         print("[Generation] ▶️ startGeneration called for preset: \(preset.id) (\(preset.name))")
         print("[Generation] 📸 Photo data size: \(photoData.count) bytes")
+        #endif
 
         // Create local video record ON MAIN ACTOR (SwiftData requirement)
         let userId = appState.userId ?? "anonymous"
@@ -33,17 +35,25 @@ final class GenerationService {
         modelContext.insert(video)
         do {
             try modelContext.save()
+            #if DEBUG
             print("[Generation] 💾 Local video record saved: \(video.id) for userId: \(userId)")
+            #endif
         } catch {
+            #if DEBUG
             print("[Generation] ❌ Failed to save local record: \(error)")
+            #endif
         }
 
         // Update generation state (pass photoData for generating pill thumbnail)
         appState.startGeneration(jobId: video.id, photoData: photoData)
+        #if DEBUG
         print("[Generation] 🔄 Generation phase set to .generating")
+        #endif
 
         let videoId = video.id
+        #if DEBUG
         print("[Generation] 👤 Using userId: \(userId)")
+        #endif
 
         // Launch background generation task — retained so it survives view dismissal
         activeTask = Task.detached { [weak self] in
@@ -76,26 +86,34 @@ final class GenerationService {
 
         do {
             // ── Step 1: Process image (classify + upload in one call) ──
+            #if DEBUG
             print("[Generation] 🔄 Step 1: Processing image (classify + upload)...")
+            #endif
             let processResult = try await SupabaseService.shared.processImage(userId: userId, imageData: photoData)
             guard let imageURL = processResult["image_url"] as? String,
                   let subjectType = processResult["subject_type"] as? String else {
                 throw GenerationError.serverError("processImage returned invalid data: \(processResult)")
             }
             let wasTransformed = Self.parseTransformedFlag(processResult["transformed"])
+            #if DEBUG
             print("[Generation] ✅ Image processed — URL: \(imageURL), type: \(subjectType), transformed: \(wasTransformed)")
+            #endif
 
             if subjectType != "HUMAN" && !wasTransformed {
+                #if DEBUG
                 print("[Generation] ❌ Preprocessing incomplete for subjectType=\(subjectType). Refusing to call generate-video.")
+                #endif
                 throw GenerationError.preprocessingRequired(subjectType: subjectType)
             }
 
             // ── Step 3: Generate video via backend ──
+            #if DEBUG
             print("[Generation] 🎬 Step 3: Requesting video generation...")
             print("[Generation]    → userId: \(userId)")
             print("[Generation]    → imageURL: \(imageURL)")
             print("[Generation]    → danceStyle: \(preset.id)")
             print("[Generation]    → subjectType: \(subjectType)")
+            #endif
 
             let response = try await SupabaseService.shared.generateVideo(
                 userId: userId,
@@ -103,11 +121,15 @@ final class GenerationService {
                 danceStyle: preset.id,
                 subjectType: subjectType
             )
+            #if DEBUG
             print("[Generation] ✅ Backend response: \(response)")
+            #endif
 
             guard let taskId = Self.parseIdentifier(response["task_id"] ?? response["taskId"]) else {
                 let errorMsg = response["error"] as? String ?? "No task_id in response"
+                #if DEBUG
                 print("[Generation] ❌ No task_id found. Full response: \(response)")
+                #endif
 
                 // Check if this is a pose/image recognition error
                 let lowerError = errorMsg.lowercased()
@@ -129,7 +151,9 @@ final class GenerationService {
             }
             guard let resolvedBackendVideoId = Self.parseIdentifier(response["video_id"] ?? response["videoId"]) else {
                 let errorMsg = response["error"] as? String ?? "No video_id in response"
+                #if DEBUG
                 print("[Generation] ❌ No video_id found. Full response: \(response)")
+                #endif
                 // No backendVideoId → coins never deducted → no refund to attempt
                 await handleGenerationError(
                     errorMsg: errorMsg,
@@ -143,34 +167,48 @@ final class GenerationService {
                 return
             }
             backendVideoId = resolvedBackendVideoId
+            #if DEBUG
             print("[Generation] 🎫 Task ID received: \(taskId)")
             print("[Generation] 🧾 Backend video ID received: \(resolvedBackendVideoId)")
+            #endif
 
             // Update coins from server response IF provided, otherwise sync from server
             if let remaining = response["coins_remaining"] as? Int ?? response["coinsRemaining"] as? Int {
                 await MainActor.run {
                     appState.serverCoins = remaining
+                    #if DEBUG
                     print("[Generation] 🪙 Coins remaining: \(remaining)")
+                    #endif
                 }
             } else {
                 // Fallback: refresh balance from server if not in response
+                #if DEBUG
                 print("[Generation] ⚠️ coins_remaining not in response, syncing from server...")
+                #endif
                 await appState.syncWithServer()
             }
 
             // ── Step 4: Poll for completion ──
+            #if DEBUG
             print("[Generation] ⏳ Step 4: Starting polling for taskId: \(taskId)...")
+            #endif
             do {
                 let videoUrl = try await KlingService.shared.pollForCompletion(
                     taskId: taskId,
                     onStatusUpdate: { status in
+                        #if DEBUG
                         print("[Generation] 📊 Poll status update: \(status)")
+                        #endif
                     }
                 )
+                #if DEBUG
                 print("[Generation] ✅ Video generation complete! URL: \(videoUrl)")
+                #endif
 
                 // ── Step 5: Save to backend ──
+                #if DEBUG
                 print("[Generation] 💾 Step 5: Saving video to backend...")
+                #endif
                 _ = try await SupabaseService.shared.saveVideo(userId: userId, videoId: resolvedBackendVideoId, videoURL: videoUrl)
 
                 // ── Step 6: Update local record on MainActor ──
@@ -184,12 +222,18 @@ final class GenerationService {
                         video.completedAt = .now
                         video.videoURL = videoUrl
                         try? modelContext.save()
+                        #if DEBUG
                         print("[Generation] ✅ Local record updated to completed")
+                        #endif
                     } else {
+                        #if DEBUG
                         print("[Generation] ⚠️ Could not find local video record to update")
+                        #endif
                     }
                     appState.completeGeneration(videoID: videoId)
+                    #if DEBUG
                     print("[Generation] 🎉 Generation complete! Phase set to .complete")
+                    #endif
                 }
 
                 sendCompletionNotification()
@@ -201,7 +245,9 @@ final class GenerationService {
                     if appState.showVideoReadyPopup {
                         // Popup was not tapped — reset now
                         appState.resetGeneration()
+                        #if DEBUG
                         print("[Generation] 🔄 Generation phase reset to .idle (auto)")
+                        #endif
                     }
                 }
 
@@ -228,11 +274,15 @@ final class GenerationService {
             }
 
         } catch is CancellationError {
+            #if DEBUG
             print("[Generation] ⚠️ Generation task was cancelled")
+            #endif
         } catch {
+            #if DEBUG
             print("[Generation] ❌ GENERATION FAILED: \(error)")
             print("[Generation] ❌ Error type: \(type(of: error))")
             print("[Generation] ❌ Localized: \(error.localizedDescription)")
+            #endif
 
             // Check if this is a pose detection error from process-image
             let errorStr = error.localizedDescription.lowercased()
@@ -275,7 +325,9 @@ final class GenerationService {
         userId: String,
         backendVideoId: String?
     ) async {
+        #if DEBUG
         print("[Generation] 🚨 Handling generation error: \(errorMsg) (poseError: \(isPoseError), backendVideoId: \(backendVideoId ?? "nil"))")
+        #endif
 
         // Attempt refund only if coins were actually deducted for this run.
         // Outcomes:
@@ -297,17 +349,25 @@ final class GenerationService {
                 if result.refunded {
                     refundOutcome = .succeeded
                     refundedCoinBalance = result.coinsRemaining
+                    #if DEBUG
                     print("[Generation] 💰 Refund succeeded. New balance: \(result.coinsRemaining.map(String.init) ?? "unknown")")
+                    #endif
                 } else {
                     refundOutcome = .alreadyDone
+                    #if DEBUG
                     print("[Generation] 🔄 Refund already applied previously (409) — treating as success")
+                    #endif
                 }
             } catch {
                 refundOutcome = .failed
+                #if DEBUG
                 print("[Generation] ⚠️ Refund call FAILED: \(error.localizedDescription). Will NOT claim refund to user.")
+                #endif
             }
         } else {
+            #if DEBUG
             print("[Generation] ℹ️ No backend video_id — coins were never deducted, skipping refund call.")
+            #endif
         }
 
         // Determine user-friendly message based on error type AND refund outcome
@@ -353,19 +413,25 @@ final class GenerationService {
             // the credit immediately without waiting for a server sync.
             if let newBalance = refundedCoinBalance {
                 appState.serverCoins = newBalance
+                #if DEBUG
                 print("[Generation] 🪙 Updated appState.serverCoins to \(newBalance) from refund response")
+                #endif
             } else if refundOutcome == .notAttempted {
                 // No server-side deduction happened (failed before generate-video
                 // returned a video_id) — but iOS already optimistically dropped
                 // serverCoins by 60 when the user tapped Generate. Roll that
                 // back locally so the user sees their balance restored.
                 appState.refundCoins()
+                #if DEBUG
                 print("[Generation] 🪙 Rolled back optimistic deduction (no server deduction occurred)")
+                #endif
             }
             appState.errorAlertMessage = userMessage
             appState.errorAlertIsPoseIssue = showRetryButton
             appState.generationPhase = .failed(message: userMessage)
+            #if DEBUG
             print("[Generation] 🔴 Error alert shown, phase set to .failed")
+            #endif
         }
 
         // Send local notification if app is backgrounded
@@ -389,7 +455,9 @@ final class GenerationService {
     func cancelGeneration() {
         activeTask?.cancel()
         activeTask = nil
+        #if DEBUG
         print("[Generation] 🛑 Active generation task cancelled")
+        #endif
     }
 
     @MainActor
@@ -411,7 +479,9 @@ final class GenerationService {
         )
 
         UNUserNotificationCenter.current().add(request)
+        #if DEBUG
         print("[Generation] 🔔 Completion notification scheduled")
+        #endif
     }
 
     private func sendErrorNotification(title: String, body: String) {
@@ -428,7 +498,9 @@ final class GenerationService {
         )
 
         UNUserNotificationCenter.current().add(request)
+        #if DEBUG
         print("[Generation] 🔔 Error notification scheduled: \(title)")
+        #endif
     }
 
     private static func parseIdentifier(_ value: Any?) -> String? {

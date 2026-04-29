@@ -21,7 +21,9 @@ struct ContentView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: showSplash)
         .onAppear {
+            #if DEBUG
             print("[ContentView] 🎬 onAppear — checking onboarding state: hasCompletedOnboarding=\(appState.hasCompletedOnboarding)")
+            #endif
             appState.verifyPersistence()
         }
     }
@@ -33,23 +35,33 @@ struct ContentView: View {
         Group {
             if !appState.hasCompletedOnboarding {
                 GrooveOnboardingView(onComplete: {
+                    #if DEBUG
                     print("[ContentView] GrooveOnboardingView.onComplete fired — before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
+                    #endif
                     appState.hasCompletedOnboarding = true
                     appState.selectedTab = .home
+                    #if DEBUG
                     print("[ContentView] GrooveOnboardingView.onComplete finished — after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
+                    #endif
                 })
             } else {
                 mainTabView
             }
         }
         .onChange(of: appState.hasCompletedOnboarding) { _, newValue in
+            #if DEBUG
             print("[ContentView] hasCompletedOnboarding changed -> \(newValue)")
+            #endif
         }
         .onChange(of: appState.showPaywall) { _, newValue in
+            #if DEBUG
             print("[ContentView] showPaywall changed -> \(newValue)")
+            #endif
         }
         .onChange(of: appState.selectedTab) { _, newValue in
+            #if DEBUG
             print("[ContentView] selectedTab changed -> \(newValue)")
+            #endif
         }
         .alert("Image Issue", isPresented: Binding(
             get: { appState.errorAlertMessage != nil },

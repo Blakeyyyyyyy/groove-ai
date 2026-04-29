@@ -64,7 +64,9 @@ struct GroovePaywallScreen: View {
     private let textTertiary = Color.white.opacity(0.35)
 
     private func log(_ message: String) {
+        #if DEBUG
         print("[GroovePaywallScreen] \(message)")
+        #endif
     }
 
     private var weeklyPkg: Package? { rcService.weeklyPackage() }

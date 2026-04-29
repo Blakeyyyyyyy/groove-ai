@@ -32,7 +32,9 @@ struct GrooveSpecialOfferView: View {
     private let dividerText = Color.white.opacity(0.39)
 
     private func log(_ message: String) {
+        #if DEBUG
         print("[SpecialOffer] \(message)")
+        #endif
     }
 
     private var weeklyPackage: Package? {

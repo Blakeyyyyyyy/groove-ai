@@ -44,9 +44,13 @@ final class VideoPreloader: NSObject {
                 let status = asset.statusOfValue(forKey: "playable", error: nil)
                 switch status {
                 case .loaded:
+                    #if DEBUG
                     print("[VideoPreloader] Preloaded: \(url.lastPathComponent)")
+                    #endif
                 case .failed, .cancelled, .unknown:
+                    #if DEBUG
                     print("[VideoPreloader] Preload failed for: \(url.lastPathComponent)")
+                    #endif
                 @unknown default:
                     break
                 }
@@ -68,6 +72,8 @@ final class VideoPreloader: NSObject {
         lock.lock()
         defer { lock.unlock() }
         preloadedAssets.removeAllObjects()
+        #if DEBUG
         print("[VideoPreloader] Cache cleared")
+        #endif
     }
 }

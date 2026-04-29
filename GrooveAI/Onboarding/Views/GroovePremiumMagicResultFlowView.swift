@@ -323,42 +323,58 @@ struct GroovePremiumMagicResultFlowView: View {
     /// - If subject is person and we have a woman demo video for the preset → show demo video
     /// - Otherwise → show the generated video (or nil if not ready)
     private func getRevealVideoURL() -> String? {
+        #if DEBUG
         print("[REVEAL DEBUG] selectedSubjectId: \(state.selectedSubjectId)")
         print("[REVEAL DEBUG] selectedDanceId: \(state.selectedDanceId)")
-        
+        #endif
+
         // If user selected dog subject and we have a matching demo video
         if state.selectedSubjectId == "dog",
            !state.selectedDanceId.isEmpty,
            let demoURL = DancePreset.dogDemoVideos[state.selectedDanceId] {
+            #if DEBUG
             print("[REVEAL DEBUG] Using DOG demo video: \(demoURL)")
+            #endif
             return demoURL
         }
         // If user selected person subject and we have a matching woman demo video
         if state.selectedSubjectId == "person",
            !state.selectedDanceId.isEmpty,
            let demoURL = DancePreset.womanDemoVideos[state.selectedDanceId] {
+            #if DEBUG
             print("[REVEAL DEBUG] Using WOMAN demo video: \(demoURL)")
+            #endif
             return demoURL
         }
         // Otherwise use the generated video URL
+        #if DEBUG
         print("[REVEAL DEBUG] Falling back to selectedVideoURL: \(state.selectedVideoURL ?? "NIL")")
+        #endif
         return state.selectedVideoURL
     }
 
     private func setupPlayer() {
         // Determine which video URL to use
         let videoURLString = getRevealVideoURL()
+        #if DEBUG
         print("[REVEAL DEBUG] setupPlayer called with URL: \(videoURLString ?? "NIL")")
-        
+        #endif
+
         guard let videoURLString = videoURLString,
-              let videoURL = URL(string: videoURLString) else { 
+              let videoURL = URL(string: videoURLString) else {
+            #if DEBUG
             print("[REVEAL DEBUG] Failed to create URL from string")
-            return 
+            #endif
+            return
         }
+        #if DEBUG
         print("[REVEAL DEBUG] Created URL: \(videoURL)")
+        #endif
 
         let item = AVPlayerItem(url: videoURL)
+        #if DEBUG
         print("[REVEAL DEBUG] AVPlayerItem created: \(item)")
+        #endif
         
         let avPlayer = AVPlayer(playerItem: item)
         avPlayer.isMuted = false
@@ -375,6 +391,8 @@ struct GroovePremiumMagicResultFlowView: View {
         }
 
         player = avPlayer
+        #if DEBUG
         print("[REVEAL DEBUG] AVPlayer created and assigned")
+        #endif
     }
 }

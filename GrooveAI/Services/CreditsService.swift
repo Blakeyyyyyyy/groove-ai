@@ -17,12 +17,6 @@ enum CoinsService {
         return user["coins"] as? Int ?? 0
     }
 
-    /// Deduct coins for a generation via backend
-    static func deductForGeneration(userId: String) async throws -> Int {
-        let result = try await SupabaseService.shared.deductCoins(userId: userId, amount: costPerGeneration)
-        return result["remaining"] as? Int ?? 0
-    }
-
     /// Add coins via backend (e.g., after purchase or weekly reset)
     static func addCoins(userId: String, amount: Int, type: String = "purchase") async throws -> Int {
         let result = try await SupabaseService.shared.addCoins(userId: userId, amount: amount, type: type, appleJWS: nil)

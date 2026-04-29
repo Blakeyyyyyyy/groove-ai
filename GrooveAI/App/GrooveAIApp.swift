@@ -71,10 +71,14 @@ struct GrooveAIApp: App {
     /// Fetch videos from Supabase for the current user and hydrate SwiftData.
     /// Gracefully handles network failures by continuing with local data.
     private func hydrateVideosFromSupabase(userId: String) async {
+        #if DEBUG
         print("[App] 🔄 Fetching videos from Supabase for userId: \(userId)")
+        #endif
         do {
             let remoteVideos = try await SupabaseService.shared.getVideos(userId: userId)
+            #if DEBUG
             print("[App] ✅ Fetched \(remoteVideos.count) videos from Supabase")
+            #endif
             guard !remoteVideos.isEmpty else { return }
 
             await MainActor.run {
@@ -107,13 +111,17 @@ struct GrooveAIApp: App {
 
                 if inserted > 0 {
                     try? modelContext.save()
+                    #if DEBUG
                     print("[App] ✅ Hydrated \(inserted) new videos")
+                    #endif
                 }
             }
         } catch {
             // Network failure or server error — continue with local data
+            #if DEBUG
             print("[App] ⚠️ Failed to fetch videos from Supabase: \(error.localizedDescription)")
             print("[App] 📱 Continuing with local videos only")
+            #endif
         }
     }
 

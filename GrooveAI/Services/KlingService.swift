@@ -22,13 +22,17 @@ final class KlingService {
         let startTime = Date()
         var pollCount = 0
 
+        #if DEBUG
         print("[Kling] ⏳ Starting poll for taskId: \(taskId) (interval: \(pollInterval)s, max: \(maxPollDuration)s)")
+        #endif
 
         while true {
             // Check timeout
             let elapsed = Date().timeIntervalSince(startTime)
             if elapsed > maxPollDuration {
+                #if DEBUG
                 print("[Kling] ❌ Polling timed out after \(Int(elapsed))s (\(pollCount) polls)")
+                #endif
                 throw KlingError.timeout
             }
 
@@ -37,7 +41,9 @@ final class KlingService {
             pollCount += 1
 
             // Check status via backend
+            #if DEBUG
             print("[Kling] 📊 Poll #\(pollCount) (elapsed: \(Int(elapsed))s)...")
+            #endif
             let statusDict = try await SupabaseService.shared.checkVideoStatus(taskId: taskId)
             let status = statusDict["status"] as? String ?? "unknown"
             let videoUrl = statusDict["video_url"] as? String
@@ -48,22 +54,32 @@ final class KlingService {
             switch status {
             case "succeed", "completed", "success":
                 guard let url = videoUrl, !url.isEmpty else {
+                    #if DEBUG
                     print("[Kling] ❌ Status is \(status) but no video URL in response")
+                    #endif
                     throw KlingError.noVideoURL
                 }
+                #if DEBUG
                 print("[Kling] ✅ Generation complete after \(pollCount) polls (\(Int(elapsed))s). URL: \(url)")
+                #endif
                 return url
 
             case "failed", "error":
+                #if DEBUG
                 print("[Kling] ❌ Generation failed (server reported failure)")
+                #endif
                 throw KlingError.generationFailed
 
             case "processing", "pending", "submitted":
+                #if DEBUG
                 print("[Kling] ⏳ Status: \(status) — continuing to poll...")
+                #endif
                 continue
 
             default:
+                #if DEBUG
                 print("[Kling] ⚠️ Unknown status: \(status) — continuing to poll...")
+                #endif
                 continue
             }
         }

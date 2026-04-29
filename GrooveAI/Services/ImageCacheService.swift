@@ -15,7 +15,9 @@ class ImageCacheService {
         Task {
             await loadAndCache(url: womanImageURL, key: "woman")
             await loadAndCache(url: dogImageURL, key: "dog")
+            #if DEBUG
             print("[ImageCache] ✅ Images preloaded")
+            #endif
         }
     }
 
@@ -27,10 +29,14 @@ class ImageCacheService {
                 await MainActor.run {
                     self.cache.setObject(image, forKey: key as NSString)
                 }
+                #if DEBUG
                 print("[ImageCache] Cached: \(key)")
+                #endif
             }
         } catch {
+            #if DEBUG
             print("[ImageCache] Failed to load \(key): \(error)")
+            #endif
         }
     }
 

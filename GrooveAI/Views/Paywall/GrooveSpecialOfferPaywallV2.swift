@@ -36,7 +36,11 @@ struct GrooveSpecialOfferPaywallV2: View {
     @State private var savingsPerWeek: String? = nil  // e.g. "$3.00" computed from full - discount
     @State private var timerTickKey = UUID()  // Force re-render on countdown change
 
-    private func log(_ msg: String) { print("[SpecialOfferV2] \(msg)") }
+    private func log(_ msg: String) {
+        #if DEBUG
+        print("[SpecialOfferV2] \(msg)")
+        #endif
+    }
 
     private func formatCountdown() -> String {
         let minutes = secondsRemaining / 60
@@ -163,10 +167,12 @@ struct GrooveSpecialOfferPaywallV2: View {
                 }
 
                 let isGenuineSpecial = pkg.storeProduct.productIdentifier == "grooveai_weekly_special"
+                #if DEBUG
                 if !isGenuineSpecial {
                     print("[SpecialOfferV2] ⚠️ Purchasing FALLBACK weekly (\(pkg.storeProduct.productIdentifier)) — special SKU not in offerings; user will be charged full weekly price")
                 }
                 print("[SpecialOfferV2] Purchasing product: \(pkg.storeProduct.productIdentifier) (specialMatched=\(isGenuineSpecial))")
+                #endif
                 let success = try await rc.purchase(package: pkg)
 
                 await MainActor.run {

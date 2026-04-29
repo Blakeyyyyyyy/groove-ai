@@ -185,7 +185,9 @@ struct AppHeaderCoinPill: View {
     @State private var showPaywall = false
 
     private func log(_ message: String) {
+        #if DEBUG
         print("[AppHeaderCoinPill] \(message)")
+        #endif
     }
 
     var body: some View {

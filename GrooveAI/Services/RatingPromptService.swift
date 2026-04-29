@@ -38,7 +38,9 @@ final class RatingPromptService {
     func didSubscribe() {
         guard promptCount < maxPrompts else { return }
         UserDefaults.standard.set(true, forKey: Keys.pendingPostPurchase)
+        #if DEBUG
         print("[Rating] 🏷️ Post-purchase flag set — will prompt on next launch")
+        #endif
     }
 
     /// Call this on app launch (inside .task in GrooveAIApp).
@@ -56,7 +58,9 @@ final class RatingPromptService {
     func didCompleteGeneration() {
         let count = generationCount + 1
         setGenerationCount(count)
+        #if DEBUG
         print("[Rating] 🎬 Generation count: \(count)")
+        #endif
 
         if count == 1, !UserDefaults.standard.bool(forKey: Keys.didPromptPostFirst) {
             UserDefaults.standard.set(true, forKey: Keys.didPromptPostFirst)
@@ -82,24 +86,32 @@ final class RatingPromptService {
     @MainActor
     private func requestReview(trigger: String) {
         guard promptCount < maxPrompts else {
+            #if DEBUG
             print("[Rating] ⛔ Max prompts reached (\(maxPrompts)) — skipping \(trigger)")
+            #endif
             return
         }
 
         if let last = lastPromptDate,
            Date().timeIntervalSince(last) < cooldownSeconds {
+            #if DEBUG
             print("[Rating] ⏱️ Cooldown active — skipping \(trigger)")
+            #endif
             return
         }
 
         guard let windowScene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive }) else {
+            #if DEBUG
             print("[Rating] ⚠️ No active window scene — skipping \(trigger)")
+            #endif
             return
         }
 
+        #if DEBUG
         print("[Rating] ⭐ Requesting review — trigger: \(trigger), count: \(promptCount + 1)/\(maxPrompts)")
+        #endif
         SKStoreReviewController.requestReview(in: windowScene)
 
         // Track

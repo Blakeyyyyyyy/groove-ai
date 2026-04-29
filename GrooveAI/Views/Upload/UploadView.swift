@@ -208,20 +208,30 @@ struct UploadView: View {
     }
 
     private func startGeneration() {
+        #if DEBUG
         print("[UploadView] 🟢 Generate button tapped")
+        #endif
         guard let image = selectedImage else {
+            #if DEBUG
             print("[UploadView] ❌ No image selected")
+            #endif
             return
         }
         guard let photoData = image.jpegData(compressionQuality: 0.85) else {
+            #if DEBUG
             print("[UploadView] ❌ Failed to convert image to JPEG data")
+            #endif
             return
         }
+        #if DEBUG
         print("[UploadView] 📸 Image converted to JPEG: \(photoData.count) bytes")
+        #endif
 
         // Ask for notification permission first if needed, then fire generation
         if !appState.hasRequestedNotificationPermission {
+            #if DEBUG
             print("[UploadView] 🔔 Showing notification permission modal first")
+            #endif
             showNotificationModal = true
         } else {
             fireGeneration(photoData: photoData)
@@ -229,7 +239,9 @@ struct UploadView: View {
     }
 
     private func fireGeneration(photoData: Data) {
+        #if DEBUG
         print("[UploadView] 🚀 fireGeneration called — starting real generation")
+        #endif
 
         // Optimistic UI deduction — drop balance by 60 immediately so the
         // user sees feedback the moment they tap Generate. Server response
@@ -237,7 +249,9 @@ struct UploadView: View {
         // value once the pipeline returns. If generation fails before the
         // server deducts, GenerationService issues a refund + server sync.
         appState.useCoins()
+        #if DEBUG
         print("[UploadView] 🪙 Optimistically deducted \(appState.coinCostPerGeneration) coins. Local balance: \(appState.coinsRemaining)")
+        #endif
 
         // Start generation ON MAIN ACTOR before navigating away
         // This ensures modelContext operations happen on the main queue
@@ -248,17 +262,23 @@ struct UploadView: View {
             modelContext: modelContext
         )
 
+        #if DEBUG
         print("[UploadView] ✅ Generation started, navigating to home")
+        #endif
         // Navigate away — generation continues in background via detached Task
         appState.selectedTab = .home
         dismiss()
     }
 
     private func finishGeneration() {
+        #if DEBUG
         print("[UploadView] 🔔 Notification modal dismissed, finishing generation")
+        #endif
         guard let image = selectedImage,
               let photoData = image.jpegData(compressionQuality: 0.85) else {
+            #if DEBUG
             print("[UploadView] ❌ No image available after notification modal")
+            #endif
             appState.selectedTab = .home
             dismiss()
             return
@@ -293,7 +313,7 @@ struct CoinsPurchasePaywallView: View {
             VStack(spacing: Spacing.md) {
                 ForEach(CoinPackage.allCases, id: \.productID) { pkg in
                     let price = RevenueCatService.shared.localizedPrice(for: pkg)
-                    coinPackage(coins: pkg.coins, price: price ?? "...", label: "\(pkg.coins) Coins", badge: pkg.specBadge?.text)
+                    coinPackage(pkg: pkg, price: price ?? "...", label: "\(pkg.coins) Coins", badge: pkg.specBadge?.text)
                 }
             }
             .padding(.horizontal, Spacing.lg)
@@ -326,14 +346,16 @@ struct CoinsPurchasePaywallView: View {
     }
 
     @ViewBuilder
-    private func coinPackage(coins: Int, price: String, label: String, badge: String? = nil) -> some View {
+    private func coinPackage(pkg: CoinPackage, price: String, label: String, badge: String? = nil) -> some View {
         Button {
-            // TODO: IAP purchase
+            Task {
+                _ = try? await RevenueCatService.shared.purchaseCoins(pkg)
+            }
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     HStack(spacing: Spacing.sm) {
-                        Text("🪙 \(coins)")
+                        Text("🪙 \(pkg.coins)")
                             .font(.headline.weight(.bold))
                             .foregroundStyle(Color.textPrimary)
 

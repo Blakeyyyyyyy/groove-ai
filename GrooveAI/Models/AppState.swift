@@ -33,7 +33,9 @@ enum KeychainHelper {
         // Add new item
         let status = SecItemAdd(query as CFDictionary, nil)
         if status != errSecSuccess {
+            #if DEBUG
             print("[Keychain] Failed to save \(key): \(status)")
+            #endif
         }
     }
     
@@ -82,7 +84,9 @@ final class AppState {
         didSet {
             UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
             UserDefaults.standard.synchronize()
+            #if DEBUG
             print("[AppState] 💾 hasCompletedOnboarding persisted to UserDefaults: \(hasCompletedOnboarding)")
+            #endif
         }
     }
 
@@ -137,7 +141,9 @@ final class AppState {
             }
             // No user ID found — must call /api/register to get server-generated UUID
             // This is now a blocking async operation handled in AppState.initializeUser()
+            #if DEBUG
             print("[AppState] ⚠️ userId requested but not in Keychain — call initializeUser() to register")
+            #endif
             return nil
         }
         set {
@@ -157,7 +163,9 @@ final class AppState {
     func initializeUser() async {
         if let existingId = KeychainHelper.get(forKey: "userId") {
             // User already registered — .task in GrooveAIApp handles the sync
+            #if DEBUG
             print("[AppState] 👤 User already initialized: \(existingId). Syncing server state.")
+            #endif
             _ = existingId
             return
         }
@@ -169,12 +177,16 @@ final class AppState {
             return false
         }
         guard !alreadyRegistering else {
+            #if DEBUG
             print("[AppState] ⏭ initializeUser skipped — registration already in progress")
+            #endif
             return
         }
 
         // First launch — call /api/register to get server-generated UUID
+        #if DEBUG
         print("[AppState] 🔄 First launch detected. Registering with backend...")
+        #endif
         do {
             let (newUserId, initialCoins) = try await SupabaseService.shared.register()
             KeychainHelper.save(newUserId, forKey: "userId")
@@ -182,9 +194,13 @@ final class AppState {
                 self.serverCoins = initialCoins
                 self.isRegistering = false
             }
+            #if DEBUG
             print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
+            #endif
         } catch {
+            #if DEBUG
             print("[AppState] ❌ Registration failed: \(error.localizedDescription)")
+            #endif
             await MainActor.run {
                 self.isRegistering = false
                 self.errorAlertMessage = "Failed to create account. Please restart the app."
@@ -249,7 +265,9 @@ final class AppState {
         hasHadSubscription = defaults.bool(forKey: "hasHadSubscription") || storedIsSubscribed
         hasRequestedNotificationPermission = defaults.bool(forKey: "hasRequestedNotificationPermission")
 
+        #if DEBUG
         print("[AppState] 🔧 Initialized: hasCompletedOnboarding=\(hasCompletedOnboarding), isSubscribed=\(isSubscribed), hasHadSubscription=\(hasHadSubscription)")
+        #endif
 
         // Register user on first launch (server generates UUID, stored in Keychain)
         Task { await self.initializeUser() }
@@ -257,16 +275,8 @@ final class AppState {
         // Listen for purchase completions to force-refresh coins from server
         NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] notification in
             guard let self else { return }
-            let productId = notification.userInfo?["productId"] as? String
-            print("[AppState] 🔔 Purchase completed notification — syncing with server (product=\(productId ?? "unknown"))")
             Task {
-                // Directly confirm subscription to beat webhook timing race
-                if let productId {
-                    let totalCoins = await SupabaseService.shared.confirmSubscription(productId: productId)
-                    if let totalCoins {
-                        await MainActor.run { self.serverCoins = totalCoins }
-                    }
-                }
+                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 second delay for webhook
                 await self.syncWithServer()
             }
         }
@@ -301,11 +311,15 @@ final class AppState {
     func syncWithServer() async {
         // Get user_id from Keychain (userId property may trigger nil if not properly initialized)
         guard let userId = KeychainHelper.get(forKey: "userId") else {
+            #if DEBUG
             print("[AppState] ⚠️ syncWithServer skipped: user not registered yet")
+            #endif
             return
         }
 
+        #if DEBUG
         print("[AppState] 🔄 Syncing with server for userId: \(userId)")
+        #endif
         do {
             let profile = try await SupabaseService.shared.getUser(id: userId)
             // Capture the RevenueCat-side state OFF the main actor before
@@ -321,7 +335,9 @@ final class AppState {
                 // pre-deduction balance and cause a 90 → 150 → 90 flash.
                 // Other fields (subscription status etc.) are still safe to sync.
                 if self.isGenerating {
+                    #if DEBUG
                     print("[AppState] ⏸ syncWithServer: generation in flight — skipping serverCoins overwrite (would have set: \(profile["coins"] as? Int ?? -1))")
+                    #endif
                 } else {
                     self.serverCoins = profile["coins"] as? Int
                 }
@@ -340,7 +356,9 @@ final class AppState {
                 } else if !revenueCatSaysSubscribed {
                     self.isSubscribed = false
                 } else {
+                    #if DEBUG
                     print("[AppState] ⏸ Skipping demote — server=free but RevenueCat=subscribed (webhook race?)")
+                    #endif
                 }
 
                 // Once the user has held any non-free subscription state
@@ -351,7 +369,9 @@ final class AppState {
                     self.hasHadSubscription = true
                 }
 
+                #if DEBUG
                 print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed), status=\(subscriptionStatus), hasHadSubscription=\(self.hasHadSubscription))")
+                #endif
             }
         } catch let error as NSError {
             if error.domain == "SupabaseService" && error.code == 404 {
@@ -364,17 +384,25 @@ final class AppState {
                     return true
                 }
                 guard shouldRegister else {
+                    #if DEBUG
                     print("[AppState] ⏭ Re-registration already in progress — skipping duplicate")
+                    #endif
                     return
                 }
+                #if DEBUG
                 print("[AppState] ⚠️ User not found on server — clearing stale ID and re-registering")
+                #endif
                 await initializeUser()
                 await MainActor.run { self.isRegistering = false }
             } else {
+                #if DEBUG
                 print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
+                #endif
             }
         } catch {
+            #if DEBUG
             print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
+            #endif
         }
     }
 
@@ -420,7 +448,9 @@ final class AppState {
             "hasRequestedNotificationPermission_disk": notifPerms
         ]
 
+        #if DEBUG
         print("[AppState] 📋 Persistence Check: \(state)")
+        #endif
         return state
     }
 

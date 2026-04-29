@@ -226,6 +226,8 @@ struct GrooveSplashView: View {
 
 #Preview {
     GrooveSplashView {
+        #if DEBUG
         print("Splash dismissed")
+        #endif
     }
 }

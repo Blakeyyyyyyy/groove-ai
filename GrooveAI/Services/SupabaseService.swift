@@ -12,15 +12,19 @@ class SupabaseService {
         } else {
             // Fallback to default URL if not found in plist
             self.baseURL = "https://groove-ai-backend-1.onrender.com/api"
+            #if DEBUG
             print("[SupabaseService] ⚠️ SUPABASE_URL not found in Info.plist, using default URL")
+            #endif
         }
     }
-    
+
     // MARK: - User
 
     /// Creates a new server-side user account. Returns the new user_id and initial coin balance.
     func register() async throws -> (userId: String, coins: Int) {
+        #if DEBUG
         print("[Supabase] 📡 POST /register")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/register")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -31,34 +35,26 @@ class SupabaseService {
             throw NSError(domain: "SupabaseService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "register: missing user_id or coins in response"])
         }
+        #if DEBUG
         print("[Supabase] ✅ register: user_id=\(userId), coins=\(coins)")
+        #endif
         return (userId, coins)
     }
 
     func getUser(id: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 GET /user/\(id)")
+        #endif
         let url = URL(string: "\(baseURL)/user/\(id)")!
         let (data, response) = try await URLSession.shared.data(from: url)
         try checkHTTPResponse(response, data: data, context: "getUser")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ getUser response: \(result)")
+        #endif
         return result
     }
-    
-    func deductCoins(userId: String, amount: Int) async throws -> [String: Any] {
-        print("[Supabase] 📡 POST /deduct-credits userId=\(userId) amount=\(amount)")
-        var request = URLRequest(url: URL(string: "\(baseURL)/deduct-credits")!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "amount": amount])
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        try checkHTTPResponse(response, data: data, context: "deductCoins")
-        let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-        print("[Supabase] ✅ deductCoins response: \(result)")
-        return result
-    }
-    
+
     /// Refund coins for a failed video generation. video_id is the idempotency key.
     ///
     /// Returns:
@@ -66,7 +62,9 @@ class SupabaseService {
     ///   (refunded: false, coinsRemaining: nil)    — server responded 409 already_refunded
     /// Throws on any other error (network, 500, 404) — caller MUST NOT claim a refund happened.
     func refundCoins(userId: String, videoId: String, amount: Int = 60) async throws -> (refunded: Bool, coinsRemaining: Int?) {
+        #if DEBUG
         print("[Supabase] 📡 POST /refund-coins userId=\(userId) videoId=\(videoId) amount=\(amount)")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/refund-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -83,7 +81,9 @@ class SupabaseService {
         }
 
         let result = (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+        #if DEBUG
         print("[Supabase] 📨 refundCoins HTTP \(httpResponse.statusCode) — \(result)")
+        #endif
 
         switch httpResponse.statusCode {
         case 200:
@@ -111,15 +111,21 @@ class SupabaseService {
     @discardableResult
     func updateSubscriptionExpiry(_ date: Date) async -> Bool {
         guard let userId = KeychainHelper.get(forKey: "userId") else {
+            #if DEBUG
             print("[Supabase] ⚠️ updateSubscriptionExpiry skipped: no userId in Keychain")
+            #endif
             return false
         }
 
         let iso = ISO8601DateFormatter.supabaseFormatter.string(from: date)
+        #if DEBUG
         print("[Supabase] 📡 POST /update-subscription-expiry userId=\(userId) expiresAt=\(iso)")
+        #endif
 
         guard let url = URL(string: "\(baseURL)/update-subscription-expiry") else {
+            #if DEBUG
             print("[Supabase] ❌ updateSubscriptionExpiry: invalid URL")
+            #endif
             return false
         }
 
@@ -135,45 +141,22 @@ class SupabaseService {
 
             let (data, response) = try await URLSession.shared.data(for: request)
             try checkHTTPResponse(response, data: data, context: "updateSubscriptionExpiry")
+            #if DEBUG
             print("[Supabase] ✅ updateSubscriptionExpiry succeeded")
+            #endif
             return true
         } catch {
+            #if DEBUG
             print("[Supabase] ⚠️ updateSubscriptionExpiry failed (non-fatal): \(error.localizedDescription)")
+            #endif
             return false
         }
     }
 
-    /// Called after a confirmed subscription purchase to grant coins immediately
-    /// without waiting for the RevenueCat webhook. Non-throwing — failure is non-fatal
-    /// (webhook will still grant coins eventually).
-    @discardableResult
-    func confirmSubscription(productId: String) async -> Int? {
-        guard let userId = KeychainHelper.get(forKey: "userId") else { return nil }
-
-        guard let url = URL(string: "\(baseURL)/confirm-subscription") else { return nil }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: [
-                "user_id": userId,
-                "product_id": productId
-            ])
-            let (data, response) = try await URLSession.shared.data(for: request)
-            try checkHTTPResponse(response, data: data, context: "confirmSubscription")
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            let totalCoins = json?["total_coins"] as? Int
-            print("[Supabase] ✅ confirmSubscription: product=\(productId) coins_granted=\(json?["coins_granted"] as? Bool ?? false) total=\(totalCoins ?? -1)")
-            return totalCoins
-        } catch {
-            print("[Supabase] ⚠️ confirmSubscription failed (non-fatal, webhook will retry): \(error.localizedDescription)")
-            return nil
-        }
-    }
-
     func addCoins(userId: String, amount: Int, type: String, appleJWS: String?) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /add-coins userId=\(userId) amount=\(amount) type=\(type) jws=\(appleJWS != nil ? "present" : "MISSING")")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -188,34 +171,42 @@ class SupabaseService {
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "addCoins")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ addCoins response: \(result)")
+        #endif
         return result
     }
-    
+
     // MARK: - Videos
-    
+
     func getVideos(userId: String) async throws -> [[String: Any]] {
+        #if DEBUG
         print("[Supabase] 📡 GET /videos/\(userId)")
+        #endif
         let url = URL(string: "\(baseURL)/videos/\(userId)")!
         let (data, response) = try await URLSession.shared.data(from: url)
         try checkHTTPResponse(response, data: data, context: "getVideos")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
-    
+
     // MARK: - Generation
-    
+
     func getPresets() async throws -> [[String: Any]] {
+        #if DEBUG
         print("[Supabase] 📡 GET /presets")
+        #endif
         let url = URL(string: "\(baseURL)/presets")!
         let (data, response) = try await URLSession.shared.data(from: url)
         try checkHTTPResponse(response, data: data, context: "getPresets")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
-    
+
     /// Request a presigned upload URL from the backend (JSON, not multipart).
     /// Returns dictionary with: uploadUrl, key, publicUrl
     func getPresignedUploadURL(userId: String, filename: String, contentType: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /upload-presigned userId=\(userId) filename=\(filename)")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/upload-presigned")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -224,26 +215,30 @@ class SupabaseService {
             "filename": filename,
             "contentType": contentType
         ])
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getPresignedUploadURL")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ presigned URL received: \(result.keys.sorted())")
+        #endif
         return result
     }
-    
+
     /// Unified image processing: upload + classify + optional transform in one call.
     /// Returns: { image_url, subject_type, transformed }
     func processImage(userId: String, imageData: Data) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /process-image userId=\(userId) imageSize=\(imageData.count)")
+        #endif
         let url = URL(string: "\(baseURL)/process-image")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 60
-        
+
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
+
         var body = Data()
         // user_id field
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -256,32 +251,40 @@ class SupabaseService {
         body.append(imageData)
         body.append("\r\n".data(using: .utf8)!)
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
+
         request.httpBody = body
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "processImage")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ processImage response: \(result)")
+        #endif
         return result
     }
-    
+
     func classifyImage(imageURL: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /classify-image imageURL=\(imageURL)")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/classify-image")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["image_url": imageURL])
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "classifyImage")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ classifyImage response: \(result)")
+        #endif
         return result
     }
-    
+
     func generateVideo(userId: String, imageURL: String, danceStyle: String, subjectType: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /generate-video userId=\(userId) danceStyle=\(danceStyle) subjectType=\(subjectType)")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/generate-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -291,26 +294,34 @@ class SupabaseService {
             "dance_style": danceStyle,
             "subject_type": subjectType
         ])
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "generateVideo")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ generateVideo response: \(result)")
+        #endif
         return result
     }
-    
+
     func checkVideoStatus(taskId: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 GET /video-status/\(taskId)")
+        #endif
         let url = URL(string: "\(baseURL)/video-status/\(taskId)")!
         let (data, response) = try await URLSession.shared.data(from: url)
         try checkHTTPResponse(response, data: data, context: "checkVideoStatus")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ videoStatus: \(result)")
+        #endif
         return result
     }
-    
+
     func saveVideo(userId: String, videoId: String, videoURL: String) async throws -> [String: Any] {
+        #if DEBUG
         print("[Supabase] 📡 POST /save-video userId=\(userId) videoId=\(videoId)")
+        #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/save-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -319,21 +330,27 @@ class SupabaseService {
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "saveVideo")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        #if DEBUG
         print("[Supabase] ✅ saveVideo response: \(result)")
+        #endif
         return result
     }
-    
+
     // MARK: - HTTP Response Validation
-    
+
     private func checkHTTPResponse(_ response: URLResponse, data: Data, context: String) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
+            #if DEBUG
             print("[Supabase] ❌ \(context): Non-HTTP response")
+            #endif
             throw NSError(domain: "SupabaseService", code: -1, userInfo: [NSLocalizedDescriptionKey: "\(context): Invalid response"])
         }
-        
+
         guard (200...299).contains(httpResponse.statusCode) else {
             let body = String(data: data, encoding: .utf8) ?? "No body"
+            #if DEBUG
             print("[Supabase] ❌ \(context): HTTP \(httpResponse.statusCode) — \(body)")
+            #endif
             throw NSError(
                 domain: "SupabaseService",
                 code: httpResponse.statusCode,

@@ -253,7 +253,9 @@ struct CompletedVideoView: View {
 
     private func setupPlayer() {
         guard let url = videoURL else {
+            #if DEBUG
             print("[CompletedVideo] No video URL available")
+            #endif
             return
         }
 
@@ -268,7 +270,9 @@ struct CompletedVideoView: View {
         playerLooper = looper
         isPlaying = true
 
+        #if DEBUG
         print("[CompletedVideo] ▶️ Player started: \(url)")
+        #endif
     }
 
     private func togglePlayback() {
@@ -311,7 +315,9 @@ struct CompletedVideoView: View {
                 isSharing = true
             }
         } catch {
+            #if DEBUG
             print("[CompletedVideo] ❌ Download failed: \(error)")
+            #endif
             await MainActor.run {
                 alertMessage = "Failed to download video. Try again."
                 showAlert = true
@@ -355,7 +361,9 @@ struct CompletedVideoView: View {
 
             try? FileManager.default.removeItem(at: destinationURL)
         } catch {
+            #if DEBUG
             print("[CompletedVideo] ❌ Save to Photos failed: \(error)")
+            #endif
             await MainActor.run {
                 alertMessage = "Failed to save video. Try again."
                 showAlert = true
@@ -364,7 +372,9 @@ struct CompletedVideoView: View {
     }
 
     private func deleteVideo() {
+        #if DEBUG
         print("[CompletedVideo] 🗑️ Deleting video: \(video.id)")
+        #endif
         modelContext.delete(video)
         try? modelContext.save()
 
