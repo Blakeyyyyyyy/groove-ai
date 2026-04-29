@@ -33,7 +33,7 @@ struct GrooveSubjectSelectView: View {
                         .multilineTextAlignment(.center)
                         .opacity(cardsAppeared ? 1 : 0)
 
-                    Text("Tap the one that moves you")
+                    Text("Choose your subject")
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(GrooveOnboardingTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -139,7 +139,7 @@ private struct TapHintView: View {
         HStack(spacing: 6) {
             Text("👆")
                 .font(.system(size: 18))
-            Text("Tap a card to begin")
+            Text("Tap a photo to begin")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white.opacity(0.6))
         }
@@ -163,10 +163,6 @@ private struct SubjectCard: View {
     let borderPulse: Bool
     let onTap: () -> Void
 
-    private var label: String {
-        subjectId == "person" ? "Person" : "Dog"
-    }
-
     var body: some View {
         let imageName = subjectId == "person" ? "subject-person-1" : "subject-pet"
 
@@ -177,22 +173,6 @@ private struct SubjectCard: View {
                     Image(imageName)
                         .resizable()
                         .scaledToFill()
-                }
-                .overlay(alignment: .bottom) {
-                    // Gradient + label overlay at bottom of card
-                    ZStack(alignment: .bottom) {
-                        LinearGradient(
-                            colors: [.black.opacity(0.72), .clear],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                        .frame(height: 80)
-
-                        Text(label)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.bottom, 14)
-                    }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
