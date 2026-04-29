@@ -474,7 +474,7 @@ struct GrooveSpecialOfferView: View {
                     .foregroundStyle(dividerText)
 
                 Button {
-                    openURL(URL(string: "https://grooveai.app/privacy")!)
+                    openURL(URL(string: "https://trygrooveai.com/privacy")!)
                 } label: {
                     Text("Privacy Policy")
                         .font(.system(size: 11, weight: .regular))

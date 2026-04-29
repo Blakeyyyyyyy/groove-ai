@@ -115,7 +115,7 @@ struct PrivacyPolicyView: View {
         }
 
         // Fallback to remote URL
-        return URL(string: "https://grooveai.app/privacy") ?? URL(fileURLWithPath: "")
+        return URL(string: "https://trygrooveai.com/privacy") ?? URL(fileURLWithPath: "")
     }
 
     private func retry() {

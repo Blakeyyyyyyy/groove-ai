@@ -4,6 +4,7 @@ class SupabaseService {
     static let shared = SupabaseService()
 
     private let baseURL: String
+    private let apiKey = "5fdb2d6a43e855ad694c04f188c3a3bc"
 
     private init() {
         // Read SUPABASE_URL from Info.plist
@@ -28,6 +29,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/register")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "register")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -45,8 +47,9 @@ class SupabaseService {
         #if DEBUG
         print("[Supabase] 📡 GET /user/\(id)")
         #endif
-        let url = URL(string: "\(baseURL)/user/\(id)")!
-        let (data, response) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: URL(string: "\(baseURL)/user/\(id)")!)
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getUser")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
         #if DEBUG
@@ -68,6 +71,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/refund-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "video_id": videoId,
@@ -132,6 +136,7 @@ class SupabaseService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: [
@@ -160,6 +165,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
 
         var body: [String: Any] = ["user_id": userId, "amount": amount, "type": type]
         if let jws = appleJWS {
@@ -183,8 +189,9 @@ class SupabaseService {
         #if DEBUG
         print("[Supabase] 📡 GET /videos/\(userId)")
         #endif
-        let url = URL(string: "\(baseURL)/videos/\(userId)")!
-        let (data, response) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: URL(string: "\(baseURL)/videos/\(userId)")!)
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getVideos")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
@@ -195,8 +202,9 @@ class SupabaseService {
         #if DEBUG
         print("[Supabase] 📡 GET /presets")
         #endif
-        let url = URL(string: "\(baseURL)/presets")!
-        let (data, response) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: URL(string: "\(baseURL)/presets")!)
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getPresets")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
     }
@@ -210,6 +218,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/upload-presigned")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "filename": filename,
@@ -238,6 +247,7 @@ class SupabaseService {
 
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
 
         var body = Data()
         // user_id field
@@ -270,6 +280,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/classify-image")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["image_url": imageURL])
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -288,6 +299,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/generate-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "image_url": imageURL,
@@ -308,8 +320,9 @@ class SupabaseService {
         #if DEBUG
         print("[Supabase] 📡 GET /video-status/\(taskId)")
         #endif
-        let url = URL(string: "\(baseURL)/video-status/\(taskId)")!
-        let (data, response) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: URL(string: "\(baseURL)/video-status/\(taskId)")!)
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "checkVideoStatus")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
         #if DEBUG
@@ -325,6 +338,7 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/save-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "video_id": videoId, "video_url": videoURL])
 
         let (data, response) = try await URLSession.shared.data(for: request)

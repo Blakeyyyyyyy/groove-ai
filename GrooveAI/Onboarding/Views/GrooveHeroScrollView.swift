@@ -95,6 +95,33 @@ struct GrooveHeroScrollView: View {
                     .opacity(contentVisible ? 1 : 0)
                     .offset(y: contentVisible ? 0 : 18)
 
+                    HStack(spacing: 4) {
+                        Text("By continuing, you agree to our")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                        Button("Terms") {
+                            if let url = URL(string: "https://trygrooveai.com/terms") {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                        .underline()
+                        Text("and")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                        Button("Privacy Policy") {
+                            if let url = URL(string: "https://trygrooveai.com/privacy") {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                        .underline()
+                    }
+                    .padding(.bottom, 16)
+                    .opacity(contentVisible ? 1 : 0)
+
                     Spacer().frame(height: GrooveOnboardingTheme.ctaBottomPadding)
                 }
             }

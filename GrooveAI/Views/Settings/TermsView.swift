@@ -68,7 +68,7 @@ struct TermsWebView: UIViewRepresentable {
             webView.loadHTMLString(htmlString, baseURL: htmlPath.deletingLastPathComponent())
         } else {
             // Fallback: Load from remote URL if local file not available
-            if let url = URL(string: "https://grooveai.app/terms") {
+            if let url = URL(string: "https://trygrooveai.com/terms") {
                 webView.load(URLRequest(url: url))
             } else {
                 // Display error message if neither option works
@@ -77,7 +77,7 @@ struct TermsWebView: UIViewRepresentable {
                 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; color: #333;">
                 <h2>Unable to Load Terms</h2>
                 <p>We're sorry, but we couldn't load the Terms of Service at this time.</p>
-                <p>Please try again later or contact support@grooveai.app for assistance.</p>
+                <p>Please try again later or contact support@trygrooveai.com for assistance.</p>
                 </body>
                 </html>
                 """
