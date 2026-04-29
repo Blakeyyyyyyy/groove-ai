@@ -14,6 +14,9 @@ struct GrooveSubjectSelectView: View {
     let onNext: () -> Void
 
     @State private var cardsAppeared = false
+    @State private var tapped = false
+    @State private var showTapHint = false
+    @State private var borderPulse = false
 
     var body: some View {
         ZStack {
@@ -30,7 +33,7 @@ struct GrooveSubjectSelectView: View {
                         .multilineTextAlignment(.center)
                         .opacity(cardsAppeared ? 1 : 0)
 
-                    Text("Choose your subject")
+                    Text("Tap the one that moves you")
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(GrooveOnboardingTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -48,7 +51,8 @@ struct GrooveSubjectSelectView: View {
                         ForEach(Array(subjectOptions.enumerated()), id: \.element.id) { index, option in
                             SubjectCard(
                                 subjectId: option.id,
-                                isSelected: state.selectedSubjectId == option.id
+                                isSelected: state.selectedSubjectId == option.id,
+                                borderPulse: borderPulse
                             ) {
                                 handleSelect(option)
                             }
@@ -67,6 +71,12 @@ struct GrooveSubjectSelectView: View {
                 .frame(height: 352)
                 .padding(.horizontal, 20)
 
+                // Tap hint — appears after 1.5s, disappears on tap
+                TapHintView()
+                    .opacity(showTapHint && !tapped ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.35), value: tapped)
+                    .padding(.top, 20)
+
                 Spacer()
             }
         }
@@ -74,10 +84,37 @@ struct GrooveSubjectSelectView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 cardsAppeared = true
             }
+            // Show tap hint after 1.5s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    showTapHint = true
+                }
+            }
+            // Start border pulse loop after cards appear
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                startBorderPulseLoop()
+            }
+        }
+    }
+
+    private func startBorderPulseLoop() {
+        guard !tapped else { return }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            borderPulse = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                borderPulse = false
+            }
+        }
+        // Repeat every 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            startBorderPulseLoop()
         }
     }
 
     private func handleSelect(_ option: SubjectOption) {
+        tapped = true
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             state.selectedSubjectId = option.id
 
@@ -93,10 +130,42 @@ struct GrooveSubjectSelectView: View {
     }
 }
 
+// MARK: - Tap Hint
+
+private struct TapHintView: View {
+    @State private var pulseOpacity: Double = 0.4
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("👆")
+                .font(.system(size: 18))
+            Text("Tap a card to begin")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .opacity(pulseOpacity)
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: 0.9)
+                    .repeatForever(autoreverses: true)
+            ) {
+                pulseOpacity = 1.0
+            }
+        }
+    }
+}
+
+// MARK: - Subject Card
+
 private struct SubjectCard: View {
     let subjectId: String
     let isSelected: Bool
+    let borderPulse: Bool
     let onTap: () -> Void
+
+    private var label: String {
+        subjectId == "person" ? "Person" : "Dog"
+    }
 
     var body: some View {
         let imageName = subjectId == "person" ? "subject-person-1" : "subject-pet"
@@ -109,6 +178,22 @@ private struct SubjectCard: View {
                         .resizable()
                         .scaledToFill()
                 }
+                .overlay(alignment: .bottom) {
+                    // Gradient + label overlay at bottom of card
+                    ZStack(alignment: .bottom) {
+                        LinearGradient(
+                            colors: [.black.opacity(0.72), .clear],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                        .frame(height: 80)
+
+                        Text(label)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.bottom, 14)
+                    }
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .frame(maxWidth: .infinity)
@@ -116,9 +201,12 @@ private struct SubjectCard: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(
-                            isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.08),
-                            lineWidth: isSelected ? 2 : 1
+                            isSelected
+                                ? GrooveOnboardingTheme.blueAccent
+                                : Color.white.opacity(borderPulse ? 0.55 : 0.08),
+                            lineWidth: isSelected ? 2 : (borderPulse ? 1.5 : 1)
                         )
+                        .animation(.easeInOut(duration: 0.3), value: borderPulse)
                 )
                 .shadow(
                     color: isSelected ? GrooveOnboardingTheme.blueAccent.opacity(0.18) : .clear,
