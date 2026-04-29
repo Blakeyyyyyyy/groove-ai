@@ -17,7 +17,6 @@
 		BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */; };
 		BB424AE62F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */; };
 		BB424AE82F919A2500158951 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */; };
-		BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */; };
 		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
 		BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB9477262F9C45FF00B49AC7 /* Assets.xcassets */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
@@ -103,7 +102,6 @@
 		BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveMagicMomentViewV2.swift; sourceTree = "<group>"; };
 		BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowViewV2.swift; sourceTree = "<group>"; };
 		BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAViewV2.swift; sourceTree = "<group>"; };
-		BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreenV2.swift; sourceTree = "<group>"; };
 		BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2PreviewGallery.swift; sourceTree = "<group>"; };
 		BB9477262F9C45FF00B49AC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -199,7 +197,6 @@
 				BB424AE32F919A2500158951 /* GrooveMagicMomentViewV2.swift */,
 				BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */,
 				BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */,
-				BB424AEB2F919A2500158951 /* TrialEnabledScreenV2.swift */,
 			);
 			path = "Views-v2";
 			sourceTree = "<group>";
@@ -569,7 +566,6 @@
 				BB424AE62F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift in Sources */,
 				BF_GROOVEONBOARDINGFEATUREFLAGS /* GrooveOnboardingFeatureFlags.swift in Sources */,
 				BF_GROOVEONBOARDINGSTATE /* GrooveOnboardingState.swift in Sources */,
-				BB424AEC2F919A2500158951 /* TrialEnabledScreenV2.swift in Sources */,
 				BF_GROOVEONBOARDINGTHEME /* GrooveOnboardingTheme.swift in Sources */,
 				BF_GROOVEONBOARDINGVIEW /* GrooveOnboardingView.swift in Sources */,
 				BF_GROOVEPAYWALLSCREEN /* GroovePaywallScreen.swift in Sources */,
