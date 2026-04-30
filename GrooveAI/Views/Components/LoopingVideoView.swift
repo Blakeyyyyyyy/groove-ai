@@ -1,172 +1,129 @@
 import SwiftUI
 import AVFoundation
+import Combine
 
-/// Silent autoplay loop with zero native controls. Drop-in for VideoPlayer.
-/// Can optionally use a pooled player (pass `pooledPlayer`), or create its own.
-struct LoopingVideoView: UIViewRepresentable {
-    let url: URL
-    var gravity: AVLayerVideoGravity = .resizeAspectFill
-    var isMuted: Bool = true  // Default silent for background loops
-    var isPlaying: Bool = true
-    var pooledPlayer: AVQueuePlayer? = nil  // Optional pooled player (for Fix 1)
+struct LoopingVideoView: View {
+    let videoURL: URL
+    let posterURL: URL?
+    @Binding var isPlaying: Bool
 
-    func makeUIView(context: Context) -> LoopingPlayerUIView {
-        LoopingPlayerUIView(
-            url: url,
-            gravity: gravity,
-            isMuted: isMuted,
-            isPlaying: isPlaying,
-            pooledPlayer: pooledPlayer
-        )
+    @State private var player: AVPlayer?
+    @State private var isReady = false
+    @State private var cancellables = Set<AnyCancellable>()
+
+    init(videoURL: URL, posterURL: URL?, isPlaying: Binding<Bool>) {
+        self.videoURL = videoURL
+        self.posterURL = posterURL
+        self._isPlaying = isPlaying
     }
 
-    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
-        // Pooled path: pool owns the looper; don't tear it down on re-render.
-        if pooledPlayer == nil {
-            uiView.setVideoURL(url)
-        }
-        uiView.setMuted(isMuted)
-        uiView.setPlaying(isPlaying)
-    }
-}
-
-/// UIView that handles autoplay looping with optional audio.
-/// Can use a pooled player (Fix 1) or create its own.
-final class LoopingPlayerUIView: UIView {
-    private var playerLayer = AVPlayerLayer()
-    private var playerLooper: AVPlayerLooper?
-    private var queuePlayer: AVQueuePlayer?
-    private var player: AVQueuePlayer?
-    private let pooledPlayer: AVQueuePlayer?
-    private var isUsingPooledPlayer: Bool = false
-    private var loadTask: Task<Void, Never>?
-    private var currentURL: URL?
-    private var shouldPlayWhenReady = true
-
-    init(url: URL, gravity: AVLayerVideoGravity, isMuted: Bool, isPlaying: Bool, pooledPlayer: AVQueuePlayer? = nil) {
-        self.pooledPlayer = pooledPlayer
-        super.init(frame: .zero)
-        backgroundColor = .clear
-
-        if let pooledPlayer {
-            isUsingPooledPlayer = true
-            player = pooledPlayer
-        } else {
-            player = AVQueuePlayer()
-        }
-
-        player?.isMuted = isMuted
-        shouldPlayWhenReady = isPlaying
-        playerLayer.player = player
-        playerLayer.videoGravity = gravity
-        playerLayer.backgroundColor = UIColor.clear.cgColor
-        layer.addSublayer(playerLayer)
-
-        queuePlayer = player
-        // Pooled path: the pool already set up AVPlayerLooper and called play().
-        // Calling setVideoURL here would tear that down and re-create it unnecessarily.
-        if pooledPlayer == nil {
-            setVideoURL(url)
-        }
+    /// Backward-compat: legacy callers (onboarding, thumbnails) used `LoopingVideoView(url:)`
+    /// with optional `gravity` / `isMuted` flags. Those flags are ignored now (always muted,
+    /// always resizeAspectFill); the view always plays. This shim avoids touching every site.
+    init(url: URL,
+         gravity: AVLayerVideoGravity = .resizeAspectFill,
+         isMuted: Bool = true,
+         isPlaying: Bool = true) {
+        self.videoURL = url
+        self.posterURL = nil
+        self._isPlaying = .constant(isPlaying)
     }
 
-    func setMuted(_ muted: Bool) {
-        player?.isMuted = muted
-    }
-
-    func setVideoURL(_ url: URL) {
-        guard currentURL != url else { return }
-
-        currentURL = url
-        loadTask?.cancel()
-        playerLooper = nil
-        player?.pause()
-        player?.removeAllItems()
-
-        guard let player else { return }
-
-        loadTask = Task(priority: .userInitiated) { [weak self] in
-            let urlString = url.absoluteString
-
-            // 1. Use VideoPreloader's in-memory asset if already loaded (fastest)
-            if let preloadedAsset = VideoPreloader.shared.cachedAsset(for: url) {
-                guard !Task.isCancelled else { return }
-                let item = AVPlayerItem(asset: preloadedAsset)
-                await MainActor.run {
-                    guard let self, self.currentURL == url else { return }
-                    player.removeAllItems()
-                    self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
-                    player.isMuted = self.player?.isMuted ?? true
-                    if self.shouldPlayWhenReady { player.play() }
-                }
-                return
-            }
-
-            // 2. Use disk-cached local file if available (fast, avoids network)
-            if let cachedLocal = await VideoCache.shared.cachedURL(for: urlString) {
-                guard !Task.isCancelled else { return }
-                let asset = AVURLAsset(url: cachedLocal)
-                do {
-                    _ = try await asset.load(.isPlayable)
-                    guard !Task.isCancelled else { return }
-                    let item = AVPlayerItem(asset: asset)
-                    await MainActor.run {
-                        guard let self, self.currentURL == url else { return }
-                        player.removeAllItems()
-                        self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
-                        player.isMuted = self.player?.isMuted ?? true
-                        if self.shouldPlayWhenReady { player.play() }
+    var body: some View {
+        ZStack {
+            if let posterURL {
+                AsyncImage(url: posterURL) { phase in
+                    switch phase {
+                    case .success(let img): img.resizable().scaledToFill()
+                    default: Color.black
                     }
-                } catch {
-                    #if DEBUG
-                    print("[LoopingVideoView] Local cache load failed: \(url.lastPathComponent)")
-                    #endif
                 }
-                return
+            } else {
+                Color.black
             }
 
-            // 3. Remote URL — skip .isPlayable wait, let AVPlayer buffer naturally.
-            //    Kick off a background disk-cache download for next time.
-            guard !Task.isCancelled else { return }
-            Task.detached(priority: .background) {
-                try? await VideoCache.shared.download(urlString)
+            if let player {
+                LoopingPlayerLayerView(player: player)
+                    .opacity(isReady ? 1 : 0)
+                    .animation(.easeIn(duration: 0.15), value: isReady)
             }
-            let item = AVPlayerItem(url: url)
-            await MainActor.run {
-                guard let self, self.currentURL == url else { return }
-                player.removeAllItems()
-                self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
-                player.isMuted = self.player?.isMuted ?? true
-                if self.shouldPlayWhenReady { player.play() }
-            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .onAppear { setupPlayer() }
+        .onDisappear { teardownPlayer() }
+        .onChange(of: isPlaying) { _, playing in
+            playing ? player?.play() : player?.pause()
         }
     }
 
-    func setPlaying(_ playing: Bool) {
-        shouldPlayWhenReady = playing
-        guard let player else { return }
-        if playing {
-            player.play()
-        } else {
-            player.pause()
+    private func setupPlayer() {
+        guard player == nil else { return }
+        let item = AVPlayerItem(url: videoURL)
+        item.preferredForwardBufferDuration = 1
+        let p = AVPlayer(playerItem: item)
+        p.isMuted = true
+        p.automaticallyWaitsToMinimizeStalling = false
+        p.actionAtItemEnd = .none
+
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { _ in
+            p.seek(to: .zero)
+            p.play()
         }
+
+        item.publisher(for: \.status)
+            .receive(on: DispatchQueue.main)
+            .sink { status in
+                if status == .readyToPlay { isReady = true }
+            }
+            .store(in: &cancellables)
+
+        player = p
+        if isPlaying { p.play() }
     }
 
-    required init?(coder: NSCoder) {
-        fatalError()
-    }
-
-    deinit {
-        loadTask?.cancel()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        playerLayer.frame = bounds
+    private func teardownPlayer() {
+        player?.pause()
+        player?.replaceCurrentItem(with: nil)
+        NotificationCenter.default.removeObserver(self)
+        cancellables.removeAll()
+        player = nil
+        isReady = false
     }
 }
 
-/// Version that wraps an external AVPlayer (for cases where you need play/pause control)
+struct LoopingPlayerLayerView: UIViewRepresentable {
+    let player: AVPlayer
+    func makeUIView(context: Context) -> LoopingPlayerContainer { LoopingPlayerContainer(player: player) }
+    func updateUIView(_ uiView: LoopingPlayerContainer, context: Context) {
+        uiView.player = player
+    }
+}
+
+final class LoopingPlayerContainer: UIView {
+    override class var layerClass: AnyClass { AVPlayerLayer.self }
+    var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+    var player: AVPlayer? {
+        get { playerLayer.player }
+        set {
+            playerLayer.player = newValue
+            playerLayer.videoGravity = .resizeAspectFill
+        }
+    }
+    init(player: AVPlayer) {
+        super.init(frame: .zero)
+        self.player = player
+    }
+    required init?(coder: NSCoder) { fatalError() }
+}
+
+// MARK: - Preserved: ControlledVideoView (used by Preview / Result / Onboarding)
+
+/// Wraps an external AVPlayer (for cases where you need play/pause control).
 struct ControlledVideoView: UIViewRepresentable {
     let player: AVPlayer?
     var gravity: AVLayerVideoGravity = .resizeAspectFill
@@ -181,7 +138,6 @@ struct ControlledVideoView: UIViewRepresentable {
     }
 }
 
-/// UIView for controlled player (external AVPlayer, no looping logic)
 final class ControlledPlayerUIView: UIView {
     let playerLayer = AVPlayerLayer()
 
@@ -203,23 +159,82 @@ final class ControlledPlayerUIView: UIView {
     }
 }
 
-/// Audio-enabled version for sneak peek pages where sound matters
+// MARK: - Preserved: AudioLoopingVideoView (used by CategorySwipeView)
+
+/// Audio-enabled looping player for full-screen sneak-peek pages where sound matters.
+/// Owns its own AVPlayer; loops via .AVPlayerItemDidPlayToEndTime; tears down on disappear.
 struct AudioLoopingVideoView: UIViewRepresentable {
     let url: URL
     var gravity: AVLayerVideoGravity = .resizeAspectFill
     var isPlaying: Bool = true
 
-    func makeUIView(context: Context) -> LoopingPlayerUIView {
-        // Audio ON for sneak peek
-        LoopingPlayerUIView(
-            url: url,
-            gravity: gravity,
-            isMuted: false,
-            isPlaying: isPlaying
-        )
+    func makeUIView(context: Context) -> AudioLoopingPlayerUIView {
+        AudioLoopingPlayerUIView(url: url, gravity: gravity, isPlaying: isPlaying)
     }
 
-    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
+    func updateUIView(_ uiView: AudioLoopingPlayerUIView, context: Context) {
         uiView.setPlaying(isPlaying)
+    }
+
+    static func dismantleUIView(_ uiView: AudioLoopingPlayerUIView, coordinator: ()) {
+        uiView.teardown()
+    }
+}
+
+final class AudioLoopingPlayerUIView: UIView {
+    private let playerLayer = AVPlayerLayer()
+    private var player: AVPlayer?
+    private var endObserver: NSObjectProtocol?
+
+    init(url: URL, gravity: AVLayerVideoGravity, isPlaying: Bool) {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        playerLayer.videoGravity = gravity
+        playerLayer.backgroundColor = UIColor.clear.cgColor
+        layer.addSublayer(playerLayer)
+
+        let item = AVPlayerItem(url: url)
+        let p = AVPlayer(playerItem: item)
+        p.isMuted = false
+        p.actionAtItemEnd = .none
+        playerLayer.player = p
+        player = p
+
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { [weak p] _ in
+            p?.seek(to: .zero)
+            p?.play()
+        }
+
+        if isPlaying { p.play() }
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func setPlaying(_ playing: Bool) {
+        guard let player else { return }
+        if playing { player.play() } else { player.pause() }
+    }
+
+    func teardown() {
+        player?.pause()
+        player?.replaceCurrentItem(with: nil)
+        if let endObserver {
+            NotificationCenter.default.removeObserver(endObserver)
+        }
+        endObserver = nil
+        player = nil
+    }
+
+    deinit {
+        teardown()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer.frame = bounds
     }
 }
