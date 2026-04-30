@@ -49,6 +49,11 @@ final class HomeVideoPlayerPool {
         slots[idx].token = nil
     }
 
+    /// Returns false if the slot has been evicted and reassigned to another card.
+    func isValid(_ token: LeaseToken) -> Bool {
+        slots[token.slotIndex].token == token
+    }
+
     func pauseAll() {
         slots.forEach { $0.player.pause() }
     }

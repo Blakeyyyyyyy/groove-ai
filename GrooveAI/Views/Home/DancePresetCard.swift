@@ -35,9 +35,10 @@ struct DancePresetCard: View {
             .onChange(of: isVisibleForPlayback) { _, isVisible in
                 if isVisible {
                     acquireIfNeeded()
-                } else {
-                    releaseIfHeld()
                 }
+                // On visibility false: don't release — just pause via isPlaying binding.
+                // Releasing here causes the placeholder gate to flash gradient mid-scroll.
+                // Only fully release when the card leaves the view hierarchy (onDisappear).
             }
             .onDisappear {
                 releaseIfHeld()
@@ -45,6 +46,11 @@ struct DancePresetCard: View {
     }
 
     private func acquireIfNeeded() {
+        // If we hold a lease but the pool evicted our slot, clear stale state first.
+        if let existingLease = lease, !pool.isValid(existingLease) {
+            lease = nil
+            activePlayer = nil
+        }
         guard lease == nil, let url = videoURL else { return }
         let (player, token) = pool.acquire(url: url)
         activePlayer = player
@@ -85,15 +91,15 @@ struct DancePresetCard: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        // Placeholder gate: only mount LoopingVideoView once the pool has assigned a
-        // player (activePlayer != nil). Mounting with pooledPlayer=nil would cause
-        // LoopingPlayerUIView to create its own AVQueuePlayer — defeating the pool.
+        // Gate: only mount LoopingVideoView once the pool has assigned a player.
+        // Mounting with pooledPlayer=nil lets LoopingPlayerUIView create its own
+        // AVQueuePlayer — defeating the pool and causing the original lag.
         if let url = videoURL, let player = activePlayer, lease != nil {
             LoopingVideoView(
                 url: url,
                 gravity: .resizeAspectFill,
                 isMuted: true,
-                isPlaying: true,
+                isPlaying: isVisibleForPlayback,  // pause (show last frame) when scrolled past
                 pooledPlayer: player
             )
         } else {
