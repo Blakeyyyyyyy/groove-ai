@@ -84,11 +84,8 @@ struct GrooveSubjectSelectView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 cardsAppeared = true
             }
-            // Show tap hint after 1.5s
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation(.easeIn(duration: 0.3)) {
-                    showTapHint = true
-                }
+            withAnimation(.easeIn(duration: 0.3)) {
+                showTapHint = true
             }
             // Start border pulse loop immediately
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

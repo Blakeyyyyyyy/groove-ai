@@ -24,6 +24,7 @@ struct GrooveAIApp: App {
         // On first launch these download in background while the user reads onboarding;
         // every subsequent launch plays from local disk — zero network latency.
         VideoCache.shared.prefetch([
+            // All home-screen presets
             "https://videos.trygrooveai.com/presets/big-guy-V5-AI.mp4",
             "https://videos.trygrooveai.com/presets/c-walk-V5-AI.mp4",
             "https://videos.trygrooveai.com/presets/trag-V5-AI.mp4",
@@ -31,6 +32,11 @@ struct GrooveAIApp: App {
             "https://videos.trygrooveai.com/presets/milkshake-V5-AI.mp4",
             "https://videos.trygrooveai.com/presets/ophelia-ai.mp4",
             "https://videos.trygrooveai.com/presets/coco-channel-75fcae6c.mp4",
+            "https://videos.trygrooveai.com/presets/jenny-ai.mp4",
+            "https://videos.trygrooveai.com/presets/macarena-V5-AI.mp4",
+            "https://videos.trygrooveai.com/presets/witch-doctor-v3.mp4",
+            "https://videos.trygrooveai.com/presets/cotton-eye-joe.mp4",
+            // Demo videos for onboarding reveal
             "https://videos.trygrooveai.com/woman-coco-channel.mp4",
             "https://videos.trygrooveai.com/woman-big-guy.mp4",
             "https://videos.trygrooveai.com/demos/golden-retriever-big-guy.mp4",

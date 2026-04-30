@@ -80,38 +80,57 @@ final class LoopingPlayerUIView: UIView {
 
         loadTask = Task(priority: .userInitiated) { [weak self] in
             let urlString = url.absoluteString
-            let playURL: URL
-            if let cached = await VideoCache.shared.cachedURL(for: urlString) {
-                playURL = cached
-            } else {
-                playURL = url
-                Task.detached(priority: .background) {
-                    try? await VideoCache.shared.download(urlString)
-                }
-            }
 
-            let asset = AVURLAsset(url: playURL)
-
-            do {
-                _ = try await asset.load(.isPlayable)
+            // 1. Use VideoPreloader's in-memory asset if already loaded (fastest)
+            if let preloadedAsset = VideoPreloader.shared.cachedAsset(for: url) {
                 guard !Task.isCancelled else { return }
-
-                let item = AVPlayerItem(asset: asset)
+                let item = AVPlayerItem(asset: preloadedAsset)
                 await MainActor.run {
                     guard let self, self.currentURL == url else { return }
                     player.removeAllItems()
                     self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
                     player.isMuted = self.player?.isMuted ?? true
-
-                    if self.shouldPlayWhenReady {
-                        player.play()
-                    }
+                    if self.shouldPlayWhenReady { player.play() }
                 }
-            } catch {
+                return
+            }
+
+            // 2. Use disk-cached local file if available (fast, avoids network)
+            if let cachedLocal = await VideoCache.shared.cachedURL(for: urlString) {
                 guard !Task.isCancelled else { return }
-                #if DEBUG
-                print("[LoopingVideoView] Failed to prepare video: \(url.lastPathComponent) - \(error.localizedDescription)")
-                #endif
+                let asset = AVURLAsset(url: cachedLocal)
+                do {
+                    _ = try await asset.load(.isPlayable)
+                    guard !Task.isCancelled else { return }
+                    let item = AVPlayerItem(asset: asset)
+                    await MainActor.run {
+                        guard let self, self.currentURL == url else { return }
+                        player.removeAllItems()
+                        self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
+                        player.isMuted = self.player?.isMuted ?? true
+                        if self.shouldPlayWhenReady { player.play() }
+                    }
+                } catch {
+                    #if DEBUG
+                    print("[LoopingVideoView] Local cache load failed: \(url.lastPathComponent)")
+                    #endif
+                }
+                return
+            }
+
+            // 3. Remote URL — skip .isPlayable wait, let AVPlayer buffer naturally.
+            //    Kick off a background disk-cache download for next time.
+            guard !Task.isCancelled else { return }
+            Task.detached(priority: .background) {
+                try? await VideoCache.shared.download(urlString)
+            }
+            let item = AVPlayerItem(url: url)
+            await MainActor.run {
+                guard let self, self.currentURL == url else { return }
+                player.removeAllItems()
+                self.playerLooper = AVPlayerLooper(player: player, templateItem: item)
+                player.isMuted = self.player?.isMuted ?? true
+                if self.shouldPlayWhenReady { player.play() }
             }
         }
     }

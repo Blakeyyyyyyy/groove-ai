@@ -23,6 +23,12 @@
 		BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_BIG_GUY /* onb_big_guy.mp4 */; };
 		BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */; };
 		BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_C_WALK /* onb_c_walk.mp4 */; };
+		BF_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */; };
+		BF_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */; };
+		BF_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */; };
+		BF_DEMO_DOG_COCO /* demo_dog_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */; };
+		BF_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */; };
+		BF_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
 		BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
@@ -85,6 +91,7 @@
 		BF_REVENUECAT_PKG /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = PR_REVENUECAT /* RevenueCat */; };
 		BF_SETTINGSROW /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSROW /* SettingsRow.swift */; };
 		BF_SETTINGSVIEW /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSVIEW /* SettingsView.swift */; };
+		BF_MANAGEPLANVIEW /* ManagePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MANAGEPLANVIEW /* ManagePlanView.swift */; };
 		BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */; };
 		BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */; };
 		BF_SUPABASESERVICE /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUPABASESERVICE /* SupabaseService.swift */; };
@@ -104,6 +111,12 @@
 		FR_ONB_BIG_GUY /* onb_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_big_guy.mp4; sourceTree = "<group>"; };
 		FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_coco_channel.mp4; sourceTree = "<group>"; };
 		FR_ONB_C_WALK /* onb_c_walk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_c_walk.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_big_guy.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_coco.mp4; sourceTree = "<group>"; };
+		FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_big_guy.mp4; sourceTree = "<group>"; };
+		FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_coco.mp4; sourceTree = "<group>"; };
+		FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_cwalk.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_cwalk.mp4; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
@@ -174,6 +187,7 @@
 		FR_REVENUECATSERVICE /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 		FR_SETTINGSROW /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		FR_SETTINGSVIEW /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FR_MANAGEPLANVIEW /* ManagePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagePlanView.swift; sourceTree = "<group>"; };
 		FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedResultView.swift; sourceTree = "<group>"; };
 		FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectPickerView.swift; sourceTree = "<group>"; };
 		FR_SUPABASESERVICE /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
@@ -386,6 +400,7 @@
 			isa = PBXGroup;
 			children = (
 				FR_SETTINGSVIEW /* SettingsView.swift */,
+				FR_MANAGEPLANVIEW /* ManagePlanView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -446,6 +461,12 @@
 				FR_ONB_BIG_GUY /* onb_big_guy.mp4 */,
 				FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */,
 				FR_ONB_C_WALK /* onb_c_walk.mp4 */,
+				FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */,
+				FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */,
+				FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */,
+				FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */,
+				FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */,
+				FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -531,6 +552,12 @@
 				BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */,
 				BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */,
 				BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */,
+				BF_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 in Resources */,
+				BF_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 in Resources */,
+				BF_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 in Resources */,
+				BF_DEMO_DOG_COCO /* demo_dog_coco.mp4 in Resources */,
+				BF_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 in Resources */,
+				BF_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 in Resources */,
 				BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */,
 				BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */,
 			);
@@ -613,6 +640,7 @@
 				BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */,
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_SETTINGSVIEW /* SettingsView.swift in Sources */,
+				BF_MANAGEPLANVIEW /* ManagePlanView.swift in Sources */,
 				BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */,
 				BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */,
 				BF_SUPABASESERVICE /* SupabaseService.swift in Sources */,

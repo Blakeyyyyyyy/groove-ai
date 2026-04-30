@@ -274,8 +274,8 @@ struct GrooveCoinPurchaseSheet: View {
         case "grooveai_weekly_1200":   return PlanTier.weeklyMax1200.coinAmount
         case "grooveai_annual_9999":   return PlanTier.annual.coinAmount
         case "grooveai_weekly_799",
-             "grooveai_weekly_special": return PlanTier.weeklyStarter300.coinAmount
-        default:                       return PlanTier.weeklyStarter300.coinAmount
+             "grooveai_weekly_special": return 150
+        default:                       return 150
         }
     }
 

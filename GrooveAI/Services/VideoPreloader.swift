@@ -15,6 +15,10 @@ final class VideoPreloader: NSObject {
     /// Preload a video URL asynchronously — does NOT block the calling thread.
     /// AVAsset(url:) does DNS + HTTP handshake; running it on the main thread
     /// causes multi-second hangs when many cards appear simultaneously.
+    func cachedAsset(for url: URL) -> AVAsset? {
+        preloadedAssets.object(forKey: url.absoluteString as NSString)
+    }
+
     func preload(url: URL) {
         let key = url.absoluteString as NSString
 

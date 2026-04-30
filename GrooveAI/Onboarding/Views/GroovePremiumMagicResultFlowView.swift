@@ -317,80 +317,45 @@ struct GroovePremiumMagicResultFlowView: View {
     }
 
     // MARK: - Demo Video Logic
-    
-    /// Returns the video URL to show on the reveal page
-    /// - If subject is dog and we have a demo video for the preset → show demo video
-    /// - If subject is person and we have a woman demo video for the preset → show demo video
-    /// - Otherwise → show the generated video (or nil if not ready)
-    private func getRevealVideoURL() -> String? {
-        #if DEBUG
-        print("[REVEAL DEBUG] selectedSubjectId: \(state.selectedSubjectId)")
-        print("[REVEAL DEBUG] selectedDanceId: \(state.selectedDanceId)")
-        #endif
 
-        // If user selected dog subject and we have a matching demo video
-        if state.selectedSubjectId == "dog",
-           !state.selectedDanceId.isEmpty,
-           let demoURL = DancePreset.dogDemoVideos[state.selectedDanceId] {
-            #if DEBUG
-            print("[REVEAL DEBUG] Using DOG demo video: \(demoURL)")
-            #endif
-            return demoURL
-        }
-        // If user selected person subject and we have a matching woman demo video
-        if state.selectedSubjectId == "person",
-           !state.selectedDanceId.isEmpty,
-           let demoURL = DancePreset.womanDemoVideos[state.selectedDanceId] {
-            #if DEBUG
-            print("[REVEAL DEBUG] Using WOMAN demo video: \(demoURL)")
-            #endif
-            return demoURL
-        }
-        // Otherwise use the generated video URL
-        #if DEBUG
-        print("[REVEAL DEBUG] Falling back to selectedVideoURL: \(state.selectedVideoURL ?? "NIL")")
-        #endif
-        return state.selectedVideoURL
-    }
-
-    // Bundled onboarding dance videos — load from disk for instant play.
-    private static let bundledVideos: [String: String] = [
-        "big-guy": "onb_big_guy",
-        "coco-channel": "onb_coco_channel",
-        "c-walk": "onb_c_walk",
+    // Bundled demo videos: subject → danceId → bundle resource name
+    private static let bundledDogDemos: [String: String] = [
+        "big-guy":      "demo_dog_big_guy",
+        "coco-channel": "demo_dog_coco",
+        "c-walk":       "demo_dog_cwalk",
+    ]
+    private static let bundledWomanDemos: [String: String] = [
+        "big-guy":      "demo_woman_big_guy",
+        "coco-channel": "demo_woman_coco",
+        "c-walk":       "demo_woman_cwalk",
     ]
 
-    private func setupPlayer() {
-        // Check bundle first — instant load, no network needed.
+    private func getRevealVideoURL() -> URL? {
         let danceId = state.selectedDanceId
-        let videoURL: URL
-        if let bundleName = Self.bundledVideos[danceId],
-           let bundleURL = Bundle.main.url(forResource: bundleName, withExtension: "mp4") {
-            videoURL = bundleURL
-        } else {
-            // Fall back to R2/demo logic for non-onboarding presets
-            let videoURLString = getRevealVideoURL()
-            #if DEBUG
-            print("[REVEAL DEBUG] setupPlayer called with URL: \(videoURLString ?? "NIL")")
-            #endif
-            guard let videoURLString = videoURLString,
-                  let remoteURL = URL(string: videoURLString) else {
-                #if DEBUG
-                print("[REVEAL DEBUG] Failed to create URL from string")
-                #endif
-                return
+
+        if state.selectedSubjectId == "dog" {
+            if let name = Self.bundledDogDemos[danceId],
+               let url = Bundle.main.url(forResource: name, withExtension: "mp4") {
+                return url
             }
-            videoURL = remoteURL
+        } else if state.selectedSubjectId == "person" {
+            if let name = Self.bundledWomanDemos[danceId],
+               let url = Bundle.main.url(forResource: name, withExtension: "mp4") {
+                return url
+            }
         }
-        #if DEBUG
-        print("[REVEAL DEBUG] Created URL: \(videoURL)")
-        #endif
+
+        // Fallback: generated video URL from state
+        if let urlString = state.selectedVideoURL, let url = URL(string: urlString) {
+            return url
+        }
+        return nil
+    }
+
+    private func setupPlayer() {
+        guard let videoURL = getRevealVideoURL() else { return }
 
         let item = AVPlayerItem(url: videoURL)
-        #if DEBUG
-        print("[REVEAL DEBUG] AVPlayerItem created: \(item)")
-        #endif
-        
         let avPlayer = AVPlayer(playerItem: item)
         avPlayer.isMuted = false
         avPlayer.actionAtItemEnd = .none
@@ -406,8 +371,5 @@ struct GroovePremiumMagicResultFlowView: View {
         }
 
         player = avPlayer
-        #if DEBUG
-        print("[REVEAL DEBUG] AVPlayer created and assigned")
-        #endif
     }
 }
