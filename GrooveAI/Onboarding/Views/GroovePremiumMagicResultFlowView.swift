@@ -353,19 +353,34 @@ struct GroovePremiumMagicResultFlowView: View {
         return state.selectedVideoURL
     }
 
-    private func setupPlayer() {
-        // Determine which video URL to use
-        let videoURLString = getRevealVideoURL()
-        #if DEBUG
-        print("[REVEAL DEBUG] setupPlayer called with URL: \(videoURLString ?? "NIL")")
-        #endif
+    // Bundled onboarding dance videos — load from disk for instant play.
+    private static let bundledVideos: [String: String] = [
+        "big-guy": "onb_big_guy",
+        "coco-channel": "onb_coco_channel",
+        "c-walk": "onb_c_walk",
+    ]
 
-        guard let videoURLString = videoURLString,
-              let videoURL = URL(string: videoURLString) else {
+    private func setupPlayer() {
+        // Check bundle first — instant load, no network needed.
+        let danceId = state.selectedDanceId
+        let videoURL: URL
+        if let bundleName = Self.bundledVideos[danceId],
+           let bundleURL = Bundle.main.url(forResource: bundleName, withExtension: "mp4") {
+            videoURL = bundleURL
+        } else {
+            // Fall back to R2/demo logic for non-onboarding presets
+            let videoURLString = getRevealVideoURL()
             #if DEBUG
-            print("[REVEAL DEBUG] Failed to create URL from string")
+            print("[REVEAL DEBUG] setupPlayer called with URL: \(videoURLString ?? "NIL")")
             #endif
-            return
+            guard let videoURLString = videoURLString,
+                  let remoteURL = URL(string: videoURLString) else {
+                #if DEBUG
+                print("[REVEAL DEBUG] Failed to create URL from string")
+                #endif
+                return
+            }
+            videoURL = remoteURL
         }
         #if DEBUG
         print("[REVEAL DEBUG] Created URL: \(videoURL)")
