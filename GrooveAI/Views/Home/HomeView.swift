@@ -5,8 +5,6 @@ struct HomeView: View {
     @State private var showContent = false
     @State private var navigateToPreset: DancePreset?
     @State private var navigateToCategory: CategoryNavItem?
-    @StateObject private var playerPool = AVPlayerPoolManager.shared
-
     private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.38
 
     var body: some View {
@@ -80,8 +78,6 @@ struct HomeView: View {
                 .toolbar(.hidden, for: .tabBar)
             }
         }
-        // Fix 1: inject pool into environment for all descendant views
-        .environment(\.playerPool, playerPool)
         .task {
             withAnimation(AppAnimation.cardTransition) {
                 showContent = true
