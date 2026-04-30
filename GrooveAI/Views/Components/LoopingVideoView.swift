@@ -21,7 +21,10 @@ struct LoopingVideoView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
-        uiView.setVideoURL(url)
+        // Pooled path: pool owns the looper; don't tear it down on re-render.
+        if pooledPlayer == nil {
+            uiView.setVideoURL(url)
+        }
         uiView.setMuted(isMuted)
         uiView.setPlaying(isPlaying)
     }
@@ -60,7 +63,11 @@ final class LoopingPlayerUIView: UIView {
         layer.addSublayer(playerLayer)
 
         queuePlayer = player
-        setVideoURL(url)
+        // Pooled path: the pool already set up AVPlayerLooper and called play().
+        // Calling setVideoURL here would tear that down and re-create it unnecessarily.
+        if pooledPlayer == nil {
+            setVideoURL(url)
+        }
     }
 
     func setMuted(_ muted: Bool) {

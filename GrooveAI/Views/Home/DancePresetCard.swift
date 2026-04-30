@@ -3,15 +3,16 @@ import AVFoundation
 
 struct DancePresetCard: View {
     let preset: DancePreset
+    @Environment(\.playerPool) private var pool
     @State private var isVisibleForPlayback = false
-    @State private var pooledPlayer: AVQueuePlayer? = nil
-    @StateObject private var playerPool = AVPlayerPoolManager.shared
+    @State private var lease: LeaseToken? = nil
+    @State private var activePlayer: AVQueuePlayer? = nil
 
     private let cornerRadius = Radius.lg
 
     private var videoURL: URL? {
-        guard let videoURL = preset.videoURL else { return nil }
-        return URL(string: videoURL)
+        guard let s = preset.videoURL else { return nil }
+        return URL(string: s)
     }
 
     var body: some View {
@@ -31,24 +32,30 @@ struct DancePresetCard: View {
                 }
             }
             .modifier(HomePresetVisibilityPlayback(isVisibleForPlayback: $isVisibleForPlayback))
-            .onAppear {
-                if let videoURL {
-                    VideoPreloader.shared.preload(url: videoURL)
-                }
-            }
             .onChange(of: isVisibleForPlayback) { _, isVisible in
-                guard videoURL != nil else { return }
-
-                if isVisible, pooledPlayer == nil {
-                    pooledPlayer = playerPool.getPlayer()
-                } else if !isVisible {
-                    pooledPlayer?.pause()
+                if isVisible {
+                    acquireIfNeeded()
+                } else {
+                    releaseIfHeld()
                 }
             }
             .onDisappear {
-                pooledPlayer?.pause()
-                pooledPlayer = nil
+                releaseIfHeld()
             }
+    }
+
+    private func acquireIfNeeded() {
+        guard lease == nil, let url = videoURL else { return }
+        let (player, token) = pool.acquire(url: url)
+        activePlayer = player
+        lease = token
+    }
+
+    private func releaseIfHeld() {
+        guard let token = lease else { return }
+        pool.release(token: token)
+        lease = nil
+        activePlayer = nil
     }
 
     private var cardContent: some View {
@@ -78,13 +85,16 @@ struct DancePresetCard: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        if let videoURL {
+        // Placeholder gate: only mount LoopingVideoView once the pool has assigned a
+        // player (activePlayer != nil). Mounting with pooledPlayer=nil would cause
+        // LoopingPlayerUIView to create its own AVQueuePlayer — defeating the pool.
+        if let url = videoURL, let player = activePlayer, lease != nil {
             LoopingVideoView(
-                url: videoURL,
+                url: url,
                 gravity: .resizeAspectFill,
                 isMuted: true,
-                isPlaying: isVisibleForPlayback,
-                pooledPlayer: pooledPlayer  // Fix 1: pass pooled player
+                isPlaying: true,
+                pooledPlayer: player
             )
         } else {
             LinearGradient(

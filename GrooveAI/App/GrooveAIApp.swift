@@ -14,12 +14,6 @@ struct GrooveAIApp: App {
 
     init() {
         Self.configureTabBarAppearance()
-        // Pre-warm AVPlayerPoolManager on background thread. The pool creation
-        // is synchronous but heavy (~1s for 6 AVQueuePlayers). Running it here
-        // means it completes well before HomeView renders (splash takes 3.4s).
-        DispatchQueue.global(qos: .userInitiated).async {
-            _ = AVPlayerPoolManager.shared
-        }
         // Prefetch onboarding videos to disk so subsequent launches load instantly.
         // On first launch these download in background while the user reads onboarding;
         // every subsequent launch plays from local disk — zero network latency.
@@ -73,6 +67,19 @@ struct GrooveAIApp: App {
                         }
                     }
                     hasCompletedInitialLaunch = true
+
+                    // Warm the player pool and preload first 6 preset videos into
+                    // VideoPreloader's memory cache. The 3s delay lets the splash
+                    // finish before blocking the main thread on AVQueuePlayer init.
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        _ = HomeVideoPlayerPool.shared
+                        DancePreset.allPresets.prefix(6).forEach { preset in
+                            if let s = preset.videoURL, let url = URL(string: s) {
+                                VideoPreloader.shared.preload(url: url)
+                            }
+                        }
+                    }
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Re-check entitlements every time the app returns to the

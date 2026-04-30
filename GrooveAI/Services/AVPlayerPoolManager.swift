@@ -1,65 +1,96 @@
-// AVPlayerPoolManager.swift
-// Shared player pool for hero video wall
-// Manages AVPlayer lifecycle to prevent resource leaks in 3-column parallax views
+// HomeVideoPlayerPool — @MainActor class so all access is serialized on the main
+// thread. No actor suspension points = no reentrancy, no stale-closure races.
 
 import AVFoundation
 import SwiftUI
 
-final class AVPlayerPoolManager: NSObject, ObservableObject {
-    static let shared = AVPlayerPoolManager()
+// Opaque token returned by acquire(). release(token:) is a no-op when the slot's
+// generation has rotated — prevents stale onDisappear teardowns from killing a
+// player that was already re-acquired for a different card.
+struct LeaseToken: Equatable {
+    fileprivate let slotIndex: Int
+    fileprivate let generation: UInt64
+}
 
-    private var playerPool: [AVQueuePlayer] = []
-    private let poolSize = 6 // 3 columns × 2 videos per column
-    private var playerIndex = 0
+@MainActor
+final class HomeVideoPlayerPool {
+    static let shared = HomeVideoPlayerPool()
 
-    override private init() {
-        super.init()
-        // Synchronous — but GrooveAIApp.init() forces this on a background thread
-        // so the pool is ready before HomeView renders (splash takes 3.4s of cover).
-        setupPool()
+    private struct Slot {
+        let player: AVQueuePlayer
+        var looper: AVPlayerLooper?
+        var token: LeaseToken?
+        var lastUsed: Date = .distantPast
     }
 
-    private func setupPool() {
-        for _ in 0..<poolSize {
-            let player = AVQueuePlayer()
-            playerPool.append(player)
-        }
+    private var slots: [Slot]
+    private var generationCounter: UInt64 = 0
+
+    private init() {
+        slots = (0..<6).map { _ in Slot(player: AVQueuePlayer()) }
     }
 
-    func getPlayer() -> AVQueuePlayer {
-        // Pool is always ready because GrooveAIApp.init() pre-warms it.
-        // Fallback init in case something calls getPlayer() before pre-warm completes.
-        if playerPool.isEmpty { setupPool() }
-        let player = playerPool[playerIndex % playerPool.count]
-        playerIndex = (playerIndex + 1) % poolSize
-        return player
+    /// Acquires a pool slot for `url`. Returns the player and a lease token.
+    /// Call `release(token:)` from `onDisappear` or when the card is no longer visible.
+    func acquire(url: URL) -> (AVQueuePlayer, LeaseToken) {
+        let idx = pickSlot()
+        teardown(slot: idx)
+        generationCounter &+= 1
+        let token = LeaseToken(slotIndex: idx, generation: generationCounter)
+        assign(slot: idx, url: url, token: token)
+        return (slots[idx].player, token)
     }
 
-    func loadVideo(url: URL, into player: AVQueuePlayer) {
-        // AVAsset creation off main thread to avoid blocking UI
-        Task.detached(priority: .userInitiated) {
-            let asset = AVAsset(url: url)
-            let playerItem = AVPlayerItem(asset: asset)
-            await MainActor.run {
-                player.removeAllItems()
-                player.insert(playerItem, after: nil)
-            }
-        }
+    /// Releases the slot. No-op if the token is stale (slot was re-acquired by another card).
+    func release(token: LeaseToken) {
+        let idx = token.slotIndex
+        guard slots[idx].token == token else { return }
+        teardown(slot: idx)
+        slots[idx].token = nil
     }
 
-    func stopAll() {
-        playerPool.forEach { $0.pause() }
+    func pauseAll() {
+        slots.forEach { $0.player.pause() }
+    }
+
+    // MARK: - Private
+
+    private func pickSlot() -> Int {
+        if let idle = slots.firstIndex(where: { $0.token == nil }) { return idle }
+        // LRU eviction: steal the slot used longest ago
+        return slots.indices.min(by: { slots[$0].lastUsed < slots[$1].lastUsed })!
+    }
+
+    private func teardown(slot idx: Int) {
+        slots[idx].looper = nil
+        slots[idx].player.pause()
+        slots[idx].player.removeAllItems()
+    }
+
+    private func assign(slot idx: Int, url: URL, token: LeaseToken) {
+        slots[idx].token = token
+        slots[idx].lastUsed = Date()
+
+        let player = slots[idx].player
+        // Disable stall-minimization only for local files — remote URLs need buffering headroom.
+        player.automaticallyWaitsToMinimizeStalling = !url.isFileURL
+
+        let item = AVPlayerItem(url: url)
+        // Write looper synchronously before returning so teardown always sees it.
+        slots[idx].looper = AVPlayerLooper(player: player, templateItem: item)
+        player.isMuted = true
+        player.play()
     }
 }
 
 // ─── Environment Key ──────────────────────────────────────────────────────
 
-struct PlayerPoolEnvironmentKey: EnvironmentKey {
-    static let defaultValue: AVPlayerPoolManager = .shared
+private struct PlayerPoolEnvironmentKey: EnvironmentKey {
+    static let defaultValue: HomeVideoPlayerPool = .shared
 }
 
 extension EnvironmentValues {
-    var playerPool: AVPlayerPoolManager {
+    var playerPool: HomeVideoPlayerPool {
         get { self[PlayerPoolEnvironmentKey.self] }
         set { self[PlayerPoolEnvironmentKey.self] = newValue }
     }
