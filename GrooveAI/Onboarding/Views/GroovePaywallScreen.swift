@@ -6,25 +6,6 @@
 import SwiftUI
 import RevenueCat
 
-private enum OnboardingPaywallImageLoader {
-    private static let workspaceRoot = "/Users/blakeyyyclaw/.openclaw/workspace/groove-ai"
-
-    static func load(_ name: String, fallbackPaths: [String]) -> UIImage? {
-        if let image = UIImage(named: name) {
-            return image
-        }
-
-        for path in ([name] + fallbackPaths) {
-            let absolutePath = path.hasPrefix("/") ? path : "\(workspaceRoot)/\(path)"
-            if let image = UIImage(contentsOfFile: absolutePath) {
-                return image
-            }
-        }
-
-        return nil
-    }
-}
-
 private struct PaywallCollageItem: Identifiable {
     let id = UUID()
     let urlString: String
