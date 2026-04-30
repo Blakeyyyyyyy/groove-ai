@@ -20,6 +20,9 @@
 		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
 		BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB9477262F9C45FF00B49AC7 /* Assets.xcassets */; };
 		BF_PRIVACYINFO /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */; };
+		BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_BIG_GUY /* onb_big_guy.mp4 */; };
+		BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */; };
+		BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_C_WALK /* onb_c_walk.mp4 */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
 		BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
@@ -98,6 +101,9 @@
 		FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleVideoWallView.swift; sourceTree = "<group>"; };
 		FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onboarding_video_wall.mp4; sourceTree = "<group>"; };
 		FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onboarding_video_wall_poster.png; sourceTree = "<group>"; };
+		FR_ONB_BIG_GUY /* onb_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_big_guy.mp4; sourceTree = "<group>"; };
+		FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_coco_channel.mp4; sourceTree = "<group>"; };
+		FR_ONB_C_WALK /* onb_c_walk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_c_walk.mp4; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
@@ -437,6 +443,9 @@
 			children = (
 				FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */,
 				FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */,
+				FR_ONB_BIG_GUY /* onb_big_guy.mp4 */,
+				FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */,
+				FR_ONB_C_WALK /* onb_c_walk.mp4 */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -519,6 +528,9 @@
 			files = (
 				BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */,
 				BF_PRIVACYINFO /* PrivacyInfo.xcprivacy in Resources */,
+				BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */,
+				BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */,
+				BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */,
 				BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */,
 				BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */,
 			);

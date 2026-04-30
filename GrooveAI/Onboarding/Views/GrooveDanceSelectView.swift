@@ -4,15 +4,17 @@ import SwiftUI
 private struct OnboardingDanceOption: Identifiable {
     let id: String
     let label: String
-    let videoURL: String
+    let bundleVideo: String  // bundle resource name (without extension)
+
+    var videoURL: URL? {
+        Bundle.main.url(forResource: bundleVideo, withExtension: "mp4")
+    }
 }
 
-private let r2Base = "https://videos.trygrooveai.com/presets"
-
 private let onboardingDanceOptions: [OnboardingDanceOption] = [
-    OnboardingDanceOption(id: "big-guy", label: "Big Guy Dance", videoURL: "\(r2Base)/big-guy-V5-AI.mp4"),
-    OnboardingDanceOption(id: "coco-channel", label: "Coco Channel", videoURL: "\(r2Base)/coco-channel-75fcae6c.mp4"),
-    OnboardingDanceOption(id: "c-walk", label: "C Walk", videoURL: "\(r2Base)/c-walk-ai.mp4")
+    OnboardingDanceOption(id: "big-guy", label: "Big Guy Dance", bundleVideo: "onb_big_guy"),
+    OnboardingDanceOption(id: "coco-channel", label: "Coco Channel", bundleVideo: "onb_coco_channel"),
+    OnboardingDanceOption(id: "c-walk", label: "C Walk", bundleVideo: "onb_c_walk"),
 ]
 
 struct GrooveDanceSelectView: View {
@@ -198,7 +200,7 @@ private struct DanceLoopCard: View {
         Button(action: onTap) {
             VStack(spacing: 10) {
                 ZStack(alignment: .topLeading) {
-                    if let url = URL(string: option.videoURL) {
+                    if let url = option.videoURL {
                         LoopingVideoView(url: url, gravity: .resizeAspectFill, isMuted: true)
                             .frame(maxWidth: .infinity)
                             .frame(height: 168)

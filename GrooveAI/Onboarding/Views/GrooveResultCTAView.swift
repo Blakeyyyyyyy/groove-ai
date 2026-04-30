@@ -132,17 +132,30 @@ struct GrooveResultCTAView: View {
         }
     }
 
-    private var videoURL: String {
-        if let preset = DancePreset.allPresets.first(where: { $0.id == state.selectedDanceId }),
-           let url = preset.videoURL {
+    // Bundle resource names for the 3 onboarding dance presets — load from disk, instant play.
+    private static let bundledVideos: [String: String] = [
+        "big-guy": "onb_big_guy",
+        "coco-channel": "onb_coco_channel",
+        "c-walk": "onb_c_walk",
+    ]
+
+    private var resolvedVideoURL: URL? {
+        let danceId = state.selectedDanceId
+        if let bundleName = Self.bundledVideos[danceId],
+           let url = Bundle.main.url(forResource: bundleName, withExtension: "mp4") {
             return url
         }
-        let r2Base = "https://videos.trygrooveai.com/presets"
-        return "\(r2Base)/big-guy-V5-AI.mp4"
+        // Fallback to R2 for any non-onboarding preset
+        if let preset = DancePreset.allPresets.first(where: { $0.id == danceId }),
+           let urlString = preset.videoURL,
+           let url = URL(string: urlString) {
+            return url
+        }
+        return Bundle.main.url(forResource: "onb_big_guy", withExtension: "mp4")
     }
 
     private func setupPlayer() {
-        guard let url = URL(string: videoURL) else { return }
+        guard let url = resolvedVideoURL else { return }
         let item = AVPlayerItem(url: url)
         let avPlayer = AVPlayer(playerItem: item)
         avPlayer.isMuted = true
