@@ -48,8 +48,6 @@ struct LoopingVideoView: View {
                     .animation(.easeIn(duration: 0.15), value: isReady)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
         .onAppear { setupPlayer() }
         .onDisappear { teardownPlayer() }
         .onChange(of: isPlaying) { _, playing in

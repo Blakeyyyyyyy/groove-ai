@@ -3,17 +3,9 @@ import AVFoundation
 
 struct DancePresetCard: View {
     let preset: DancePreset
-    @Environment(\.playerPool) private var pool
-    @State private var isVisibleForPlayback = false
-    @State private var lease: LeaseToken? = nil
-    @State private var activePlayer: AVQueuePlayer? = nil
+    @State private var isVisible = false
 
     private let cornerRadius = Radius.lg
-
-    private var videoURL: URL? {
-        guard let s = preset.videoURL else { return nil }
-        return URL(string: s)
-    }
 
     var body: some View {
         cardContent
@@ -31,37 +23,7 @@ struct DancePresetCard: View {
                         .padding(10)
                 }
             }
-            .modifier(HomePresetVisibilityPlayback(isVisibleForPlayback: $isVisibleForPlayback))
-            .onChange(of: isVisibleForPlayback) { _, isVisible in
-                if isVisible {
-                    acquireIfNeeded()
-                }
-                // On visibility false: don't release — just pause via isPlaying binding.
-                // Releasing here causes the placeholder gate to flash gradient mid-scroll.
-                // Only fully release when the card leaves the view hierarchy (onDisappear).
-            }
-            .onDisappear {
-                releaseIfHeld()
-            }
-    }
-
-    private func acquireIfNeeded() {
-        // If we hold a lease but the pool evicted our slot, clear stale state first.
-        if let existingLease = lease, !pool.isValid(existingLease) {
-            lease = nil
-            activePlayer = nil
-        }
-        guard lease == nil, let url = videoURL else { return }
-        let (player, token) = pool.acquire(url: url)
-        activePlayer = player
-        lease = token
-    }
-
-    private func releaseIfHeld() {
-        guard let token = lease else { return }
-        pool.release(token: token)
-        lease = nil
-        activePlayer = nil
+            .modifier(HomePresetVisibilityPlayback(isVisible: $isVisible))
     }
 
     private var cardContent: some View {
@@ -91,17 +53,18 @@ struct DancePresetCard: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        // Gate: only mount LoopingVideoView once the pool has assigned a player.
-        // Mounting with pooledPlayer=nil lets LoopingPlayerUIView create its own
-        // AVQueuePlayer — defeating the pool and causing the original lag.
-        if let url = videoURL, let player = activePlayer, lease != nil {
-            LoopingVideoView(
-                url: url,
-                gravity: .resizeAspectFill,
-                isMuted: true,
-                isPlaying: isVisibleForPlayback,  // pause (show last frame) when scrolled past
-                pooledPlayer: player
-            )
+        if let videoURLString = preset.videoURL, let videoURL = URL(string: videoURLString) {
+            let posterURL = preset.posterURL.flatMap { URL(string: $0) }
+            // Color.clear anchors the layout size to the proposed space.
+            // .overlay constrains LoopingVideoView to that same frame,
+            // preventing AsyncImage from reporting its natural image size upward.
+            Color.clear.overlay {
+                LoopingVideoView(
+                    videoURL: videoURL,
+                    posterURL: posterURL,
+                    isPlaying: $isVisible
+                )
+            }.clipped()
         } else {
             LinearGradient(
                 colors: [preset.placeholderGradientTop, preset.placeholderGradientBottom],
@@ -118,24 +81,24 @@ struct DancePresetCard: View {
 }
 
 private struct HomePresetVisibilityPlayback: ViewModifier {
-    @Binding var isVisibleForPlayback: Bool
+    @Binding var isVisible: Bool
 
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content
-                .onScrollVisibilityChange(threshold: 0.55) { isVisible in
-                    isVisibleForPlayback = isVisible
+                .onScrollVisibilityChange(threshold: 0.55) { visible in
+                    isVisible = visible
                 }
                 .onDisappear {
-                    isVisibleForPlayback = false
+                    isVisible = false
                 }
         } else {
             content
                 .onAppear {
-                    isVisibleForPlayback = true
+                    isVisible = true
                 }
                 .onDisappear {
-                    isVisibleForPlayback = false
+                    isVisible = false
                 }
         }
     }
