@@ -89,10 +89,22 @@ final class GenerationService {
             #if DEBUG
             print("[Generation] 🔄 Step 1: Processing image (classify + upload)...")
             #endif
-            let processResult = try await SupabaseService.shared.processImage(userId: userId, imageData: photoData)
-            guard let imageURL = processResult["image_url"] as? String,
-                  let subjectType = processResult["subject_type"] as? String else {
+            let processResult = try await SupabaseService.shared.processImage(userId: userId, imageData: photoData, danceStyle: preset.id)
+            guard let subjectType = processResult["subject_type"] as? String else {
                 throw GenerationError.serverError("processImage returned invalid data: \(processResult)")
+            }
+
+            // Block pets on Face Dance presets before requiring image_url —
+            // the backend returns early without uploading an image for this case.
+            if preset.isFaceDance && subjectType == "PET" {
+                #if DEBUG
+                print("[Generation] 🚫 Pet photo detected for Face Dance preset '\(preset.id)' — blocking before Kling submission.")
+                #endif
+                throw GenerationError.faceDanceRequiresHuman
+            }
+
+            guard let imageURL = processResult["image_url"] as? String else {
+                throw GenerationError.serverError("processImage returned no image_url: \(processResult)")
             }
             let wasTransformed = Self.parseTransformedFlag(processResult["transformed"])
             #if DEBUG
@@ -273,6 +285,28 @@ final class GenerationService {
                 )
             }
 
+        } catch GenerationError.faceDanceRequiresHuman {
+            // Caught before generate-video — no server-side coin deduction.
+            // Roll back the optimistic deduction and show a clear error.
+            await MainActor.run {
+                appState.refundCoins()
+                let descriptor = FetchDescriptor<GeneratedVideo>(predicate: #Predicate { $0.id == videoId })
+                if let video = try? modelContext.fetch(descriptor).first {
+                    video.status = "failed"
+                    try? modelContext.save()
+                }
+                let message = "Face Dance only works with photos of people. Your coins have been refunded — try a Trending or Classic dance for your pet, or use a human photo for Face Dance."
+                appState.errorAlertMessage = message
+                appState.errorAlertIsPoseIssue = false
+                appState.generationPhase = .failed(message: message)
+                #if DEBUG
+                print("[Generation] 🚫 Face Dance pet block: coins refunded, error shown.")
+                #endif
+            }
+            if appState.hasRequestedNotificationPermission {
+                sendErrorNotification(title: "Face Dance needs a human photo", body: "Try a Trending or Classic dance for your pet, or use a human photo.")
+            }
+
         } catch is CancellationError {
             #if DEBUG
             print("[Generation] ⚠️ Generation task was cancelled")
@@ -392,7 +426,7 @@ final class GenerationService {
             switch refundOutcome {
             case .notAttempted:
                 // No coins were ever deducted — don't claim a refund.
-                userMessage = "Video generation failed: \(errorMsg)"
+                userMessage = "Something went wrong. Please try again."
             case .succeeded, .alreadyDone:
                 userMessage = "Video generation failed. Your coins have been refunded."
             case .failed:
@@ -539,6 +573,7 @@ enum GenerationError: LocalizedError {
     case serverError(String)
     case uploadFailed
     case preprocessingRequired(subjectType: String)
+    case faceDanceRequiresHuman
 
     var errorDescription: String? {
         switch self {
@@ -546,6 +581,8 @@ enum GenerationError: LocalizedError {
         case .uploadFailed: return "Failed to upload your photo. Try again."
         case .preprocessingRequired(let subjectType):
             return "The \(subjectType.lowercased()) photo could not be prepared for animation. Try a clearer, full-body image or retry in a moment."
+        case .faceDanceRequiresHuman:
+            return "Face Dance only works with photos of people. Try a Trending or Classic dance for your pet."
         }
     }
 }

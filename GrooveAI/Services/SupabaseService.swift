@@ -236,9 +236,9 @@ class SupabaseService {
 
     /// Unified image processing: upload + classify + optional transform in one call.
     /// Returns: { image_url, subject_type, transformed }
-    func processImage(userId: String, imageData: Data) async throws -> [String: Any] {
+    func processImage(userId: String, imageData: Data, danceStyle: String) async throws -> [String: Any] {
         #if DEBUG
-        print("[Supabase] 📡 POST /process-image userId=\(userId) imageSize=\(imageData.count)")
+        print("[Supabase] 📡 POST /process-image userId=\(userId) imageSize=\(imageData.count) danceStyle=\(danceStyle)")
         #endif
         let url = URL(string: "\(baseURL)/process-image")!
         var request = URLRequest(url: url)
@@ -254,6 +254,10 @@ class SupabaseService {
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"user_id\"\r\n\r\n".data(using: .utf8)!)
         body.append("\(userId)\r\n".data(using: .utf8)!)
+        // dance_style field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"dance_style\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(danceStyle)\r\n".data(using: .utf8)!)
         // image field
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"image\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)

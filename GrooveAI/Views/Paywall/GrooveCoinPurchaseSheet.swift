@@ -254,12 +254,13 @@ struct GrooveCoinPurchaseSheet: View {
     private var refillDynamicText: String {
         let hours = hoursUntilRefill()
         let coins = currentPlanWeeklyCoins()
-        return "Your coins refill in \(hours) hours, you get \(coins) coins"
+        let hourWord = hours == 1 ? "hour" : "hours"
+        let period = rcService.activeSubscriptionProductID == "grooveai_annual_9999" ? "year" : "week"
+        return "Your coins refill in \(hours) \(hourWord), you get \(coins) coins / \(period)"
     }
 
     private func hoursUntilRefill() -> Int {
         guard let renewalDate = rcService.subscriptionRenewalDate else {
-            // Fallback: weekly plans refill in 168h max
             return 168
         }
         let seconds = max(0, renewalDate.timeIntervalSinceNow)
@@ -267,13 +268,14 @@ struct GrooveCoinPurchaseSheet: View {
     }
 
     private func currentPlanWeeklyCoins() -> Int {
-        // Map active subscription product ID back to plan coin amount
         switch rcService.activeSubscriptionProductID {
-        case "grooveai_weekly_300":  return PlanTier.weeklyStarter300.coinAmount
-        case "grooveai_weekly_550":  return PlanTier.weeklyPro550.coinAmount
-        case "grooveai_weekly_1200": return PlanTier.weeklyMax1200.coinAmount
-        case "grooveai_annual":      return PlanTier.annual.coinAmount
-        default:                     return PlanTier.weeklyStarter300.coinAmount
+        case "grooveai_weekly_300":    return PlanTier.weeklyStarter300.coinAmount
+        case "grooveai_weekly_550":    return PlanTier.weeklyPro550.coinAmount
+        case "grooveai_weekly_1200":   return PlanTier.weeklyMax1200.coinAmount
+        case "grooveai_annual_9999":   return PlanTier.annual.coinAmount
+        case "grooveai_weekly_799",
+             "grooveai_weekly_special": return PlanTier.weeklyStarter300.coinAmount
+        default:                       return PlanTier.weeklyStarter300.coinAmount
         }
     }
 

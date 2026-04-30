@@ -12,7 +12,7 @@ private let r2Base = "https://videos.trygrooveai.com/presets"
 private let onboardingDanceOptions: [OnboardingDanceOption] = [
     OnboardingDanceOption(id: "big-guy", label: "Big Guy Dance", videoURL: "\(r2Base)/big-guy-V5-AI.mp4"),
     OnboardingDanceOption(id: "coco-channel", label: "Coco Channel", videoURL: "\(r2Base)/coco-channel-75fcae6c.mp4"),
-    OnboardingDanceOption(id: "c-walk", label: "C Walk", videoURL: "\(r2Base)/c-walk-V5-AI.mp4")
+    OnboardingDanceOption(id: "c-walk", label: "C Walk", videoURL: "\(r2Base)/c-walk-ai.mp4")
 ]
 
 struct GrooveDanceSelectView: View {
@@ -22,6 +22,8 @@ struct GrooveDanceSelectView: View {
     @State private var selectedIndex: Int = 0
     @State private var hasSelected = false
     @State private var contentAppeared = false
+    @State private var tapped = false
+    @State private var showTapHint = false
 
     var body: some View {
         GeometryReader { geo in
@@ -57,6 +59,11 @@ struct GrooveDanceSelectView: View {
                         .opacity(contentAppeared ? 1 : 0)
                         .offset(y: contentAppeared ? 0 : 18)
 
+                    DanceTapHintView()
+                        .opacity(showTapHint && !tapped ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.35), value: tapped)
+                        .padding(.top, 16)
+
                     Spacer()
                 }
             }
@@ -68,6 +75,11 @@ struct GrooveDanceSelectView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
                     contentAppeared = true
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    showTapHint = true
                 }
             }
         }
@@ -125,6 +137,7 @@ struct GrooveDanceSelectView: View {
     private func handleDanceTap(index: Int, option: OnboardingDanceOption) {
         guard !hasSelected else { return }
 
+        tapped = true
         withAnimation(.spring(response: 0.3, dampingFraction: 0.74)) {
             selectedIndex = index
         }
@@ -148,6 +161,29 @@ struct GrooveDanceSelectView: View {
             return UIImage(named: "subject-pet")
         default:
             return UIImage(named: "subject-person")
+        }
+    }
+}
+
+private struct DanceTapHintView: View {
+    @State private var pulseOpacity: Double = 0.4
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("👆")
+                .font(.system(size: 18))
+            Text("Tap a dance to continue")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .opacity(pulseOpacity)
+        .onAppear {
+            withAnimation(
+                .easeInOut(duration: 0.9)
+                    .repeatForever(autoreverses: true)
+            ) {
+                pulseOpacity = 1.0
+            }
         }
     }
 }

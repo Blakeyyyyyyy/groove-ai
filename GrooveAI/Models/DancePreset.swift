@@ -13,6 +13,10 @@ struct DancePreset: Identifiable, Hashable {
     let videoURL: String?
     let thumbnailURL: String?
 
+    /// True when this preset uses Kling's face-tracking model.
+    /// Pet photos are rejected by Kling for these presets.
+    var isFaceDance: Bool { category == "Face Dance" }
+
     enum DanceBadge: String {
         case trending = "🔥 Trending"
         case hot = "🔥 Hot"
@@ -142,7 +146,7 @@ struct DancePreset: Identifiable, Hashable {
             category: "Face Dance",
             badge: .hot,
             coinCost: 60,
-            pillTags: ["🎭 Face Dance", "👤 All Faces"],
+            pillTags: ["🎭 Face Dance", "👤 Humans Only"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
             videoURL: "\(r2Base)/baby-boombastic.mp4",
@@ -155,7 +159,7 @@ struct DancePreset: Identifiable, Hashable {
             category: "Face Dance",
             badge: .fanFave,
             coinCost: 60,
-            pillTags: ["🎭 Face Dance", "👤 All Faces"],
+            pillTags: ["🎭 Face Dance", "👤 Humans Only"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
             videoURL: "\(r2Base)/witch-doctor-v3.mp4",
@@ -168,7 +172,7 @@ struct DancePreset: Identifiable, Hashable {
             category: "Face Dance",
             badge: .fanFave,
             coinCost: 60,
-            pillTags: ["🎭 Face Dance", "👤 All Faces"],
+            pillTags: ["🎭 Face Dance", "👤 Humans Only"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.04, blue: 0.10),
             videoURL: "\(r2Base)/cotton-eye-joe.mp4",

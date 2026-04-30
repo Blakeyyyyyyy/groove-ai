@@ -95,6 +95,8 @@ struct GrooveHeroScrollView: View {
                     .opacity(contentVisible ? 1 : 0)
                     .offset(y: contentVisible ? 0 : 18)
 
+                    Spacer().frame(height: 12)
+
                     HStack(spacing: 4) {
                         Text("By continuing, you agree to our")
                             .foregroundColor(.gray)

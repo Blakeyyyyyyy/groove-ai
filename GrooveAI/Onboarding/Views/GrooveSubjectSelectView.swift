@@ -90,8 +90,8 @@ struct GrooveSubjectSelectView: View {
                     showTapHint = true
                 }
             }
-            // Start border pulse loop after cards appear
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            // Start border pulse loop immediately
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 startBorderPulseLoop()
             }
         }
@@ -99,16 +99,15 @@ struct GrooveSubjectSelectView: View {
 
     private func startBorderPulseLoop() {
         guard !tapped else { return }
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.easeInOut(duration: 0.6)) {
             borderPulse = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeInOut(duration: 0.3)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.easeInOut(duration: 0.6)) {
                 borderPulse = false
             }
         }
-        // Repeat every 3 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             startBorderPulseLoop()
         }
     }

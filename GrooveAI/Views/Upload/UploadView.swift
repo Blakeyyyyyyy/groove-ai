@@ -167,7 +167,9 @@ struct UploadView: View {
                             .foregroundStyle(Color.textPrimary)
                             .multilineTextAlignment(.center)
 
-                        Text("This dance works best with an image of 1 person, clearly visible of their body")
+                        Text(preset.isFaceDance
+                            ? "Face Dance requires a human face. Pet photos will not work for this style."
+                            : "Works best with a clear photo of 1 person, full body visible.")
                             .font(.caption)
                             .foregroundStyle(Color.textTertiary)
                             .multilineTextAlignment(.center)
@@ -284,112 +286,6 @@ struct UploadView: View {
             return
         }
         fireGeneration(photoData: photoData)
-    }
-}
-
-// MARK: - Coins Purchase Paywall (NOT subscription paywall)
-struct CoinsPurchasePaywallView: View {
-    let onDismiss: () -> Void
-
-    var body: some View {
-        VStack(spacing: Spacing.xl) {
-            Spacer().frame(height: Spacing.xl)
-
-            Image(systemName: "circle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(Color.coinGold)
-
-            Text("Need More Coins")
-                .font(.title2.bold())
-                .foregroundStyle(Color.textPrimary)
-
-            Text("Get more coins to keep creating amazing dance videos.")
-                .font(.subheadline)
-                .foregroundStyle(Color.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, Spacing.xxl)
-
-            // Coin packages
-            VStack(spacing: Spacing.md) {
-                ForEach(CoinPackage.allCases, id: \.productID) { pkg in
-                    let price = RevenueCatService.shared.localizedPrice(for: pkg)
-                    coinPackage(pkg: pkg, price: price ?? "...", label: "\(pkg.coins) Coins", badge: pkg.specBadge?.text)
-                }
-            }
-            .padding(.horizontal, Spacing.lg)
-
-            // Or upgrade
-            VStack(spacing: Spacing.sm) {
-                Text("or")
-                    .font(.caption)
-                    .foregroundStyle(Color.textTertiary)
-
-                Button("Upgrade to Pro — Unlimited") {
-                    // TODO: Navigate to subscription paywall
-                }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.accentStart)
-                .frame(minHeight: 44)
-            }
-
-            Spacer()
-
-            Button("Not Now") {
-                onDismiss()
-            }
-            .font(.subheadline)
-            .foregroundStyle(Color.textTertiary)
-            .frame(minHeight: 44)
-            .padding(.bottom, Spacing.xxl)
-        }
-        .background(Color.bgPrimary)
-    }
-
-    @ViewBuilder
-    private func coinPackage(pkg: CoinPackage, price: String, label: String, badge: String? = nil) -> some View {
-        Button {
-            Task {
-                _ = try? await RevenueCatService.shared.purchaseCoins(pkg)
-            }
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    HStack(spacing: Spacing.sm) {
-                        Text("🪙 \(pkg.coins)")
-                            .font(.headline.weight(.bold))
-                            .foregroundStyle(Color.textPrimary)
-
-                        if let badge {
-                            Text(badge)
-                                .font(.caption2.bold())
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(LinearGradient.accent)
-                                .clipShape(Capsule())
-                        }
-                    }
-
-                    Text(label)
-                        .font(.caption)
-                        .foregroundStyle(Color.textSecondary)
-                }
-
-                Spacer()
-
-                Text(price)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(Color.textPrimary)
-            }
-            .padding(Spacing.lg)
-            .background(Color.bgSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.lg)
-                    .stroke(Color.bgElevated, lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
     }
 }
 
