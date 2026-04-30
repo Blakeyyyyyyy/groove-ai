@@ -38,7 +38,7 @@ struct GrooveResultCTAView: View {
                                 .frame(width: geo.size.width, height: geo.size.height)
                         } else {
                             // Fallback thumbnail
-                            RemoteVideoThumbnail(urlString: videoURL, cornerRadius: 0)
+                            RemoteVideoThumbnail(urlString: resolvedVideoURL?.absoluteString ?? "", cornerRadius: 0)
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 20))
