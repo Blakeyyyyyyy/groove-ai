@@ -39,13 +39,32 @@ class HeroVideoPlayerPool {
     }
 
     func loadVideo(_ urlString: String, into player: AVQueuePlayer) {
-        guard let url = URL(string: urlString) else { return }
-        let item = AVPlayerItem(url: url)
-        let looper = AVPlayerLooper(player: player, templateItem: item)
-        queue.sync(flags: .barrier) {
-            playerLoopers[ObjectIdentifier(player)] = looper  // retain it so ARC doesn't kill it
+        Task.detached(priority: .userInitiated) {
+            // Use cached local file if available — instant load, no network hit.
+            // Otherwise fall back to remote URL and queue a background download.
+            let playURL: URL
+            if let cached = await VideoCache.shared.cachedURL(for: urlString) {
+                playURL = cached
+            } else {
+                guard let remote = URL(string: urlString) else { return }
+                playURL = remote
+                Task.detached(priority: .background) {
+                    try? await VideoCache.shared.download(urlString)
+                }
+            }
+
+            let asset = AVURLAsset(url: playURL)
+            guard (try? await asset.load(.isPlayable)) != nil else { return }
+
+            await MainActor.run {
+                let item = AVPlayerItem(asset: asset)
+                let looper = AVPlayerLooper(player: player, templateItem: item)
+                self.queue.sync(flags: .barrier) {
+                    self.playerLoopers[ObjectIdentifier(player)] = looper
+                }
+                player.play()
+            }
         }
-        player.play()
     }
 
     func shutdown() {

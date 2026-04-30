@@ -20,6 +20,23 @@ struct GrooveAIApp: App {
         DispatchQueue.global(qos: .userInitiated).async {
             _ = AVPlayerPoolManager.shared
         }
+        // Prefetch onboarding videos to disk so subsequent launches load instantly.
+        // On first launch these download in background while the user reads onboarding;
+        // every subsequent launch plays from local disk — zero network latency.
+        VideoCache.shared.prefetch([
+            "https://videos.trygrooveai.com/presets/big-guy-V5-AI.mp4",
+            "https://videos.trygrooveai.com/presets/c-walk-V5-AI.mp4",
+            "https://videos.trygrooveai.com/presets/trag-V5-AI.mp4",
+            "https://videos.trygrooveai.com/presets/baby-boombastic.mp4",
+            "https://videos.trygrooveai.com/presets/milkshake-V5-AI.mp4",
+            "https://videos.trygrooveai.com/presets/ophelia-ai.mp4",
+            "https://videos.trygrooveai.com/presets/coco-channel-75fcae6c.mp4",
+            "https://videos.trygrooveai.com/woman-coco-channel.mp4",
+            "https://videos.trygrooveai.com/woman-big-guy.mp4",
+            "https://videos.trygrooveai.com/demos/golden-retriever-big-guy.mp4",
+            "https://videos.trygrooveai.com/demos/golden-retriever-coco-channel.mp4",
+            "https://videos.trygrooveai.com/demos/golden-retriever-c-walk.mp4",
+        ])
     }
 
     var body: some Scene {

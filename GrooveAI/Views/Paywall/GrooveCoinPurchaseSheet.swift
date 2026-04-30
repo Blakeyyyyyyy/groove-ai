@@ -536,12 +536,12 @@ struct GrooveCoinPurchaseSheet: View {
     private var legalFooter: some View {
         VStack(spacing: 8) {
             HStack(spacing: 4) {
-                Text("Terms")
+                Link("Terms", destination: URL(string: "https://trygrooveai.com/terms")!)
                     .font(.system(size: 13))
                     .foregroundStyle(textTertiary)
                 Text("·")
                     .foregroundStyle(textTertiary)
-                Text("Privacy")
+                Link("Privacy", destination: URL(string: "https://trygrooveai.com/privacy")!)
                     .font(.system(size: 13))
                     .foregroundStyle(textTertiary)
                 Text("·")

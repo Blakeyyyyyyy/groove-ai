@@ -90,22 +90,35 @@ struct GroovePlansSheet: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, Spacing.sm)
 
-            // Restore
-            Button {
-                handleRestore()
-            } label: {
-                HStack(spacing: Spacing.xs) {
-                    if isRestoring {
-                        ProgressView()
-                            .tint(Color.textTertiary)
-                            .scaleEffect(0.7)
+            // Legal footer + Restore
+            HStack(spacing: 4) {
+                Link("Terms", destination: URL(string: "https://trygrooveai.com/terms")!)
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+                Text("·")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+                Link("Privacy", destination: URL(string: "https://trygrooveai.com/privacy")!)
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+                Text("·")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+                Button {
+                    handleRestore()
+                } label: {
+                    HStack(spacing: Spacing.xs) {
+                        if isRestoring {
+                            ProgressView()
+                                .tint(Color.textTertiary)
+                                .scaleEffect(0.6)
+                        }
+                        Text("Restore")
+                            .font(.caption)
+                            .foregroundStyle(Color.textTertiary)
                     }
-                    Text("Already subscribed? Restore")
-                        .font(.footnote)
-                        .foregroundStyle(Color.textTertiary)
                 }
             }
-            .frame(minHeight: 44)
             .padding(.bottom, Spacing.lg)
         }
         .background(Color.bgPrimary)

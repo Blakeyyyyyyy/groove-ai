@@ -79,7 +79,18 @@ final class LoopingPlayerUIView: UIView {
         guard let player else { return }
 
         loadTask = Task(priority: .userInitiated) { [weak self] in
-            let asset = AVURLAsset(url: url)
+            let urlString = url.absoluteString
+            let playURL: URL
+            if let cached = await VideoCache.shared.cachedURL(for: urlString) {
+                playURL = cached
+            } else {
+                playURL = url
+                Task.detached(priority: .background) {
+                    try? await VideoCache.shared.download(urlString)
+                }
+            }
+
+            let asset = AVURLAsset(url: playURL)
 
             do {
                 _ = try await asset.load(.isPlayable)
