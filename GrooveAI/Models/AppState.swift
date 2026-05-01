@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Security
+import RevenueCat
 
 // MARK: - API Response Models
 
@@ -183,9 +184,16 @@ final class AppState {
             return
         }
 
+        await performRegistration()
+    }
+
+    /// Performs the actual registration HTTP call and post-registration setup.
+    /// Caller MUST have already set `isRegistering = true` and verified no other
+    /// registration is in flight. This function clears `isRegistering` itself.
+    private func performRegistration() async {
         // First launch — call /api/register to get server-generated UUID
         #if DEBUG
-        print("[AppState] 🔄 First launch detected. Registering with backend...")
+        print("[AppState] 🔄 Registering with backend...")
         #endif
         do {
             let (newUserId, initialCoins) = try await SupabaseService.shared.register()
@@ -197,6 +205,24 @@ final class AppState {
             #if DEBUG
             print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
             #endif
+
+            // Link the RevenueCat anonymous session to the Supabase userId.
+            // RC may have been configured anonymously before registration completed.
+            // logIn migrates any anonymous purchases to this known user so the
+            // backend webhook can correctly attribute them.
+            await RevenueCatService.shared.loginUser(userId: newUserId)
+
+            // If a purchase completed while we were re-registering, the subscription
+            // expiry call was skipped (no userId). Push it now that userId is saved.
+            let rcService = RevenueCatService.shared
+            if await MainActor.run(body: { rcService.isSubscribed }),
+               let expiresAt = await MainActor.run(body: { rcService.subscriptionRenewalDate }) {
+                #if DEBUG
+                print("[AppState] 🔄 Post-registration: pushing pending subscription expiry")
+                #endif
+                await SupabaseService.shared.updateSubscriptionExpiry(expiresAt)
+                await syncWithServer()
+            }
         } catch {
             #if DEBUG
             print("[AppState] ❌ Registration failed: \(error.localizedDescription)")
@@ -276,7 +302,20 @@ final class AppState {
         NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] notification in
             guard let self else { return }
             Task {
-                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 second delay for webhook
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                for _ in 0..<10 {
+                    if KeychainHelper.get(forKey: "userId") != nil { break }
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                }
+                let rcService = RevenueCatService.shared
+                let isSubscribed = await MainActor.run { rcService.isSubscribed }
+                let expiresAt = await MainActor.run { rcService.subscriptionRenewalDate }
+                if isSubscribed, let expiresAt {
+                    await SupabaseService.shared.updateSubscriptionExpiry(expiresAt)
+                }
+                if let userId = KeychainHelper.get(forKey: "userId") {
+                    await RevenueCatService.shared.loginUser(userId: userId)
+                }
                 await self.syncWithServer()
             }
         }
@@ -375,6 +414,21 @@ final class AppState {
             }
         } catch let error as NSError {
             if error.domain == "SupabaseService" && error.code == 404 {
+                // Only treat as "user deleted from backend" if the response body
+                // explicitly says so. Generic 404s (e.g. Render cold-start, route
+                // misconfig) must NOT nuke the Keychain — that would orphan
+                // legitimate users and trigger a re-register storm.
+                let body = error.localizedDescription.lowercased()
+                let isUserNotFound = body.contains("user not found")
+                    || body.contains("user_not_found")
+                    || body.contains("no user")
+                guard isUserNotFound else {
+                    #if DEBUG
+                    print("[AppState] ⚠️ Generic 404 from server (not 'user not found') — keeping userId, skipping re-register: \(error.localizedDescription)")
+                    #endif
+                    return
+                }
+
                 // User deleted from backend while device still has stale Keychain UUID.
                 // Guard prevents concurrent syncWithServer() calls from all re-registering simultaneously.
                 let shouldRegister = await MainActor.run {
@@ -392,8 +446,9 @@ final class AppState {
                 #if DEBUG
                 print("[AppState] ⚠️ User not found on server — clearing stale ID and re-registering")
                 #endif
-                await initializeUser()
-                await MainActor.run { self.isRegistering = false }
+                // Caller already holds the registration lock; call performRegistration
+                // directly so initializeUser's guard doesn't bail.
+                await performRegistration()
             } else {
                 #if DEBUG
                 print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
@@ -404,6 +459,68 @@ final class AppState {
             print("[AppState] ⚠️ Server sync failed (using local state): \(error)")
             #endif
         }
+    }
+
+    // MARK: - Account Deletion
+
+    /// Deletes the user's account on the server, then wipes local state so the
+    /// next launch starts as a fresh install. App Store guideline 5.1.1(v).
+    /// Returns true on success, false if the server delete failed (local state
+    /// is untouched in that case so the user can retry).
+    @MainActor
+    func deleteAccount() async -> Bool {
+        guard let userId = KeychainHelper.get(forKey: "userId") else {
+            // No server-side account exists — just wipe local state.
+            await wipeLocalAccountState()
+            return true
+        }
+        do {
+            let ok = try await SupabaseService.shared.deleteAccount(userId: userId)
+            guard ok else { return false }
+        } catch {
+            #if DEBUG
+            print("[AppState] ⚠️ deleteAccount failed: \(error.localizedDescription)")
+            #endif
+            return false
+        }
+        await wipeLocalAccountState()
+        return true
+    }
+
+    /// Clears every persisted bit of identity / progress so the next launch
+    /// behaves like a fresh install. Called only after the server confirms the
+    /// account is gone (or when there's nothing on the server to delete).
+    @MainActor
+    private func wipeLocalAccountState() async {
+        KeychainHelper.delete(forKey: "userId")
+
+        let defaults = UserDefaults.standard
+        for key in ["userId", "isSubscribed", "hasHadSubscription", "hasCompletedOnboarding",
+                    "hasRequestedNotificationPermission", "creditsUsed", "groove_coins"] {
+            defaults.removeObject(forKey: key)
+        }
+        defaults.synchronize()
+
+        do {
+            _ = try await Purchases.shared.logOut()
+        } catch {
+            // Non-fatal — anonymous users cannot log out.
+            #if DEBUG
+            print("[AppState] ℹ️ Purchases.logOut() skipped: \(error.localizedDescription)")
+            #endif
+        }
+
+        isSubscribed = false
+        hasHadSubscription = false
+        hasCompletedOnboarding = false
+        hasRequestedNotificationPermission = false
+        serverCoins = 0
+        coinsUsed = 0
+        generationPhase = .idle
+        generatingPhotoData = nil
+        showVideoReadyPopup = false
+        showPaywall = false
+        errorAlertMessage = nil
     }
 
     // MARK: - Generation Flow

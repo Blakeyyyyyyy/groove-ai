@@ -4,7 +4,7 @@ class SupabaseService {
     static let shared = SupabaseService()
 
     private let baseURL: String
-    private let apiKey = "5fdb2d6a43e855ad694c04f188c3a3bc"
+    private let apiKey = Bundle.main.object(forInfoDictionaryKey: "GROOVE_API_KEY") as? String ?? ""
 
     private init() {
         // Read SUPABASE_URL from Info.plist
@@ -156,6 +156,21 @@ class SupabaseService {
             #endif
             return false
         }
+    }
+
+    /// Deletes the user's account and all associated data (videos, credits log,
+    /// webhook events, RevenueCat subscriber). App Store guideline 5.1.1(v).
+    /// Returns true on HTTP 200, false otherwise. Throws on transport errors.
+    func deleteAccount(userId: String) async throws -> Bool {
+        var request = URLRequest(url: URL(string: "\(baseURL)/delete-account")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId])
+        request.timeoutInterval = 30
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { return false }
+        return http.statusCode == 200
     }
 
     func addCoins(userId: String, amount: Int, type: String, appleJWS: String?) async throws -> [String: Any] {

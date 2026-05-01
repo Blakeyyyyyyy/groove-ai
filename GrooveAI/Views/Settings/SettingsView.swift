@@ -11,6 +11,9 @@ struct SettingsView: View {
     @State private var restoreAlertMessage = ""
     @State private var showRestoreAlert = false
     @State private var showPaywall = false
+    @State private var showDeleteConfirm = false
+    @State private var isDeleting = false
+    @State private var showDeleteErrorAlert = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +27,8 @@ struct SettingsView: View {
                     supportSection
 
                     restoreCard
+
+                    accountSection
 
                     VStack(spacing: Spacing.xs) {
                         Text("Groove AI v1.0")
@@ -49,6 +54,24 @@ struct SettingsView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(restoreAlertMessage)
+            }
+            .alert("Delete Account", isPresented: $showDeleteConfirm) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    Task {
+                        isDeleting = true
+                        let ok = await appState.deleteAccount()
+                        isDeleting = false
+                        if !ok { showDeleteErrorAlert = true }
+                    }
+                }
+            } message: {
+                Text("This will permanently delete your account and all your data, including generated videos and coin balance. This cannot be undone.")
+            }
+            .alert("Couldn't delete account", isPresented: $showDeleteErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Something went wrong. Check your connection and try again.")
             }
             .fullScreenCover(isPresented: $showPaywall) {
                 GroovePaywallScreen(
@@ -194,6 +217,44 @@ struct SettingsView: View {
         }
         .buttonStyle(.plain)
         .disabled(isRestoring)
+    }
+
+    // MARK: - Account Section
+
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("ACCOUNT")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.textTertiary)
+                .padding(.leading, Spacing.xs)
+
+            Button {
+                guard !isDeleting else { return }
+                showDeleteConfirm = true
+            } label: {
+                HStack {
+                    Text("Delete Account")
+                        .font(.body)
+                        .foregroundStyle(.red)
+                    Spacer()
+                    if isDeleting {
+                        ProgressView()
+                            .tint(Color.textTertiary)
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.textTertiary)
+                    }
+                }
+                .frame(minHeight: 44)
+                .padding(.horizontal, Spacing.lg)
+                .background(Color.bgSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.xl))
+            }
+            .buttonStyle(.plain)
+            .disabled(isDeleting)
+        }
     }
 }
 
