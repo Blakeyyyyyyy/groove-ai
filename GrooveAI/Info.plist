@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>GROOVE_API_KEY</key>
+	<string>5fdb2d6a43e855ad694c04f188c3a3bc</string>
 	<key>SUPABASE_URL</key>
 	<string>https://groove-ai-backend-1.onrender.com/api</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
