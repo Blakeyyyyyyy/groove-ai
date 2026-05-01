@@ -3,10 +3,28 @@ import Foundation
 class SupabaseService {
     static let shared = SupabaseService()
 
-    private let baseURL = "https://groove-ai-backend-1.onrender.com/api"
-    private let apiKey = "5fdb2d6a43e855ad694c04f188c3a3bc"
+    private let baseURL: String
+    private let apiKey: String
 
-    private init() {}
+    private init() {
+        // Read from generated Info.plist. Keys are injected at build time via
+        // INFOPLIST_KEY_* build settings sourced from GrooveAI/Config/Config.xcconfig
+        // (which is gitignored). xcconfig cannot store "https://" verbatim
+        // because // is a line comment, so we store the host and prepend the
+        // scheme here.
+        let host = (Bundle.main.object(forInfoDictionaryKey: "GROOVE_BASE_HOST") as? String) ?? ""
+        if !host.isEmpty {
+            self.baseURL = "https://\(host)"
+        } else {
+            self.baseURL = "https://groove-ai-backend-1.onrender.com/api"
+        }
+        self.apiKey = (Bundle.main.object(forInfoDictionaryKey: "GROOVE_API_KEY") as? String) ?? ""
+        #if DEBUG
+        if self.apiKey.isEmpty {
+            print("[SupabaseService] ⚠️ GROOVE_API_KEY not found — check Config.xcconfig is wired in Xcode")
+        }
+        #endif
+    }
 
     // MARK: - User
 

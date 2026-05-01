@@ -3,13 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BF_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */; };
-		BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */; };
-		BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */; };
 		98BF8251FF7F0462A09E6314 /* RemoteVideoThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */; };
 		BB424ADE2F919A2400158951 /* GrooveHeroScrollViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */; };
 		BB424AE02F919A2400158951 /* GrooveSubjectSelectViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */; };
@@ -19,18 +16,7 @@
 		BB424AE82F919A2500158951 /* GrooveResultCTAViewV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */; };
 		BB424AEE2F919ADD00158951 /* OnboardingV2PreviewGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */; };
 		BB9477272F9C45FF00B49AC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB9477262F9C45FF00B49AC7 /* Assets.xcassets */; };
-		BF_PRIVACYINFO /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */; };
-		BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_BIG_GUY /* onb_big_guy.mp4 */; };
-		BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */; };
-		BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_C_WALK /* onb_c_walk.mp4 */; };
-		BF_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */; };
-		BF_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */; };
-		BF_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */; };
-		BF_DEMO_DOG_COCO /* demo_dog_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */; };
-		BF_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */; };
-		BF_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */; };
 		BF_APPSTATE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_APPSTATE /* AppState.swift */; };
-		BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */; };
 		BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */; };
 		BF_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */; };
 		BF_CONTENTVIEW /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CONTENTVIEW /* ContentView.swift */; };
@@ -40,6 +26,12 @@
 		BF_DANCEPRESETCARD /* DancePresetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCEPRESETCARD /* DancePresetCard.swift */; };
 		BF_DANCEPREVIEWVIEW /* DancePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCEPREVIEWVIEW /* DancePreviewView.swift */; };
 		BF_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */; };
+		BF_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */; };
+		BF_DEMO_DOG_COCO /* demo_dog_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */; };
+		BF_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */; };
+		BF_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */; };
+		BF_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */; };
+		BF_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */; };
 		BF_DESIGNTOKENS /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DESIGNTOKENS /* DesignTokens.swift */; };
 		BF_EMPTYSTATEVIEW /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EMPTYSTATEVIEW /* EmptyStateView.swift */; };
 		BF_GEMINISERVICE /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GEMINISERVICE /* GeminiService.swift */; };
@@ -62,10 +54,11 @@
 		BF_GROOVEPLANSSHEET /* GroovePlansSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */; };
 		BF_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */; };
 		BF_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */; };
-		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
 		BF_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */; };
+		BF_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */; };
 		BF_GROOVESPLASHVIEW /* GrooveSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */; };
 		BF_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */; };
+		BF_GROOVE_REVEAL_MUSIC /* groove_reveal_music.aac in Resources */ = {isa = PBXBuildFile; fileRef = FR_GROOVE_REVEAL_MUSIC /* groove_reveal_music.aac */; };
 		BF_HEROBANNERVIEW /* HeroBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROBANNERVIEW /* HeroBannerView.swift */; };
 		BF_HEROVIDEOCELL /* HeroVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROVIDEOCELL /* HeroVideoCell.swift */; };
 		BF_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */; };
@@ -74,6 +67,7 @@
 		BF_KLINGSERVICE /* KlingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_KLINGSERVICE /* KlingService.swift */; };
 		BF_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift */; };
 		BF_LOOPINGVIDEOVIEW /* LoopingVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_LOOPINGVIDEOVIEW /* LoopingVideoView.swift */; };
+		BF_MANAGEPLANVIEW /* ManagePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MANAGEPLANVIEW /* ManagePlanView.swift */; };
 		BF_MYVIDEOSVIEW /* MyVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MYVIDEOSVIEW /* MyVideosView.swift */; };
 		BF_NOTIFICATIONSERVICE /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFICATIONSERVICE /* NotificationService.swift */; };
 		BF_NOTIFPERMVIEW /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */; };
@@ -82,41 +76,44 @@
 		BF_ONBOARDINGFLOW /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGFLOW /* OnboardingFlow.swift */; };
 		BF_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */; };
 		BF_ONBOARDINGSTATE /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDINGSTATE /* OnboardingState.swift */; };
+		BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */; };
+		BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */; };
+		BF_ONB_BIG_GUY /* onb_big_guy.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_BIG_GUY /* onb_big_guy.mp4 */; };
+		BF_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */; };
+		BF_ONB_C_WALK /* onb_c_walk.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = FR_ONB_C_WALK /* onb_c_walk.mp4 */; };
 		BF_PAGEINDICATORDOTS /* PageIndicatorDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */; };
 		BF_PHOTOPICKER /* PhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PHOTOPICKER /* PhotoPicker.swift */; };
 		BF_PLANTIER /* PlanTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_PLANTIER /* PlanTier.swift */; };
+		BF_PRIVACYINFO /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */; };
 		BF_R2SERVICE /* R2Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_R2SERVICE /* R2Service.swift */; };
 		BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */; };
 		BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_REVENUECATSERVICE /* RevenueCatService.swift */; };
 		BF_REVENUECAT_PKG /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = PR_REVENUECAT /* RevenueCat */; };
 		BF_SETTINGSROW /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSROW /* SettingsRow.swift */; };
 		BF_SETTINGSVIEW /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSVIEW /* SettingsView.swift */; };
-		BF_MANAGEPLANVIEW /* ManagePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MANAGEPLANVIEW /* ManagePlanView.swift */; };
 		BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */; };
+		BF_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */; };
 		BF_SUBJECTPICKERVIEW /* SubjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */; };
 		BF_SUPABASESERVICE /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SUPABASESERVICE /* SupabaseService.swift */; };
 		BF_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */; };
 		BF_UPLOADVIEW /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_UPLOADVIEW /* UploadView.swift */; };
 		BF_VIDEOCACHE /* VideoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOCACHE /* VideoCache.swift */; };
-		BF_VIDEOPRELOADER /* VideoPreloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOPRELOADER /* VideoPreloader.swift */; };
 		BF_VIDEOREADYPOPUP /* VideoReadyPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */; };
 		BF_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BB5428712FA44EE300BE2D33 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJECT_ROOT /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = APP_TARGET;
+			remoteInfo = GrooveAI;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemoteVideoThumbnail.swift; sourceTree = "<group>"; };
-		FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleVideoWallView.swift; sourceTree = "<group>"; };
-		FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onboarding_video_wall.mp4; sourceTree = "<group>"; };
-		FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onboarding_video_wall_poster.png; sourceTree = "<group>"; };
-		FR_ONB_BIG_GUY /* onb_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_big_guy.mp4; sourceTree = "<group>"; };
-		FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_coco_channel.mp4; sourceTree = "<group>"; };
-		FR_ONB_C_WALK /* onb_c_walk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_c_walk.mp4; sourceTree = "<group>"; };
-		FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_big_guy.mp4; sourceTree = "<group>"; };
-		FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_coco.mp4; sourceTree = "<group>"; };
-		FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_big_guy.mp4; sourceTree = "<group>"; };
-		FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_coco.mp4; sourceTree = "<group>"; };
-		FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_cwalk.mp4; sourceTree = "<group>"; };
-		FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_cwalk.mp4; sourceTree = "<group>"; };
 		BB424ADD2F919A2400158951 /* GrooveHeroScrollViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveHeroScrollViewV2.swift; sourceTree = "<group>"; };
 		BB424ADF2F919A2400158951 /* GrooveSubjectSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectViewV2.swift; sourceTree = "<group>"; };
 		BB424AE12F919A2400158951 /* GrooveDanceSelectViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveDanceSelectViewV2.swift; sourceTree = "<group>"; };
@@ -124,10 +121,10 @@
 		BB424AE52F919A2500158951 /* GroovePremiumMagicResultFlowViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowViewV2.swift; sourceTree = "<group>"; };
 		BB424AE72F919A2500158951 /* GrooveResultCTAViewV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAViewV2.swift; sourceTree = "<group>"; };
 		BB424AED2F919ADD00158951 /* OnboardingV2PreviewGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2PreviewGallery.swift; sourceTree = "<group>"; };
+		BB54286D2FA44EE300BE2D33 /* GrooveAITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GrooveAITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB9477262F9C45FF00B49AC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerPoolManager.swift; sourceTree = "<group>"; };
+		FR_CONFIG_XCCONFIG /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
 		FR_CONTENTVIEW /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -137,6 +134,12 @@
 		FR_DANCEPRESETCARD /* DancePresetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePresetCard.swift; sourceTree = "<group>"; };
 		FR_DANCEPREVIEWVIEW /* DancePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DancePreviewView.swift; sourceTree = "<group>"; };
 		FR_DANCESTYLEPICKERVIEW /* DanceStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanceStylePickerView.swift; sourceTree = "<group>"; };
+		FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_big_guy.mp4; sourceTree = "<group>"; };
+		FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_coco.mp4; sourceTree = "<group>"; };
+		FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_dog_cwalk.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_big_guy.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_coco.mp4; sourceTree = "<group>"; };
+		FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = demo_woman_cwalk.mp4; sourceTree = "<group>"; };
 		FR_DESIGNTOKENS /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		FR_EMPTYSTATEVIEW /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		FR_GEMINISERVICE /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
@@ -159,10 +162,11 @@
 		FR_GROOVEPLANSSHEET /* GroovePlansSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePlansSheet.swift; sourceTree = "<group>"; };
 		FR_GROOVEPREMIUMMAGICRESULTFLOWVIEW /* GroovePremiumMagicResultFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroovePremiumMagicResultFlowView.swift; sourceTree = "<group>"; };
 		FR_GROOVERESULTCTAVIEW /* GrooveResultCTAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveResultCTAView.swift; sourceTree = "<group>"; };
-		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
 		FR_GROOVESPECIALOFFERPAYWALLV2 /* GrooveSpecialOfferPaywallV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferPaywallV2.swift; sourceTree = "<group>"; };
+		FR_GROOVESPECIALOFFERVIEW /* GrooveSpecialOfferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSpecialOfferView.swift; sourceTree = "<group>"; };
 		FR_GROOVESPLASHVIEW /* GrooveSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSplashView.swift; sourceTree = "<group>"; };
 		FR_GROOVESUBJECTSELECTVIEW /* GrooveSubjectSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrooveSubjectSelectView.swift; sourceTree = "<group>"; };
+		FR_GROOVE_REVEAL_MUSIC /* groove_reveal_music.aac */ = {isa = PBXFileReference; lastKnownFileType = "public.aac-audio"; path = groove_reveal_music.aac; sourceTree = "<group>"; };
 		FR_HEROBANNERVIEW /* HeroBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroBannerView.swift; sourceTree = "<group>"; };
 		FR_HEROVIDEOCELL /* HeroVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroVideoCell.swift; sourceTree = "<group>"; };
 		FR_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroVideoColumnView.swift; sourceTree = "<group>"; };
@@ -171,6 +175,7 @@
 		FR_KLINGSERVICE /* KlingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KlingService.swift; sourceTree = "<group>"; };
 		FR_LEGACYSYSTEMTABCONTAINER /* LegacySystemTabContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacySystemTabContainer.swift; sourceTree = "<group>"; };
 		FR_LOOPINGVIDEOVIEW /* LoopingVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopingVideoView.swift; sourceTree = "<group>"; };
+		FR_MANAGEPLANVIEW /* ManagePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagePlanView.swift; sourceTree = "<group>"; };
 		FR_MYVIDEOSVIEW /* MyVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyVideosView.swift; sourceTree = "<group>"; };
 		FR_NOTIFICATIONSERVICE /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		FR_NOTIFPERMVIEW /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
@@ -179,28 +184,44 @@
 		FR_ONBOARDINGFLOW /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGHOOKVIEW /* OnboardingHookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHookView.swift; sourceTree = "<group>"; };
 		FR_ONBOARDINGSTATE /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
+		FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onboarding_video_wall.mp4; sourceTree = "<group>"; };
+		FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onboarding_video_wall_poster.png; sourceTree = "<group>"; };
+		FR_ONB_BIG_GUY /* onb_big_guy.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_big_guy.mp4; sourceTree = "<group>"; };
+		FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_coco_channel.mp4; sourceTree = "<group>"; };
+		FR_ONB_C_WALK /* onb_c_walk.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = onb_c_walk.mp4; sourceTree = "<group>"; };
 		FR_PAGEINDICATORDOTS /* PageIndicatorDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageIndicatorDots.swift; sourceTree = "<group>"; };
 		FR_PHOTOPICKER /* PhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPicker.swift; sourceTree = "<group>"; };
 		FR_PLANTIER /* PlanTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTier.swift; sourceTree = "<group>"; };
+		FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FR_R2SERVICE /* R2Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Service.swift; sourceTree = "<group>"; };
 		FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptService.swift; sourceTree = "<group>"; };
 		FR_REVENUECATSERVICE /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 		FR_SETTINGSROW /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		FR_SETTINGSVIEW /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		FR_MANAGEPLANVIEW /* ManagePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagePlanView.swift; sourceTree = "<group>"; };
 		FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedResultView.swift; sourceTree = "<group>"; };
+		FR_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleVideoWallView.swift; sourceTree = "<group>"; };
 		FR_SUBJECTPICKERVIEW /* SubjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectPickerView.swift; sourceTree = "<group>"; };
 		FR_SUPABASESERVICE /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		FR_TRIALENABLEDSCREEN /* TrialEnabledScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialEnabledScreen.swift; sourceTree = "<group>"; };
 		FR_UPLOADVIEW /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		FR_VIDEOCACHE /* VideoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCache.swift; sourceTree = "<group>"; };
-		FR_VIDEOPRELOADER /* VideoPreloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreloader.swift; sourceTree = "<group>"; };
 		FR_VIDEOREADYPOPUP /* VideoReadyPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReadyPopup.swift; sourceTree = "<group>"; };
 		FR_VIDEOTHUMBNAILCARD /* VideoThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailCard.swift; sourceTree = "<group>"; };
 		PRODUCT_REF /* GrooveAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrooveAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BB54286E2FA44EE300BE2D33 /* GrooveAITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = GrooveAITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		BB54286A2FA44EE300BE2D33 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FRAMEWORKS_PHASE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -254,6 +275,14 @@
 				51AD9BE53D449C9E5ED03316 /* RemoteVideoThumbnail.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		GRP_CONFIG /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				FR_CONFIG_XCCONFIG /* Config.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		GRP_DESIGN /* Design */ = {
@@ -369,6 +398,25 @@
 			path = Preview;
 			sourceTree = "<group>";
 		};
+		GRP_RESOURCES /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */,
+				FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */,
+				FR_ONB_BIG_GUY /* onb_big_guy.mp4 */,
+				FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */,
+				FR_ONB_C_WALK /* onb_c_walk.mp4 */,
+				FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */,
+				FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */,
+				FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */,
+				FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */,
+				FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */,
+				FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */,
+				FR_GROOVE_REVEAL_MUSIC /* groove_reveal_music.aac */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		GRP_RESULT /* Result */ = {
 			isa = PBXGroup;
 			children = (
@@ -381,8 +429,6 @@
 			isa = PBXGroup;
 			children = (
 				FR_VIDEOCACHE /* VideoCache.swift */,
-				FR_VIDEOPRELOADER /* VideoPreloader.swift */,
-				FR_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift */,
 				FR_CREDITSSERVICE /* CreditsService.swift */,
 				FR_GEMINISERVICE /* GeminiService.swift */,
 				FR_GENERATIONSERVICE /* GenerationService.swift */,
@@ -441,6 +487,7 @@
 			isa = PBXGroup;
 			children = (
 				PRODUCT_REF /* GrooveAI.app */,
+				BB54286D2FA44EE300BE2D33 /* GrooveAITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -449,26 +496,9 @@
 			isa = PBXGroup;
 			children = (
 				SOURCE_GROUP /* GrooveAI */,
+				BB54286E2FA44EE300BE2D33 /* GrooveAITests */,
 				PRODUCTS_GROUP /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		GRP_RESOURCES /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				FR_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 */,
-				FR_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png */,
-				FR_ONB_BIG_GUY /* onb_big_guy.mp4 */,
-				FR_ONB_COCO_CHANNEL /* onb_coco_channel.mp4 */,
-				FR_ONB_C_WALK /* onb_c_walk.mp4 */,
-				FR_DEMO_WOMAN_BIG_GUY /* demo_woman_big_guy.mp4 */,
-				FR_DEMO_WOMAN_COCO /* demo_woman_coco.mp4 */,
-				FR_DEMO_DOG_BIG_GUY /* demo_dog_big_guy.mp4 */,
-				FR_DEMO_DOG_COCO /* demo_dog_coco.mp4 */,
-				FR_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 */,
-				FR_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		SOURCE_GROUP /* GrooveAI */ = {
@@ -477,6 +507,7 @@
 				BB9477262F9C45FF00B49AC7 /* Assets.xcassets */,
 				FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */,
 				GRP_APP /* App */,
+				GRP_CONFIG /* Config */,
 				GRP_DESIGN /* Design */,
 				GRP_MODELS /* Models */,
 				GRP_GROOVEONBOARDING /* Onboarding */,
@@ -498,6 +529,7 @@
 				SOURCES_PHASE /* Sources */,
 				FRAMEWORKS_PHASE /* Frameworks */,
 				RESOURCES_PHASE /* Resources */,
+				BP_INJECT_SECRETS /* Inject secrets into Info.plist */,
 			);
 			buildRules = (
 			);
@@ -511,6 +543,29 @@
 			productReference = PRODUCT_REF /* GrooveAI.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BB54286C2FA44EE300BE2D33 /* GrooveAITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB5428752FA44EE300BE2D33 /* Build configuration list for PBXNativeTarget "GrooveAITests" */;
+			buildPhases = (
+				BB5428692FA44EE300BE2D33 /* Sources */,
+				BB54286A2FA44EE300BE2D33 /* Frameworks */,
+				BB54286B2FA44EE300BE2D33 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB5428722FA44EE300BE2D33 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BB54286E2FA44EE300BE2D33 /* GrooveAITests */,
+			);
+			name = GrooveAITests;
+			packageProductDependencies = (
+			);
+			productName = GrooveAITests;
+			productReference = BB54286D2FA44EE300BE2D33 /* GrooveAITests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -518,8 +573,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					BB54286C2FA44EE300BE2D33 = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = APP_TARGET;
+					};
+				};
 			};
 			buildConfigurationList = PROJECT_BUILD_CONFIG_LIST /* Build configuration list for PBXProject "GrooveAI" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -538,11 +599,19 @@
 			projectRoot = "";
 			targets = (
 				APP_TARGET /* GrooveAI */,
+				BB54286C2FA44EE300BE2D33 /* GrooveAITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BB54286B2FA44EE300BE2D33 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		RESOURCES_PHASE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -558,6 +627,7 @@
 				BF_DEMO_DOG_COCO /* demo_dog_coco.mp4 in Resources */,
 				BF_DEMO_DOG_CWALK /* demo_dog_cwalk.mp4 in Resources */,
 				BF_DEMO_WOMAN_CWALK /* demo_woman_cwalk.mp4 in Resources */,
+				BF_GROOVE_REVEAL_MUSIC /* groove_reveal_music.aac in Resources */,
 				BF_ONBOARDING_VIDEO_MP4 /* onboarding_video_wall.mp4 in Resources */,
 				BF_ONBOARDING_VIDEO_POSTER /* onboarding_video_wall_poster.png in Resources */,
 			);
@@ -565,7 +635,38 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		BP_INJECT_SECRETS /* Inject secrets into Info.plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Inject secrets into Info.plist";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/inject-secrets.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n# Inject xcconfig-sourced secrets into the GENERATE_INFOPLIST_FILE output.\n# INFOPLIST_KEY_* only injects an Apple-recognized whitelist; arbitrary keys\n# require post-processing the built Info.plist directly.\n# Declaring TARGET_BUILD_DIR/INFOPLIST_PATH as an input forces Xcode to run\n# this phase after ProcessInfoPlistFile (otherwise they run in parallel and\n# our edits get overwritten on incremental builds).\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nSTAMP=\"${DERIVED_FILE_DIR}/inject-secrets.stamp\"\nmkdir -p \"$(dirname \"$STAMP\")\"\nif [ ! -f \"$INFO_PLIST\" ]; then\n  echo \"warning: Info.plist not found at $INFO_PLIST — skipping secret injection\"\n  : > \"$STAMP\"\n  exit 0\nfi\nif [ -z \"${GROOVE_API_KEY:-}\" ]; then\n  echo \"warning: GROOVE_API_KEY is empty — Config.xcconfig may be missing or not wired\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :GROOVE_API_KEY\" \"$INFO_PLIST\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :GROOVE_API_KEY string ${GROOVE_API_KEY:-}\" \"$INFO_PLIST\"\n/usr/libexec/PlistBuddy -c \"Delete :GROOVE_BASE_HOST\" \"$INFO_PLIST\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :GROOVE_BASE_HOST string ${GROOVE_BASE_HOST:-}\" \"$INFO_PLIST\"\necho \"note: injected GROOVE_API_KEY and GROOVE_BASE_HOST into $INFO_PLIST\"\ndate > \"$STAMP\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		BB5428692FA44EE300BE2D33 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		SOURCES_PHASE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -573,11 +674,9 @@
 				BF_SINGLEVIDEOWALLVIEW /* SingleVideoWallView.swift in Sources */,
 				BF_ONBOARDINGAVPLAYERPOOL /* AVPlayerPool.swift in Sources */,
 				BF_VIDEOCACHE /* VideoCache.swift in Sources */,
-				BF_VIDEOPRELOADER /* VideoPreloader.swift in Sources */,
 				BF_HEROVIDEOWALLVIEW /* HeroVideoWallView.swift in Sources */,
 				BF_HEROVIDEOCOLUMNVIEW /* HeroVideoColumnView.swift in Sources */,
 				BF_HEROVIDEOCELL /* HeroVideoCell.swift in Sources */,
-				BF_AVPLAYERPOOLMANAGER /* AVPlayerPoolManager.swift in Sources */,
 				BB424AE42F919A2500158951 /* GrooveMagicMomentViewV2.swift in Sources */,
 				BF_APPSTATE /* AppState.swift in Sources */,
 				BF_CATEGORYSWIPEVIEW /* CategorySwipeView.swift in Sources */,
@@ -655,7 +754,117 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		BB5428722FA44EE300BE2D33 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = APP_TARGET /* GrooveAI */;
+			targetProxy = BB5428712FA44EE300BE2D33 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		BB5428732FA44EE300BE2D33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA9S6CUFVK;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Grooveai.GrooveAITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GrooveAI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GrooveAI";
+			};
+			name = Debug;
+		};
+		BB5428742FA44EE300BE2D33 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LA9S6CUFVK;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Grooveai.GrooveAITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GrooveAI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GrooveAI";
+			};
+			name = Release;
+		};
 		DEBUG_PROJECT /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -692,6 +901,7 @@
 		};
 		DEBUG_TARGET /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FR_CONFIG_XCCONFIG /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -750,6 +960,7 @@
 		};
 		RELEASE_TARGET /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FR_CONFIG_XCCONFIG /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -782,6 +993,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BB5428752FA44EE300BE2D33 /* Build configuration list for PBXNativeTarget "GrooveAITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB5428732FA44EE300BE2D33 /* Debug */,
+				BB5428742FA44EE300BE2D33 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		PROJECT_BUILD_CONFIG_LIST /* Build configuration list for PBXProject "GrooveAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

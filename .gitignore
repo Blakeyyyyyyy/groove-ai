@@ -3,3 +3,6 @@ build/
 DerivedData/
 *.xcuserstate
 *.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Local secrets — never commit
+GrooveAI/Config/Config.xcconfig

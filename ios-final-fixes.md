@@ -40,7 +40,7 @@ Added the required disclosure HStack below the "Make yours →" CTA button, outs
 
 **File changed:** `GrooveAI/Services/SupabaseService.swift`
 
-Added `private let apiKey = "5fdb2d6a43e855ad694c04f188c3a3bc"` near the top of the class.
+Added `private let apiKey = "<REDACTED — see GrooveAI/Config/Config.xcconfig>"` near the top of the class.
 
 Added `request.setValue(apiKey, forHTTPHeaderField: "x-api-key")` to all 13 backend request sites:
 
