@@ -3,21 +3,10 @@ import Foundation
 class SupabaseService {
     static let shared = SupabaseService()
 
-    private let baseURL: String
-    private let apiKey = Bundle.main.object(forInfoDictionaryKey: "GROOVE_API_KEY") as? String ?? ""
+    private let baseURL = "https://groove-ai-backend-1.onrender.com/api"
+    private let apiKey = "5fdb2d6a43e855ad694c04f188c3a3bc"
 
-    private init() {
-        // Read SUPABASE_URL from Info.plist
-        if let url = Bundle.main.infoDictionary?["SUPABASE_URL"] as? String {
-            self.baseURL = url
-        } else {
-            // Fallback to default URL if not found in plist
-            self.baseURL = "https://groove-ai-backend-1.onrender.com/api"
-            #if DEBUG
-            print("[SupabaseService] ⚠️ SUPABASE_URL not found in Info.plist, using default URL")
-            #endif
-        }
-    }
+    private init() {}
 
     // MARK: - User
 
