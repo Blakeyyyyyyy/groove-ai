@@ -4,26 +4,20 @@ class SupabaseService {
     static let shared = SupabaseService()
 
     private let baseURL: String
-    private let apiKey: String
+
+    /// Per-user JWT issued by /api/register and stored in Keychain.
+    /// Replaces the old static GROOVE_API_KEY shared secret — there is now
+    /// zero static auth material in the iOS binary.
+    private var authToken: String? { KeychainHelper.get(forKey: "authToken") }
 
     private init() {
-        // Read from generated Info.plist. Keys are injected at build time via
+        // Read from generated Info.plist. Host is injected at build time via
         // INFOPLIST_KEY_* build settings sourced from GrooveAI/Config/Config.xcconfig
         // (which is gitignored). xcconfig cannot store "https://" verbatim
         // because // is a line comment, so we store the host and prepend the
         // scheme here.
         let host = (Bundle.main.object(forInfoDictionaryKey: "GROOVE_BASE_HOST") as? String) ?? ""
-        if !host.isEmpty {
-            self.baseURL = "https://\(host)"
-        } else {
-            self.baseURL = "https://groove-ai-backend-1.onrender.com/api"
-        }
-        self.apiKey = (Bundle.main.object(forInfoDictionaryKey: "GROOVE_API_KEY") as? String) ?? ""
-        #if DEBUG
-        if self.apiKey.isEmpty {
-            print("[SupabaseService] ⚠️ GROOVE_API_KEY not found — check Config.xcconfig is wired in Xcode")
-        }
-        #endif
+        self.baseURL = host.isEmpty ? "https://groove-ai-backend-1.onrender.com/api" : "https://\(host)"
     }
 
     // MARK: - User
@@ -36,7 +30,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/register")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "register")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -44,6 +40,16 @@ class SupabaseService {
             throw NSError(domain: "SupabaseService", code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "register: missing user_id or coins in response"])
         }
+
+        // Save the JWT issued by the server. Every subsequent request uses
+        // this as the Bearer token — there is no static API key anywhere.
+        if let token = result["token"] as? String {
+            KeychainHelper.save(token, forKey: "authToken")
+            #if DEBUG
+            print("[Supabase] ✅ register: authToken saved to Keychain")
+            #endif
+        }
+
         #if DEBUG
         print("[Supabase] ✅ register: user_id=\(userId), coins=\(coins)")
         #endif
@@ -55,7 +61,9 @@ class SupabaseService {
         print("[Supabase] 📡 GET /user/\(id)")
         #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/user/\(id)")!)
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getUser")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -78,7 +86,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/refund-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "video_id": videoId,
@@ -143,7 +153,9 @@ class SupabaseService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: [
@@ -172,7 +184,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/delete-account")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId])
         request.timeoutInterval = 30
         let (_, response) = try await URLSession.shared.data(for: request)
@@ -187,7 +201,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/add-coins")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
 
         var body: [String: Any] = ["user_id": userId, "amount": amount, "type": type]
         if let jws = appleJWS {
@@ -212,7 +228,9 @@ class SupabaseService {
         print("[Supabase] 📡 GET /videos/\(userId)")
         #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/videos/\(userId)")!)
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getVideos")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
@@ -225,7 +243,9 @@ class SupabaseService {
         print("[Supabase] 📡 GET /presets")
         #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/presets")!)
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "getPresets")
         return try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
@@ -240,7 +260,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/upload-presigned")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "filename": filename,
@@ -269,7 +291,9 @@ class SupabaseService {
 
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
 
         var body = Data()
         // user_id field
@@ -306,7 +330,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/classify-image")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["image_url": imageURL])
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -325,7 +351,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/generate-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "user_id": userId,
             "image_url": imageURL,
@@ -347,7 +375,9 @@ class SupabaseService {
         print("[Supabase] 📡 GET /video-status/\(taskId)")
         #endif
         var request = URLRequest(url: URL(string: "\(baseURL)/video-status/\(taskId)")!)
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         try checkHTTPResponse(response, data: data, context: "checkVideoStatus")
         let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -364,7 +394,9 @@ class SupabaseService {
         var request = URLRequest(url: URL(string: "\(baseURL)/save-video")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId, "video_id": videoId, "video_url": videoURL])
 
         let (data, response) = try await URLSession.shared.data(for: request)

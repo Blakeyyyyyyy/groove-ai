@@ -493,6 +493,7 @@ final class AppState {
     @MainActor
     private func wipeLocalAccountState() async {
         KeychainHelper.delete(forKey: "userId")
+        KeychainHelper.delete(forKey: "authToken")
 
         let defaults = UserDefaults.standard
         for key in ["userId", "isSubscribed", "hasHadSubscription", "hasCompletedOnboarding",
