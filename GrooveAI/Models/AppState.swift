@@ -162,13 +162,29 @@ final class AppState {
     /// If user_id already exists in Keychain, syncs with server.
     /// If not, calls /api/register to get a server-generated UUID and stores it.
     func initializeUser() async {
-        if let existingId = KeychainHelper.get(forKey: "userId") {
-            // User already registered — .task in GrooveAIApp handles the sync
+        if let existingId = KeychainHelper.get(forKey: "userId"),
+           KeychainHelper.get(forKey: "authToken") != nil {
+            // Both userId AND authToken present — existing user, .task in
+            // GrooveAIApp handles the sync.
             #if DEBUG
             print("[AppState] 👤 User already initialized: \(existingId). Syncing server state.")
             #endif
             _ = existingId
             return
+        }
+
+        // Either no userId, or userId exists but no authToken (pre-JWT install
+        // where Keychain survived a clean build). Wipe the stale userId so
+        // performRegistration() starts clean and we get a fresh token pair.
+        if KeychainHelper.get(forKey: "userId") != nil {
+            #if DEBUG
+            print("[AppState] 🆕 Stale userId without authToken — clearing and re-registering fresh user")
+            #endif
+            KeychainHelper.delete(forKey: "userId")
+        } else {
+            #if DEBUG
+            print("[AppState] 🆕 No valid session found — registering fresh user")
+            #endif
         }
 
         // Prevent concurrent registrations (e.g. from parallel syncWithServer 404 handlers)
