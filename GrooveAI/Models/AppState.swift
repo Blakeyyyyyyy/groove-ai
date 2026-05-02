@@ -217,6 +217,11 @@ final class AppState {
             await MainActor.run {
                 self.serverCoins = initialCoins
                 self.isRegistering = false
+                // Reset stale subscription flags from any previous user whose
+                // state survived in UserDefaults. syncWithServer below will
+                // restore them to the server's truth for this new account.
+                self.isSubscribed = false
+                self.hasHadSubscription = false
             }
             #if DEBUG
             print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
@@ -228,8 +233,8 @@ final class AppState {
             // backend webhook can correctly attribute them.
             await RevenueCatService.shared.loginUser(userId: newUserId)
 
-            // If a purchase completed while we were re-registering, the subscription
-            // expiry call was skipped (no userId). Push it now that userId is saved.
+            // If a purchase completed while we were re-registering, push the
+            // subscription expiry now that userId is saved.
             let rcService = RevenueCatService.shared
             if await MainActor.run(body: { rcService.isSubscribed }),
                let expiresAt = await MainActor.run(body: { rcService.subscriptionRenewalDate }) {
@@ -237,8 +242,10 @@ final class AppState {
                 print("[AppState] 🔄 Post-registration: pushing pending subscription expiry")
                 #endif
                 await SupabaseService.shared.updateSubscriptionExpiry(expiresAt)
-                await syncWithServer()
             }
+            // Always sync so server state (coins, subscription_status) overwrites
+            // any stale UserDefaults left from a previous account.
+            await syncWithServer()
         } catch {
             #if DEBUG
             print("[AppState] ❌ Registration failed: \(error.localizedDescription)")

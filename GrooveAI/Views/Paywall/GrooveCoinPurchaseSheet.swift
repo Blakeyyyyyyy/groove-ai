@@ -250,33 +250,24 @@ struct GrooveCoinPurchaseSheet: View {
     }
 
     /// Dynamic refill text for subscribers based on their active plan.
-    /// Format: "Your coins refill in X hours, you get X coins"
+    /// Format: "You get X coins / week — Refills in N days"
     private var refillDynamicText: String {
-        let hours = hoursUntilRefill()
-        let coins = currentPlanWeeklyCoins()
-        let hourWord = hours == 1 ? "hour" : "hours"
-        let period = rcService.activeSubscriptionProductID == "grooveai_annual_9999" ? "year" : "week"
-        return "Your coins refill in \(hours) \(hourWord), you get \(coins) coins / \(period)"
+        guard let tier = PlanTier.tier(forProductID: rcService.activeSubscriptionProductID) else {
+            return rcService.refillStatusLine
+        }
+        let coins = tier.coinAmount
+        let period = tier.coinPeriodWord
+        let baseLine = "You get \(coins) coins / \(period)"
+        guard let days = rcService.daysUntilNextRefill(), days >= 0 else {
+            return baseLine
+        }
+        let dayWord = days == 1 ? "day" : "days"
+        let refillSuffix = days == 0 ? "Refills today" : "Refills in \(days) \(dayWord)"
+        return "\(baseLine) — \(refillSuffix)"
     }
 
-    private func hoursUntilRefill() -> Int {
-        guard let renewalDate = rcService.subscriptionRenewalDate else {
-            return 168
-        }
-        let seconds = max(0, renewalDate.timeIntervalSinceNow)
-        return max(0, Int(ceil(seconds / 3600.0)))
-    }
-
-    private func currentPlanWeeklyCoins() -> Int {
-        switch rcService.activeSubscriptionProductID {
-        case "grooveai_weekly_300":    return PlanTier.weeklyStarter300.coinAmount
-        case "grooveai_weekly_550":    return PlanTier.weeklyPro550.coinAmount
-        case "grooveai_weekly_1200":   return PlanTier.weeklyMax1200.coinAmount
-        case "grooveai_annual_9999":   return PlanTier.annual.coinAmount
-        case "grooveai_weekly_799",
-             "grooveai_weekly_special": return 150
-        default:                       return 150
-        }
+    private var currentTier: PlanTier? {
+        PlanTier.tier(forProductID: rcService.activeSubscriptionProductID)
     }
 
     // MARK: - Package Cards Row
