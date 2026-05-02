@@ -429,7 +429,29 @@ final class AppState {
                 #endif
             }
         } catch let error as NSError {
-            if error.domain == "SupabaseService" && error.code == 404 {
+            let isUnauthorized = error.domain == "SupabaseService" && error.code == 401
+            let is404 = error.domain == "SupabaseService" && error.code == 404
+
+            if isUnauthorized {
+                // Stale or invalid JWT — clear both token and userId and start fresh.
+                let shouldRegister = await MainActor.run {
+                    guard !self.isRegistering else { return false }
+                    self.isRegistering = true
+                    KeychainHelper.delete(forKey: "authToken")
+                    KeychainHelper.delete(forKey: "userId")
+                    return true
+                }
+                guard shouldRegister else {
+                    #if DEBUG
+                    print("[AppState] ⏭ Re-registration already in progress — skipping duplicate")
+                    #endif
+                    return
+                }
+                #if DEBUG
+                print("[AppState] ⚠️ 401 on sync — stale token, clearing Keychain and re-registering")
+                #endif
+                await performRegistration()
+            } else if is404 {
                 // Only treat as "user deleted from backend" if the response body
                 // explicitly says so. Generic 404s (e.g. Render cold-start, route
                 // misconfig) must NOT nuke the Keychain — that would orphan
@@ -446,7 +468,6 @@ final class AppState {
                 }
 
                 // User deleted from backend while device still has stale Keychain UUID.
-                // Guard prevents concurrent syncWithServer() calls from all re-registering simultaneously.
                 let shouldRegister = await MainActor.run {
                     guard !self.isRegistering else { return false }
                     self.isRegistering = true
@@ -462,8 +483,6 @@ final class AppState {
                 #if DEBUG
                 print("[AppState] ⚠️ User not found on server — clearing stale ID and re-registering")
                 #endif
-                // Caller already holds the registration lock; call performRegistration
-                // directly so initializeUser's guard doesn't bail.
                 await performRegistration()
             } else {
                 #if DEBUG
