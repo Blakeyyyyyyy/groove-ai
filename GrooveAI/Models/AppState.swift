@@ -433,12 +433,13 @@ final class AppState {
             let is404 = error.domain == "SupabaseService" && error.code == 404
 
             if isUnauthorized {
-                // Stale or invalid JWT — clear both token and userId and start fresh.
+                // Stale or invalid JWT. Do NOT wipe Keychain before registration succeeds —
+                // if register() fails (network down, rate-limited), the old credentials must
+                // survive so the user can retry on next launch. register() overwrites both
+                // keys on success, so no pre-deletion needed.
                 let shouldRegister = await MainActor.run {
                     guard !self.isRegistering else { return false }
                     self.isRegistering = true
-                    KeychainHelper.delete(forKey: "authToken")
-                    KeychainHelper.delete(forKey: "userId")
                     return true
                 }
                 guard shouldRegister else {
@@ -448,7 +449,7 @@ final class AppState {
                     return
                 }
                 #if DEBUG
-                print("[AppState] ⚠️ 401 on sync — stale token, clearing Keychain and re-registering")
+                print("[AppState] ⚠️ 401 on sync — stale token, re-registering (old keys preserved until success)")
                 #endif
                 await performRegistration()
             } else if is404 {
@@ -467,10 +468,11 @@ final class AppState {
                     return
                 }
 
-                // User deleted from backend while device still has stale Keychain UUID.
+                // User deleted from backend — both keys are now useless.
                 let shouldRegister = await MainActor.run {
                     guard !self.isRegistering else { return false }
                     self.isRegistering = true
+                    KeychainHelper.delete(forKey: "authToken")
                     KeychainHelper.delete(forKey: "userId")
                     return true
                 }
