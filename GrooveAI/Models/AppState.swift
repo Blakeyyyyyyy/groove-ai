@@ -217,11 +217,11 @@ final class AppState {
             await MainActor.run {
                 self.serverCoins = initialCoins
                 self.isRegistering = false
-                // Reset stale subscription flags from any previous user whose
-                // state survived in UserDefaults. syncWithServer below will
-                // restore them to the server's truth for this new account.
+                // Reset stale state from any previous user whose values survived
+                // in UserDefaults. syncWithServer below restores the real values.
                 self.isSubscribed = false
                 self.hasHadSubscription = false
+                self.coinsUsed = 0
             }
             #if DEBUG
             print("[AppState] ✅ User registered: user_id=\(newUserId), coins=\(initialCoins)")
@@ -407,26 +407,28 @@ final class AppState {
                 let subscriptionStatus = profile["subscription_status"] as? String ?? "free"
                 let serverSaysSubscribed = subscriptionStatus == "active"
 
-                // Belt-and-suspenders: only demote (true → false) when BOTH
-                // the server and RevenueCat agree the user is no longer
-                // subscribed. Protects against the race where the user
-                // purchases, RevenueCat updates locally, but the
-                // revenuecat-webhook hasn't yet flipped the row in Supabase.
-                // Promoting (false → true) is always safe.
+                // Subscription truth: server is authoritative when active.
+                // RC is authoritative when server hasn't caught up (webhook race,
+                // or re-registration where the new row starts as "free").
+                // Only demote when BOTH sources agree the user is not subscribed.
                 if serverSaysSubscribed {
                     self.isSubscribed = true
-                } else if !revenueCatSaysSubscribed {
-                    self.isSubscribed = false
-                } else {
+                    self.hasHadSubscription = true
+                } else if revenueCatSaysSubscribed {
+                    // RC sees a live entitlement but Supabase row is "free" —
+                    // webhook hasn't landed yet, or this is a fresh row after
+                    // re-registration. RC is authoritative: promote.
+                    self.isSubscribed = true
+                    self.hasHadSubscription = true
                     #if DEBUG
-                    print("[AppState] ⏸ Skipping demote — server=free but RevenueCat=subscribed (webhook race?)")
+                    print("[AppState] ⬆️ Promoting — RC=subscribed, server=free (webhook race or re-registration)")
                     #endif
+                } else {
+                    self.isSubscribed = false
                 }
 
-                // Once the user has held any non-free subscription state
-                // (active OR expired), latch hasHadSubscription = true forever.
-                // Routes expired subscribers to coin packages instead of the
-                // onboarding paywall. Never reset back to false.
+                // hasHadSubscription also latches on server-side evidence
+                // (status != "free" covers "expired" rows).
                 if subscriptionStatus != "free" {
                     self.hasHadSubscription = true
                 }
