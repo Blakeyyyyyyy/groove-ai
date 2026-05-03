@@ -60,22 +60,26 @@ struct GrooveOnboardingView: View {
                             removal: .move(edge: .leading).combined(with: .opacity)
                         ))
                 } else {
+                    #if DEBUG
                     GrooveMagicMomentView(state: state, onNext: { advance() })
                         .transition(.asymmetric(
                             insertion: .opacity,
                             removal: .move(edge: .bottom)
                         ))
+                    #endif
                 }
 
             case 5:
                 if GrooveOnboardingFeatureFlags.usePremiumMagicResultFlow {
                     EmptyView()
                 } else {
+                    #if DEBUG
                     GrooveResultCTAView(state: state, onNext: { advance() })
                         .transition(.asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity),
                             removal: .move(edge: .leading)
                         ))
+                    #endif
                 }
 
             case 6:

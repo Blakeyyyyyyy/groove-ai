@@ -12,6 +12,7 @@ struct DancePreset: Identifiable, Hashable {
     let placeholderGradientBottom: Color
     let videoURL: String?
     let thumbnailURL: String?
+    let posterURL: String?
 
     /// True when this preset uses Kling's face-tracking model.
     /// Pet photos are rejected by Kling for these presets.
@@ -42,7 +43,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
             videoURL: "\(r2Base)/big-guy-V5-AI.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/big-guy-V5-AI-poster.jpg"
         ),
         DancePreset(
             id: "coco-channel",
@@ -55,7 +57,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
             videoURL: "\(r2Base)/coco-channel-75fcae6c.mp4",
-            thumbnailURL: "\(r2Base)/coco-channel-75fcae6c.mp4"
+            thumbnailURL: "\(r2Base)/coco-channel-75fcae6c.mp4",
+            posterURL: "\(r2Base)/posters/coco-channel-75fcae6c-poster.jpg"
         ),
         DancePreset(
             id: "trag",
@@ -68,7 +71,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
             videoURL: "\(r2Base)/trag-V5-AI.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/trag-V5-AI-poster.jpg"
         ),
         DancePreset(
             id: "ophelia",
@@ -81,7 +85,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
             videoURL: "\(r2Base)/ophelia-ai.mp4",
-            thumbnailURL: "\(r2Base)/ophelia-ai.mp4"
+            thumbnailURL: "\(r2Base)/ophelia-ai.mp4",
+            posterURL: "\(r2Base)/posters/ophelia-ai-poster.jpg"
         ),
         DancePreset(
             id: "jenny",
@@ -94,7 +99,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.18, blue: 0.10),
             videoURL: "\(r2Base)/jenny-ai.mp4",
-            thumbnailURL: "\(r2Base)/jenny-ai.mp4"
+            thumbnailURL: "\(r2Base)/jenny-ai.mp4",
+            posterURL: "\(r2Base)/posters/jenny-ai-poster.jpg"
         ),
 
         // CLASSIC (3)
@@ -109,7 +115,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.18),
             videoURL: "\(r2Base)/macarena-V5-AI.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/macarena-V5-AI-poster.jpg"
         ),
         DancePreset(
             id: "milkshake",
@@ -122,7 +129,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.18),
             videoURL: "\(r2Base)/milkshake-V5-AI.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/milkshake-V5-AI-poster.jpg"
         ),
         DancePreset(
             id: "c-walk",
@@ -135,7 +143,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.10, blue: 0.04),
             videoURL: "\(r2Base)/c-walk-V5-AI.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/c-walk-V5-AI-poster.jpg"
         ),
 
         // FACE DANCE (3)
@@ -150,7 +159,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
             videoURL: "\(r2Base)/baby-boombastic.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/baby-boombastic-poster.jpg"
         ),
         DancePreset(
             id: "witch-doctor",
@@ -163,7 +173,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.04),
             videoURL: "\(r2Base)/witch-doctor-v3.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/witch-doctor-v3-poster.jpg"
         ),
         DancePreset(
             id: "cotton-eye-joe",
@@ -176,7 +187,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
             placeholderGradientBottom: Color(red: 0.10, green: 0.04, blue: 0.10),
             videoURL: "\(r2Base)/cotton-eye-joe.mp4",
-            thumbnailURL: nil
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/cotton-eye-joe-poster.jpg"
         ),
     ]
 

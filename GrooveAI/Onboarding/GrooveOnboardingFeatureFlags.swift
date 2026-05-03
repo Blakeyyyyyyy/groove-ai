@@ -1,7 +1,7 @@
 import Foundation
 
 enum GrooveOnboardingFeatureFlags {
-    // Premium loader + transition can be reverted by flipping this to false.
+    // Always true in production — false branch gated by #if DEBUG.
     static let usePremiumMagicResultFlow = true
 
     // ──────────── Onboarding Flow Switch ────────────────

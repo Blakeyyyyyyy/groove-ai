@@ -7,7 +7,7 @@ class ImageCacheService {
     private let cache = NSCache<NSString, UIImage>()
 
     let womanImageURL = "https://pub-c3256eacaaf4436c8f67e04fd794c190.r2.dev/demos/woman-onboarding.jpg"
-    let dogImageURL = "https://pub-c3256eacaaf4436c8f67e04fd794c190.r2.dev/demos/Gemini_Generated_Image_1555co1555co1555%20copy.png"
+    let dogImageURL = "https://pub-c3256eacaaf4436c8f67e04fd794c190.r2.dev/demos/demo-dog-onboarding.png"
 
     private init() {}
 

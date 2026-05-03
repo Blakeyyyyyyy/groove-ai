@@ -67,15 +67,14 @@ private struct DancerView: View {
     }
 
     private func scheduleEntry() {
-        // Kick off entry slide after delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + config.entryDelay) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(config.entryDelay))
             visible = true
             withAnimation(.timingCurve(0.0, 0.0, 0.2, 1.0, duration: 0.5)) {
                 arrived = true
             }
-        }
-        // Start breath bob after entry finishes
-        DispatchQueue.main.asyncAfter(deadline: .now() + config.breathDelay) {
+            // breathDelay is always entryDelay + 0.5 (entry animation duration)
+            try? await Task.sleep(for: .seconds(0.5))
             withAnimation(.easeInOut(duration: 1.745).repeatForever(autoreverses: true)) {
                 breathOffset = -4
             }
@@ -192,31 +191,30 @@ struct GrooveSplashView: View {
 
     private func runTimeline() {
         // Dancers are handled by DancerView.onAppear internally.
-
-        // 1.20s — start wordmark letter-by-letter (animates over 0.80s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.20) {
+        // Task.sleep cooperates with Swift concurrency's main-actor scheduler,
+        // preventing starvation from rapid RC transaction callbacks on launch.
+        Task { @MainActor in
+            // 1.20s — start wordmark letter-by-letter (animates over 0.80s)
+            try? await Task.sleep(for: .seconds(1.20))
             withAnimation(.linear(duration: 0.80)) {
                 wordmarkProgress = 1.0
             }
-        }
 
-        // 1.60s — tagline fade in (over 0.60s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.60) {
+            // +0.40s (total 1.60s) — tagline fade in (over 0.60s)
+            try? await Task.sleep(for: .seconds(0.40))
             withAnimation(.easeOut(duration: 0.60)) {
                 taglineOpacity  = 1.0
                 taglineOffsetY  = 0
             }
-        }
 
-        // 3.20s — fade out entire view (over 0.20s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.20) {
+            // +1.60s (total 3.20s) — fade out entire view (over 0.20s)
+            try? await Task.sleep(for: .seconds(1.60))
             withAnimation(.linear(duration: 0.20)) {
                 globalOpacity = 0
             }
-        }
 
-        // 3.40s — dismiss
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.40) {
+            // +0.20s (total 3.40s) — dismiss
+            try? await Task.sleep(for: .seconds(0.20))
             onDismiss()
         }
     }

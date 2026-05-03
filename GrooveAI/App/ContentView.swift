@@ -26,6 +26,14 @@ struct ContentView: View {
             #endif
             appState.verifyPersistence()
         }
+        .task {
+            // Safety net: force-dismiss splash after 8s if the normal dismiss
+            // was starved (e.g. RC processing a large backlog of sandbox renewals).
+            try? await Task.sleep(for: .seconds(4))
+            if showSplash {
+                withAnimation(.easeInOut(duration: 0.4)) { showSplash = false }
+            }
+        }
     }
 
     @ViewBuilder

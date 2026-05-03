@@ -25,9 +25,9 @@ struct GroovePremiumMagicResultFlowView: View {
     @State private var hasStarted = false
 
     private let statusMessages = [
-        "Mapping the movement",
-        "Adding your style",
-        "Finishing touches"
+        "Preparing your result",
+        "Almost there",
+        "Your result is ready"
     ]
 
     var body: some View {

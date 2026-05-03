@@ -21,6 +21,8 @@ final class KlingService {
     ) async throws -> String {
         let startTime = Date()
         var pollCount = 0
+        var consecutiveFailures = 0
+        let maxConsecutiveFailures = 3
 
         #if DEBUG
         print("[Kling] ⏳ Starting poll for taskId: \(taskId) (interval: \(pollInterval)s, max: \(maxPollDuration)s)")
@@ -40,11 +42,25 @@ final class KlingService {
             try await Task.sleep(for: .seconds(pollInterval))
             pollCount += 1
 
-            // Check status via backend
+            // Check status via backend — retry up to maxConsecutiveFailures for transient errors
             #if DEBUG
             print("[Kling] 📊 Poll #\(pollCount) (elapsed: \(Int(elapsed))s)...")
             #endif
-            let statusDict = try await SupabaseService.shared.checkVideoStatus(taskId: taskId)
+            let statusDict: [String: Any]
+            do {
+                statusDict = try await SupabaseService.shared.checkVideoStatus(taskId: taskId)
+                consecutiveFailures = 0
+            } catch {
+                consecutiveFailures += 1
+                #if DEBUG
+                print("[Kling] ⚠️ Poll #\(pollCount) error (\(consecutiveFailures)/\(maxConsecutiveFailures)): \(error.localizedDescription)")
+                #endif
+                if consecutiveFailures >= maxConsecutiveFailures {
+                    throw error
+                }
+                continue
+            }
+
             let status = statusDict["status"] as? String ?? "unknown"
             let videoUrl = statusDict["video_url"] as? String
 

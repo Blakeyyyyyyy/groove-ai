@@ -843,8 +843,8 @@ struct GrooveSpecialOfferPaywallV2: View {
                 // Billing info — uses dynamic pricing vars (discountPrice, fullPrice)
                 if let discount = discountPrice, let full = fullPrice {
                     Text("Just \(discount) your first week, then \(full)/week after. Cancel anytime.")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(Color.white.opacity(0.45))
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(Color.white.opacity(1.0))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 8)
                 }

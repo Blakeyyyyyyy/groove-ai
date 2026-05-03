@@ -18,6 +18,7 @@ final class RevenueCatService: ObservableObject {
     @Published var currentPackages: [Package] = []
     @Published var activeSubscriptionProductID: String?
     @Published var subscriptionRenewalDate: Date?
+    @Published var subscriptionOriginalPurchaseDate: Date?
     @Published var coinProducts: [String: Product] = [:]
     private var configuredAppUserId: String?
     private var hasConfigured = false
@@ -78,10 +79,17 @@ final class RevenueCatService: ObservableObject {
 
     @MainActor
     private func applyCustomerInfo(_ customerInfo: CustomerInfo) {
-        let premiumIsActive = premiumEntitlement(from: customerInfo)?.isActive == true
+        let entitlement = premiumEntitlement(from: customerInfo)
+        let premiumIsActive = entitlement?.isActive == true
         isSubscribed = premiumIsActive
         activeSubscriptionProductID = Array(customerInfo.activeSubscriptions).first
         subscriptionRenewalDate = customerInfo.latestExpirationDate
+
+        if premiumIsActive {
+            subscriptionOriginalPurchaseDate = entitlement?.originalPurchaseDate
+        } else {
+            subscriptionOriginalPurchaseDate = nil
+        }
 
         // Push the expiry to the server so the lazy-expiry check in get-user
         // (and the cancelled-but-still-active window) has authoritative data
@@ -122,6 +130,25 @@ final class RevenueCatService: ObservableObject {
         coinBalance -= amount
         saveCoinBalance()
         return true
+    }
+
+    // MARK: - User Identity
+
+    /// Links the current RevenueCat session (possibly anonymous) to a known app user ID.
+    /// Called after registration so the backend webhook can attribute purchases correctly.
+    func loginUser(userId: String) async {
+        guard isConfigured else { return }
+        do {
+            let (customerInfo, _) = try await Purchases.shared.logIn(userId)
+            #if DEBUG
+            print("[RevenueCat] ✅ logIn succeeded — userId=\(userId), activeEntitlements=\(customerInfo.entitlements.active.keys.sorted())")
+            #endif
+            await MainActor.run { applyCustomerInfo(customerInfo) }
+        } catch {
+            #if DEBUG
+            print("[RevenueCat] ⚠️ logIn failed (non-fatal): \(error.localizedDescription)")
+            #endif
+        }
     }
 
     // MARK: - Configuration
@@ -556,8 +583,8 @@ final class RevenueCatService: ObservableObject {
     }
 
     var refillStatusLine: String {
-        guard let renewalDate = subscriptionRenewalDate else { return "Refill date unavailable" }
-        let days = Self.daysUntil(renewalDate)
+        guard let refillDate = nextCoinRefillDate() else { return "Refill date unavailable" }
+        let days = Self.daysUntil(refillDate)
 
         if days <= 0 { return "Your plan refills today" }
         if days == 1 { return "Your plan refills in 1 day" }
@@ -565,17 +592,45 @@ final class RevenueCatService: ObservableObject {
     }
 
     var refillCountdownLabel: String? {
-        guard let renewalDate = subscriptionRenewalDate else { return nil }
-        let days = Self.daysUntil(renewalDate)
+        guard let refillDate = nextCoinRefillDate() else { return nil }
+        let days = Self.daysUntil(refillDate)
         return days <= 0 ? "Today" : "\(days)d"
     }
 
     var refillProgressFraction: CGFloat {
-        guard let renewalDate = subscriptionRenewalDate else { return 0 }
-        let cycleDays: Double = activeSubscriptionProductID == ProductID.annual ? 365 : 7
-        let secondsRemaining = max(0, renewalDate.timeIntervalSinceNow)
+        guard let refillDate = nextCoinRefillDate() else { return 0 }
+        let cycleDays: Double = activeSubscriptionProductID == ProductID.annual ? 30 : 7
+        let secondsRemaining = max(0, refillDate.timeIntervalSinceNow)
         let progress = 1 - min(1, secondsRemaining / (cycleDays * 24 * 60 * 60))
         return CGFloat(progress)
+    }
+
+    /// Returns the next date the user's coin allocation will refill.
+    /// For weekly subscriptions this is the renewal date. For annual
+    /// subscriptions, coins refill MONTHLY based on the original purchase
+    /// anniversary, not the yearly renewal date.
+    func nextCoinRefillDate() -> Date? {
+        guard let productID = activeSubscriptionProductID else { return subscriptionRenewalDate }
+        if productID == "grooveai_annual_9999" {
+            guard let start = subscriptionOriginalPurchaseDate else { return subscriptionRenewalDate }
+            let cal = Calendar.current
+            var next = start
+            let now = Date()
+            while next <= now {
+                guard let bumped = cal.date(byAdding: .month, value: 1, to: next) else { break }
+                next = bumped
+            }
+            return next
+        }
+        return subscriptionRenewalDate
+    }
+
+    /// Days remaining until the next coin refill (clamped to >= 0).
+    /// Returns nil when there is no active subscription.
+    func daysUntilNextRefill() -> Int? {
+        guard let date = nextCoinRefillDate() else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: date).day ?? 0
+        return max(0, days)
     }
 
     private static func daysUntil(_ date: Date) -> Int {

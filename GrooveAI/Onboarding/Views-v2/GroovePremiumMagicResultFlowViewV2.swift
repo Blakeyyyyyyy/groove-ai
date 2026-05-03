@@ -23,9 +23,9 @@ struct GroovePremiumMagicResultFlowViewV2: View {
     @State private var hasStarted = false
 
     private let loadingStatuses = [
-        "Mapping the movement",
-        "Shaping the groove",
-        "Finishing touches"
+        "Preparing your result",
+        "Almost there",
+        "Your result is ready"
     ]
 
     private let hapticThresholds = [12, 26, 40, 56, 72, 88]

@@ -74,6 +74,19 @@ struct GroovePaywallScreen: View {
         return "\(price) / year"
     }
 
+    /// Weekly equivalent for the annual package (annual price ÷ 52), formatted
+    /// using the same locale/currency formatter as the full price.
+    private var annualWeeklyEquivalent: String? {
+        guard let pkg = annualPkg else { return nil }
+        let weeklyDecimal = pkg.storeProduct.price / 52
+        if let formatted = pkg.storeProduct.priceFormatter?.string(from: weeklyDecimal as NSDecimalNumber) {
+            return formatted
+        }
+        // Fallback: two decimal places with no formatter
+        let rounded = (NSDecimalNumber(decimal: weeklyDecimal).doubleValue * 100).rounded() / 100
+        return String(format: "%.2f", rounded)
+    }
+
     private var savingsPercent: Int {
         guard let weeklyRenewalDecimal = weeklyPkg?.storeProduct.price,
               let annualPriceDecimal = annualPkg?.storeProduct.price else { return 0 }
@@ -208,8 +221,8 @@ struct GroovePaywallScreen: View {
 
             planCard(
                 plan: .yearly,
-                titleLine: annualPriceString,
-                subtitle: "Billed annually",
+                titleLine: annualWeeklyEquivalent.map { "Just \($0)/week" },
+                subtitle: annualPkg.map { "Billed \($0.localizedPriceString)/year" } ?? "Billed annually",
                 badge: savingsPercent > 0 ? "Save \(savingsPercent)%" : nil,
                 isSelected: selectedPlan == .yearly
             )

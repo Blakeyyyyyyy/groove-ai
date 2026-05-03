@@ -67,19 +67,6 @@ struct GrooveAIApp: App {
                         }
                     }
                     hasCompletedInitialLaunch = true
-
-                    // Warm the player pool and preload first 6 preset videos into
-                    // VideoPreloader's memory cache. The 3s delay lets the splash
-                    // finish before blocking the main thread on AVQueuePlayer init.
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 3_000_000_000)
-                        _ = HomeVideoPlayerPool.shared
-                        DancePreset.allPresets.prefix(6).forEach { preset in
-                            if let s = preset.videoURL, let url = URL(string: s) {
-                                VideoPreloader.shared.preload(url: url)
-                            }
-                        }
-                    }
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Re-check entitlements every time the app returns to the

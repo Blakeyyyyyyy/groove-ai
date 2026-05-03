@@ -2,17 +2,32 @@ import SwiftUI
 import AVFoundation
 
 final class VideoWallPlayerModel: ObservableObject {
-    let player = AVQueuePlayer()
-    private var looper: AVPlayerLooper?
+    let player = AVPlayer()
+    private var endObserver: NSObjectProtocol?
 
     init() {
         player.isMuted = true
+        player.automaticallyWaitsToMinimizeStalling = false
         guard let url = Bundle.main.url(forResource: "onboarding_video_wall", withExtension: "mp4") else {
             return
         }
         let item = AVPlayerItem(url: url)
-        looper = AVPlayerLooper(player: player, templateItem: item)
+        player.replaceCurrentItem(with: item)
+
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { [weak self] _ in
+            self?.player.seek(to: .zero)
+            self?.player.play()
+        }
+
         player.play()
+    }
+
+    deinit {
+        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
     }
 }
 
@@ -21,7 +36,6 @@ struct SingleVideoWallView: View {
 
     var body: some View {
         ZStack {
-            // Poster shown while video loads
             if let poster = UIImage(named: "onboarding_video_wall_poster") {
                 Image(uiImage: poster)
                     .resizable()
@@ -36,7 +50,7 @@ struct SingleVideoWallView: View {
 }
 
 struct PlayerLayerView: UIViewRepresentable {
-    let player: AVQueuePlayer
+    let player: AVPlayer
 
     func makeUIView(context: Context) -> PlayerLayerUIView {
         let view = PlayerLayerUIView()
@@ -52,7 +66,7 @@ final class PlayerLayerUIView: UIView {
 
     private var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
 
-    func setPlayer(_ player: AVQueuePlayer) {
+    func setPlayer(_ player: AVPlayer) {
         playerLayer.player = player
         playerLayer.videoGravity = .resizeAspectFill
     }

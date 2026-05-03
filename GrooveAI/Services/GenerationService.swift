@@ -221,7 +221,12 @@ final class GenerationService {
                 #if DEBUG
                 print("[Generation] 💾 Step 5: Saving video to backend...")
                 #endif
-                _ = try await SupabaseService.shared.saveVideo(userId: userId, videoId: resolvedBackendVideoId, videoURL: videoUrl)
+                let saveResponse = try await SupabaseService.shared.saveVideo(userId: userId, videoId: resolvedBackendVideoId, videoURL: videoUrl)
+                // Use the R2 URL returned by the backend; fall back to Kling URL only if missing
+                let persistedVideoURL = saveResponse["video_url"] as? String ?? videoUrl
+                #if DEBUG
+                print("[Generation] 🗂️ Persisting video URL: \(persistedVideoURL)")
+                #endif
 
                 // ── Step 6: Update local record on MainActor ──
                 await MainActor.run {
@@ -232,7 +237,7 @@ final class GenerationService {
                     if let video = try? modelContext.fetch(descriptor).first {
                         video.status = "completed"
                         video.completedAt = .now
-                        video.videoURL = videoUrl
+                        video.videoURL = persistedVideoURL
                         try? modelContext.save()
                         #if DEBUG
                         print("[Generation] ✅ Local record updated to completed")
@@ -469,19 +474,19 @@ final class GenerationService {
         }
 
         // Send local notification if app is backgrounded
+        // Generic body — in-app alert already shows refund details
+        let notificationBody = "There was an error generating your video. Please try again with a clearer image of 1 person."
         if !appState.hasRequestedNotificationPermission {
-            // Request permission first (non-blocking), then send notification
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
                 if granted {
-                    self.sendErrorNotification(title: "Dance Generation Failed", body: "Try a clearer photo with your pet standing up")
+                    self.sendErrorNotification(title: "Dance Generation Failed", body: notificationBody)
                 }
             }
             await MainActor.run {
                 appState.hasRequestedNotificationPermission = true
             }
         } else {
-            // Permission already granted
-            sendErrorNotification(title: "Dance Generation Failed", body: "Try a clearer photo with your pet standing up")
+            sendErrorNotification(title: "Dance Generation Failed", body: notificationBody)
         }
     }
 
