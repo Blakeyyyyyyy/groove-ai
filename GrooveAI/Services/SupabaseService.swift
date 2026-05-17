@@ -408,6 +408,31 @@ class SupabaseService {
         return result
     }
 
+    // MARK: - Onboarding Funnel Tracking
+
+    /// Fire-and-forget onboarding funnel tracking.
+    /// Sends step name to backend which writes to onboarding_events table.
+    /// Never throws — drops silently on failure so it never blocks UI.
+    func trackEvent(step: String) {
+        Task {
+            // Wait up to 5 seconds for JWT — covers first-launch registration race
+            var attempts = 0
+            while authToken == nil && attempts < 10 {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                attempts += 1
+            }
+            guard let token = authToken,
+                  let url = URL(string: "\(baseURL)/track-event") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: ["step": step])
+            request.timeoutInterval = 5
+            _ = try? await URLSession.shared.data(for: request)
+        }
+    }
+
     // MARK: - HTTP Response Validation
 
     private func checkHTTPResponse(_ response: URLResponse, data: Data, context: String) throws {

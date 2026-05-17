@@ -176,6 +176,7 @@ struct GrooveSpecialOfferView: View {
             }
         }
         .onAppear {
+            MetaTracker.surpriseOfferShown()
             log("appeared")
             Task { await rcService.fetchOfferings() }
             startStaggeredReveal()

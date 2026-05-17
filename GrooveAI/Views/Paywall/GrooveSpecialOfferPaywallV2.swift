@@ -215,6 +215,7 @@ struct GrooveSpecialOfferPaywallV2: View {
             }
         }
         .onAppear {
+            MetaTracker.surpriseOfferPaywallShown()
             log("Modal appeared, starting countdown")
             loadPricing()
             startCountdownTimer()

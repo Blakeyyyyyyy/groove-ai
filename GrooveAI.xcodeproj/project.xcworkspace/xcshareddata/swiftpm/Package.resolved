@@ -2,6 +2,15 @@
   "originHash" : "fbdec518f66720abc9cceef1ea36ee3229c4faa09fdcfd36f45e77839c989f98",
   "pins" : [
     {
+      "identity" : "facebook-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/facebook/facebook-ios-sdk",
+      "state" : {
+        "revision" : "8c90832bf2302d9ecd0d23cb63b81f1fb9a36497",
+        "version" : "18.0.3"
+      }
+    },
+    {
       "identity" : "purchases-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RevenueCat/purchases-ios",

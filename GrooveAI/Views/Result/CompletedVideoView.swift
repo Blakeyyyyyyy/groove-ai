@@ -162,7 +162,7 @@ struct CompletedVideoView: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        if let player, let url = videoURL {
+        if let player, videoURL != nil {
             // Use ControlledVideoView instead of VideoPlayer — no native controls
             ControlledVideoView(player: player)
                 .allowsHitTesting(false)

@@ -26,7 +26,7 @@ struct TrialEnabledScreen: View {
                     .allowsHitTesting(false)
 
                 if showText {
-                    Text("7 day trial enabled")
+                    Text("7 day trial activated")
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundColor(.white)
                         .transition(.opacity)
@@ -36,6 +36,7 @@ struct TrialEnabledScreen: View {
             }
         }
         .onAppear {
+            MetaTracker.trialEnabledShown()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.spring(response: 0.85, dampingFraction: 0.78)) {
                     isToggled = true

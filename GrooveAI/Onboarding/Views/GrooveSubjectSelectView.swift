@@ -81,6 +81,7 @@ struct GrooveSubjectSelectView: View {
             }
         }
         .onAppear {
+            MetaTracker.subjectSelected()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 cardsAppeared = true
             }

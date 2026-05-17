@@ -62,6 +62,7 @@ struct GrooveMagicMomentView: View {
             .ignoresSafeArea()
         }
         .onAppear {
+            MetaTracker.magicMomentShown()
             appeared = true
             startSimulation()
             startDecorationRotation()

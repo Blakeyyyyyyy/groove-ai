@@ -115,6 +115,7 @@ struct GrooveResultCTAView: View {
             }
         }
         .onAppear {
+            MetaTracker.resultShown()
             setupPlayer()
             // Staggered entrance animations
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

@@ -2,9 +2,38 @@ import SwiftUI
 import SwiftData
 import UIKit
 import UserNotifications
+import AppTrackingTransparency
+import FBSDKCoreKit
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        ApplicationDelegate.shared.application(
+            application,
+            didFinishLaunchingWithOptions: launchOptions
+        )
+        return true
+    }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        ApplicationDelegate.shared.application(
+            app,
+            open: url,
+            sourceApplication: options[.sourceApplication] as? String,
+            annotation: options[.annotation] as Any
+        )
+    }
+}
 
 @main
 struct GrooveAIApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var appState = AppState()
     @Environment(\.modelContext) var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -67,6 +96,12 @@ struct GrooveAIApp: App {
                         }
                     }
                     hasCompletedInitialLaunch = true
+
+                    // App Tracking Transparency — fire on launch so attribution
+                    // is captured for the entire session. 1s delay lets the
+                    // root UI render first; iOS silently ignores the request
+                    // if it fires before the app is visible.
+                    await requestATTOnLaunch()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Re-check entitlements every time the app returns to the
@@ -83,6 +118,27 @@ struct GrooveAIApp: App {
                 }
         }
         .modelContainer(for: [GeneratedVideo.self])
+    }
+
+    /// Request App Tracking Transparency authorization on app launch.
+    /// If already determined, syncs the existing decision into Meta SDK. If
+    /// not determined, waits 1s for the root view to appear (Apple requires
+    /// the app UI to be visible before the dialog renders, otherwise it is
+    /// silently ignored on some iOS versions), then presents the system prompt.
+    @MainActor
+    private func requestATTOnLaunch() async {
+        let status = ATTrackingManager.trackingAuthorizationStatus
+        if status == .notDetermined {
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s for UI to settle
+            let result = await ATTrackingManager.requestTrackingAuthorization()
+            #if DEBUG
+            print("[ATT] requested on launch -> status=\(result.rawValue)")
+            #endif
+        } else {
+            #if DEBUG
+            print("[ATT] already determined on launch -> status=\(status.rawValue)")
+            #endif
+        }
     }
 
     /// Fetch videos from Supabase for the current user and hydrate SwiftData.

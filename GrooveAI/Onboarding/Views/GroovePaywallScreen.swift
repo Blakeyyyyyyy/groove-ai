@@ -144,6 +144,8 @@ struct GroovePaywallScreen: View {
             }
         }
         .onAppear {
+            MetaTracker.paywallShown()
+            SupabaseService.shared.trackEvent(step: "paywall")
             log("appeared")
             Task { await rcService.fetchOfferings() }
         }
@@ -213,8 +215,15 @@ struct GroovePaywallScreen: View {
         VStack(spacing: 10) {
             planCard(
                 plan: .weekly,
-                titleLine: weeklyIntroPrice.map { "Just \($0)/week" },
-                subtitle: "No commitment \u{00B7} Cancel anytime",
+                titleLine: (weeklyIntroPrice ?? weeklyRenewalPrice).map { "Just \($0)/week" },
+                subtitle: {
+                    if let renewal = weeklyRenewalPrice,
+                       let intro = weeklyIntroPrice,
+                       intro != renewal {
+                        return "then \(renewal)/week \u{00B7} Cancel anytime"
+                    }
+                    return "No commitment \u{00B7} Cancel anytime"
+                }(),
                 badge: "Popular",
                 isSelected: selectedPlan == .weekly
             )
@@ -246,13 +255,13 @@ struct GroovePaywallScreen: View {
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(titleLine ?? "Loading...")
-                        .font(.system(size: 17, weight: .bold))
+                        .font(.system(size: plan == .yearly ? 16 : 17, weight: plan == .yearly ? .semibold : .bold))
                         .foregroundColor(textPrimary)
                         .redacted(reason: titleLine == nil ? .placeholder : [])
 
                     Text(subtitle)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.white.opacity(0.85))
+                        .font(.system(size: plan == .yearly ? 16 : 14, weight: plan == .yearly ? .semibold : .medium))
+                        .foregroundColor(plan == .yearly ? Color.white.opacity(0.95) : Color.white.opacity(0.95))
                 }
                 .padding(.leading, 16)
 
@@ -343,12 +352,14 @@ struct GroovePaywallScreen: View {
             Group {
                 if selectedPlan == .weekly, let intro = weeklyIntroPrice, let renewal = weeklyRenewalPrice {
                     Text("First week \(intro), then \(renewal)/week \u{00B7} cancel anytime")
+                } else if let annualPkg = annualPkg {
+                    Text("Billed \(annualPkg.localizedPriceString)/year \u{00B7} Cancel anytime")
                 } else {
-                    Text("No commitment \u{00B7} Cancel anytime")
+                    Text("Billed annually \u{00B7} Cancel anytime")
                 }
             }
-            .font(.system(size: 12))
-            .foregroundColor(Color.white.opacity(0.85))
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(Color.white)
 
             HStack(spacing: 4) {
                 Link("Terms", destination: URL(string: "https://trygrooveai.com/terms")!)

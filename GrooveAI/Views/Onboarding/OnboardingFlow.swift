@@ -47,6 +47,21 @@ struct OnboardingFlow: View {
             .ignoresSafeArea()
             .gesture(DragGesture()) // Disable swipe — forward only
         }
+        .onAppear {
+            // Track entry into onboarding (screen_1 = OnboardingHookView)
+            SupabaseService.shared.trackEvent(step: "screen_1")
+        }
+        .onChange(of: currentScreen) { oldValue, newValue in
+            if newValue < oldValue {
+                // Block backward navigation
+                currentScreen = oldValue
+                return
+            }
+            let steps = ["screen_1", "screen_2", "screen_3", "screen_4"]
+            if newValue < steps.count {
+                SupabaseService.shared.trackEvent(step: steps[newValue])
+            }
+        }
         .fullScreenCover(isPresented: Binding(
             get: { appState.showPaywall },
             set: { appState.showPaywall = $0 }

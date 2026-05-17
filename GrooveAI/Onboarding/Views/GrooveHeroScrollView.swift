@@ -130,6 +130,7 @@ struct GrooveHeroScrollView: View {
         }
         .ignoresSafeArea()
         .onAppear {
+            MetaTracker.onboardingStarted()
             withAnimation(.easeOut(duration: 0.35).delay(0.08)) {
                 contentVisible = true
             }

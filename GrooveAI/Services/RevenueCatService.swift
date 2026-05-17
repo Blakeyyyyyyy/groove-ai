@@ -2,6 +2,7 @@ import Foundation
 import CoreGraphics
 import RevenueCat
 import StoreKit
+import FBSDKCoreKit
 
 extension Notification.Name {
     static let revenueCatPurchaseCompleted = Notification.Name("revenueCatPurchaseCompleted")
@@ -356,7 +357,15 @@ final class RevenueCatService: ObservableObject {
 
         if let annual = currentPackages.first(where: { $0.packageType == .annual }) {
             #if DEBUG
-            print("[RevenueCat]    ✅ Found annual: \(annual.storeProduct.productIdentifier)")
+            print("[RevenueCat]    ✅ Found annual by packageType: \(annual.storeProduct.productIdentifier)")
+            #endif
+            return annual
+        }
+
+        // Fallback: search by product ID in case RC maps it as .custom
+        if let annual = currentPackages.first(where: { $0.storeProduct.productIdentifier == ProductID.annual }) {
+            #if DEBUG
+            print("[RevenueCat]    ✅ Found annual by product ID (packageType=\(annual.packageType)): \(annual.storeProduct.productIdentifier)")
             #endif
             return annual
         }
@@ -395,6 +404,17 @@ final class RevenueCatService: ObservableObject {
             #if DEBUG
             print("[RevenueCat] Purchase returning success=true — posting sync notification")
             #endif
+
+            let amount = NSDecimalNumber(decimal: package.storeProduct.price).doubleValue
+            let currency = package.storeProduct.currencyCode ?? "USD"
+            AppEvents.shared.logPurchase(
+                amount: amount,
+                currency: currency,
+                parameters: [
+                    .contentID: package.storeProduct.productIdentifier,
+                    .contentType: "subscription"
+                ]
+            )
 
             // Notify AppState to force-refresh coins from server
             // AppState listens for this and calls syncWithServer()

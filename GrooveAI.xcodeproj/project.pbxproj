@@ -87,8 +87,10 @@
 		BF_PRIVACYINFO /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */; };
 		BF_R2SERVICE /* R2Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_R2SERVICE /* R2Service.swift */; };
 		BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */; };
+		BF_METATRACKER /* MetaTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_METATRACKER /* MetaTracker.swift */; };
 		BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_REVENUECATSERVICE /* RevenueCatService.swift */; };
 		BF_REVENUECAT_PKG /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = PR_REVENUECAT /* RevenueCat */; };
+		BF_FBSDKCOREKIT_PKG /* FBSDKCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = PR_FBSDKCOREKIT /* FBSDKCoreKit */; };
 		BF_SETTINGSROW /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSROW /* SettingsRow.swift */; };
 		BF_SETTINGSVIEW /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSVIEW /* SettingsView.swift */; };
 		BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */; };
@@ -124,9 +126,9 @@
 		BB54286D2FA44EE300BE2D33 /* GrooveAITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GrooveAITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB9477262F9C45FF00B49AC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FR_APPSTATE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		FR_CONFIG_XCCONFIG /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		FR_CATEGORYSWIPEVIEW /* CategorySwipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySwipeView.swift; sourceTree = "<group>"; };
 		FR_COMPLETEDVIDEOVIEW /* CompletedVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedVideoView.swift; sourceTree = "<group>"; };
+		FR_CONFIG_XCCONFIG /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		FR_CONTENTVIEW /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FR_CREDITSINFOROW /* CreditsInfoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsInfoRow.swift; sourceTree = "<group>"; };
 		FR_CREDITSSERVICE /* CreditsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsService.swift; sourceTree = "<group>"; };
@@ -195,6 +197,7 @@
 		FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FR_R2SERVICE /* R2Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Service.swift; sourceTree = "<group>"; };
 		FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptService.swift; sourceTree = "<group>"; };
+		FR_METATRACKER /* MetaTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaTracker.swift; sourceTree = "<group>"; };
 		FR_REVENUECATSERVICE /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 		FR_SETTINGSROW /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		FR_SETTINGSVIEW /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -227,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF_REVENUECAT_PKG /* RevenueCat in Frameworks */,
+				BF_FBSDKCOREKIT_PKG /* FBSDKCoreKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +440,7 @@
 				FR_NOTIFICATIONSERVICE /* NotificationService.swift */,
 				FR_R2SERVICE /* R2Service.swift */,
 				FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */,
+				FR_METATRACKER /* MetaTracker.swift */,
 				FR_REVENUECATSERVICE /* RevenueCatService.swift */,
 				FR_SUPABASESERVICE /* SupabaseService.swift */,
 			);
@@ -538,6 +543,7 @@
 			name = GrooveAI;
 			packageProductDependencies = (
 				PR_REVENUECAT /* RevenueCat */,
+				PR_FBSDKCOREKIT /* FBSDKCoreKit */,
 			);
 			productName = GrooveAI;
 			productReference = PRODUCT_REF /* GrooveAI.app */;
@@ -593,6 +599,7 @@
 			mainGroup = ROOT_GROUP;
 			packageReferences = (
 				BBCC02FE2F77834B0070317C /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				BBFBSDK00000000000000001 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 			);
 			productRefGroup = PRODUCTS_GROUP /* Products */;
 			projectDirPath = "";
@@ -655,7 +662,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\n# Inject xcconfig-sourced secrets into the GENERATE_INFOPLIST_FILE output.\n# INFOPLIST_KEY_* only injects an Apple-recognized whitelist; arbitrary keys\n# require post-processing the built Info.plist directly.\n# Declaring TARGET_BUILD_DIR/INFOPLIST_PATH as an input forces Xcode to run\n# this phase after ProcessInfoPlistFile (otherwise they run in parallel and\n# our edits get overwritten on incremental builds).\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nSTAMP=\"${DERIVED_FILE_DIR}/inject-secrets.stamp\"\nmkdir -p \"$(dirname \"$STAMP\")\"\nif [ ! -f \"$INFO_PLIST\" ]; then\n  echo \"warning: Info.plist not found at $INFO_PLIST — skipping secret injection\"\n  : > \"$STAMP\"\n  exit 0\nfi\nif [ -z \"${GROOVE_API_KEY:-}\" ]; then\n  echo \"warning: GROOVE_API_KEY is empty — Config.xcconfig may be missing or not wired\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :GROOVE_API_KEY\" \"$INFO_PLIST\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :GROOVE_API_KEY string ${GROOVE_API_KEY:-}\" \"$INFO_PLIST\"\n/usr/libexec/PlistBuddy -c \"Delete :GROOVE_BASE_HOST\" \"$INFO_PLIST\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :GROOVE_BASE_HOST string ${GROOVE_BASE_HOST:-}\" \"$INFO_PLIST\"\necho \"note: injected GROOVE_API_KEY and GROOVE_BASE_HOST into $INFO_PLIST\"\ndate > \"$STAMP\"\n";
+			shellScript = "set -eu\n# Inject xcconfig-sourced secrets into the GENERATE_INFOPLIST_FILE output.\n# INFOPLIST_KEY_* only injects an Apple-recognized whitelist; arbitrary keys\n# require post-processing the built Info.plist directly.\n# Declaring TARGET_BUILD_DIR/INFOPLIST_PATH as an input forces Xcode to run\n# this phase after ProcessInfoPlistFile (otherwise they run in parallel and\n# our edits get overwritten on incremental builds).\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nSTAMP=\"${DERIVED_FILE_DIR}/inject-secrets.stamp\"\nPB=/usr/libexec/PlistBuddy\nmkdir -p \"$(dirname \"$STAMP\")\"\nif [ ! -f \"$INFO_PLIST\" ]; then\n  echo \"warning: Info.plist not found at $INFO_PLIST — skipping secret injection\"\n  : > \"$STAMP\"\n  exit 0\nfi\nif [ -z \"${GROOVE_API_KEY:-}\" ]; then\n  echo \"warning: GROOVE_API_KEY is empty — Config.xcconfig may be missing or not wired\"\nfi\n$PB -c \"Delete :GROOVE_API_KEY\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :GROOVE_API_KEY string ${GROOVE_API_KEY:-}\" \"$INFO_PLIST\"\n$PB -c \"Delete :GROOVE_BASE_HOST\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :GROOVE_BASE_HOST string ${GROOVE_BASE_HOST:-}\" \"$INFO_PLIST\"\n\n# --- Meta (Facebook) SDK keys ---\n$PB -c \"Delete :FacebookAppID\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :FacebookAppID string 1423338032892676\" \"$INFO_PLIST\"\n$PB -c \"Delete :FacebookClientToken\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :FacebookClientToken string c722361c41dbf2313ae12d6c5c6c3a43\" \"$INFO_PLIST\"\n$PB -c \"Delete :FacebookDisplayName\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :FacebookDisplayName string Groove AI\" \"$INFO_PLIST\"\n$PB -c \"Delete :NSUserTrackingUsageDescription\" \"$INFO_PLIST\" 2>/dev/null || true\n$PB -c \"Add :NSUserTrackingUsageDescription string This allows us to show you personalised ads and measure how well our ads are working.\" \"$INFO_PLIST\"\n\n# CFBundleURLTypes: append fb scheme entry idempotently\nif ! $PB -c \"Print :CFBundleURLTypes\" \"$INFO_PLIST\" >/dev/null 2>&1; then\n  $PB -c \"Add :CFBundleURLTypes array\" \"$INFO_PLIST\"\nfi\nFB_URL_INDEX=$($PB -c \"Print :CFBundleURLTypes\" \"$INFO_PLIST\" 2>/dev/null | grep -c \"fb1423338032892676\" || true)\nif [ \"$FB_URL_INDEX\" = \"0\" ]; then\n  IDX=$($PB -c \"Print :CFBundleURLTypes\" \"$INFO_PLIST\" | grep -c \"^    Dict {\" || true)\n  $PB -c \"Add :CFBundleURLTypes:$IDX dict\" \"$INFO_PLIST\"\n  $PB -c \"Add :CFBundleURLTypes:$IDX:CFBundleURLSchemes array\" \"$INFO_PLIST\"\n  $PB -c \"Add :CFBundleURLTypes:$IDX:CFBundleURLSchemes:0 string fb1423338032892676\" \"$INFO_PLIST\"\nfi\n\n# LSApplicationQueriesSchemes: append fb entries idempotently\nif ! $PB -c \"Print :LSApplicationQueriesSchemes\" \"$INFO_PLIST\" >/dev/null 2>&1; then\n  $PB -c \"Add :LSApplicationQueriesSchemes array\" \"$INFO_PLIST\"\nfi\nfor SCHEME in fbapi fbauth fbauth2 fbshareextension; do\n  if ! $PB -c \"Print :LSApplicationQueriesSchemes\" \"$INFO_PLIST\" | grep -q \"^    $SCHEME$\"; then\n    COUNT=$($PB -c \"Print :LSApplicationQueriesSchemes\" \"$INFO_PLIST\" | grep -c \"^    \" || true)\n    $PB -c \"Add :LSApplicationQueriesSchemes:$COUNT string $SCHEME\" \"$INFO_PLIST\"\n  fi\ndone\n\n# SKAdNetworkItems: append Meta ad network IDs idempotently\nif ! $PB -c \"Print :SKAdNetworkItems\" \"$INFO_PLIST\" >/dev/null 2>&1; then\n  $PB -c \"Add :SKAdNetworkItems array\" \"$INFO_PLIST\"\nfi\nfor ADID in v9wttpbfk9.skadnetwork n38lu8286q.skadnetwork; do\n  if ! $PB -c \"Print :SKAdNetworkItems\" \"$INFO_PLIST\" | grep -q \"$ADID\"; then\n    COUNT=$($PB -c \"Print :SKAdNetworkItems\" \"$INFO_PLIST\" | grep -c \"^    Dict {\" || true)\n    $PB -c \"Add :SKAdNetworkItems:$COUNT dict\" \"$INFO_PLIST\"\n    $PB -c \"Add :SKAdNetworkItems:$COUNT:SKAdNetworkIdentifier string $ADID\" \"$INFO_PLIST\"\n  fi\ndone\n\necho \"note: injected secrets + Meta SDK Info.plist keys into $INFO_PLIST\"\ndate > \"$STAMP\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -736,6 +743,7 @@
 				BF_PHOTOPICKER /* PhotoPicker.swift in Sources */,
 				BF_R2SERVICE /* R2Service.swift in Sources */,
 				BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */,
+				BF_METATRACKER /* MetaTracker.swift in Sources */,
 				BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */,
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_SETTINGSVIEW /* SettingsView.swift in Sources */,
@@ -906,7 +914,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = LA9S6CUFVK;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Groove AI";
@@ -920,14 +928,15 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.grooveai.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -965,7 +974,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = LA9S6CUFVK;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Groove AI";
@@ -979,14 +988,15 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.grooveai.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -1031,6 +1041,14 @@
 				minimumVersion = 5.67.0;
 			};
 		};
+		BBFBSDK00000000000000001 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 18.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1038,6 +1056,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BBCC02FE2F77834B0070317C /* XCRemoteSwiftPackageReference "purchases-ios" */;
 			productName = RevenueCat;
+		};
+		PR_FBSDKCOREKIT /* FBSDKCoreKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBFBSDK00000000000000001 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -71,6 +71,7 @@ struct GrooveDanceSelectView: View {
             }
         }
         .onAppear {
+            MetaTracker.danceSelected()
             if state.selectedDanceId.isEmpty {
                 state.selectedDanceId = onboardingDanceOptions[0].id
             }
