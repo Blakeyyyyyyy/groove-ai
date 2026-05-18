@@ -4,6 +4,7 @@ import UIKit
 import UserNotifications
 import AppTrackingTransparency
 import FBSDKCoreKit
+import RevenueCat
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -79,6 +80,10 @@ struct GrooveAIApp: App {
                     } else {
                         RevenueCatService.shared.configure()
                     }
+
+                    // Pass Facebook Anonymous ID to RevenueCat so Meta CAPI fires on purchase.
+                    // Available regardless of ATT consent — not IDFA.
+                    Purchases.shared.attribution.setAttributes(["$fbAnonId": AppEvents.shared.anonymousID])
 
                     // Run server sync and RevenueCat premium check in parallel
                     async let serverSync: Void = appState.syncWithServer()
