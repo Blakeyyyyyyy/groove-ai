@@ -42,8 +42,5 @@
 	</array>
 	<key>NSPrivacyTracking</key>
 	<true/>
-	<key>NSPrivacyTrackingDomains</key>
-	<array>
-	</array>
 </dict>
 </plist>
