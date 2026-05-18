@@ -42,5 +42,9 @@
 	</array>
 	<key>NSPrivacyTracking</key>
 	<true/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array>
+		<string>ep1.facebook.com</string>
+	</array>
 </dict>
 </plist>
