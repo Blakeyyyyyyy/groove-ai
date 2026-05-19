@@ -2,6 +2,7 @@
 // Root coordinator for the Groove AI onboarding flow.
 
 import SwiftUI
+import SuperwallKit
 
 struct GrooveOnboardingView: View {
     let onComplete: () -> Void
@@ -90,14 +91,14 @@ struct GrooveOnboardingView: View {
                     ))
 
             case 7:
-                GroovePaywallScreen(
-                    onPurchaseSuccess: onComplete,
-                    onDismiss: onComplete
-                )
-                .transition(.asymmetric(
-                    insertion: .opacity,
-                    removal: .move(edge: .leading)
-                ))
+                Color.black.ignoresSafeArea()
+                    .task {
+                        Superwall.shared.register(placement: "onboarding_paywall") {
+                            // Feature block — runs when user has access (purchased,
+                            // restored, or paywall configured to fire on dismiss).
+                            onComplete()
+                        }
+                    }
 
             default:
                 EmptyView()

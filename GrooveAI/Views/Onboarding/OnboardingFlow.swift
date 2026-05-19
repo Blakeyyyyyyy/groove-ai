@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import SuperwallKit
 
 // MARK: - Onboarding Flow (Build #4 — Hybrid A+B, 5 screens)
 struct OnboardingFlow: View {
@@ -39,7 +40,9 @@ struct OnboardingFlow: View {
                     subject: selectedSubject ?? .pet,
                     style: selectedStyle
                 ) {
-                    appState.showPaywall = true
+                    Superwall.shared.register(placement: "onboarding_paywall") {
+                        appState.hasCompletedOnboarding = true
+                    }
                 }
                 .tag(3)
             }
@@ -61,19 +64,6 @@ struct OnboardingFlow: View {
             if newValue < steps.count {
                 SupabaseService.shared.trackEvent(step: steps[newValue])
             }
-        }
-        .fullScreenCover(isPresented: Binding(
-            get: { appState.showPaywall },
-            set: { appState.showPaywall = $0 }
-        )) {
-            GroovePaywallScreen(
-                onPurchaseSuccess: {
-                    appState.showPaywall = false
-                },
-                onDismiss: {
-                    appState.showPaywall = false
-                }
-            )
         }
     }
 }

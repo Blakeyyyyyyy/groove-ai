@@ -5,6 +5,7 @@ import UserNotifications
 import AppTrackingTransparency
 import FBSDKCoreKit
 import RevenueCat
+import SuperwallKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -84,6 +85,18 @@ struct GrooveAIApp: App {
                     // Pass Facebook Anonymous ID to RevenueCat so Meta CAPI fires on purchase.
                     // Available regardless of ATT consent — not IDFA.
                     Purchases.shared.attribution.setAttributes(["$fbAnonId": AppEvents.shared.anonymousID])
+
+                    // Configure Superwall AFTER RevenueCat so the purchase controller
+                    // can route purchases through Purchases.shared. Superwall.configure
+                    // internally no-ops if called more than once, and the .task modifier
+                    // only fires once per ContentView lifetime, so this is safe on
+                    // scene re-creation.
+                    let purchaseController = RCPurchaseController()
+                    Superwall.configure(apiKey: "pk_ECkhs6Rv0polCPRF03SbD", purchaseController: purchaseController)
+                    purchaseController.syncSubscriptionStatus()
+                    if let userId = appState.userId {
+                        Superwall.shared.identify(userId: userId)
+                    }
 
                     // Run server sync and RevenueCat premium check in parallel
                     async let serverSync: Void = appState.syncWithServer()

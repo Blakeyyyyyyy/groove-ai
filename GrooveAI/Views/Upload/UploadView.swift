@@ -1,4 +1,5 @@
 import SwiftUI
+import SuperwallKit
 
 struct UploadView: View {
     let preset: DancePreset
@@ -8,7 +9,6 @@ struct UploadView: View {
     @State private var selectedImage: UIImage?
     @State private var showPhotoPicker = false
     @State private var showCoinsPurchasePaywall = false
-    @State private var showSubscriptionPaywall = false
     @State private var showNotificationModal = false
     private let generationService = GenerationService()
 
@@ -61,7 +61,12 @@ struct UploadView: View {
                 } else if appState.hasHadSubscription {
                     showCoinsPurchasePaywall = true
                 } else {
-                    showSubscriptionPaywall = true
+                    // Free user, never subscribed → Superwall main paywall.
+                    // Feature block fires only when access is granted (purchase
+                    // or restore); on dismiss without access, nothing happens.
+                    Superwall.shared.register(placement: "onboarding_paywall") {
+                        startGeneration()
+                    }
                 }
             } label: {
                 Text(selectedImage != nil ? "Generate" : "Select a Photo First")
@@ -127,19 +132,6 @@ struct UploadView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(.black)
-        }
-        .fullScreenCover(isPresented: $showSubscriptionPaywall) {
-            GroovePaywallScreen(
-                onPurchaseSuccess: {
-                    showSubscriptionPaywall = false
-                    if selectedImage != nil {
-                        startGeneration()
-                    }
-                },
-                onDismiss: {
-                    showSubscriptionPaywall = false
-                }
-            )
         }
     }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import SuperwallKit
 
 /// Coin balance card for Settings tab.
 /// Shows current balance, refill info for subscribers, top-up for free users.
@@ -182,7 +183,6 @@ struct GrooveCoinBalanceView: View {
 struct AppHeaderCoinPill: View {
     @Environment(AppState.self) private var appState
     @State private var showCoinsSheet = false
-    @State private var showPaywall = false
 
     private func log(_ message: String) {
         #if DEBUG
@@ -197,8 +197,8 @@ struct AppHeaderCoinPill: View {
                 log("Presenting upgrade paywall: GrooveCoinPurchaseSheet")
                 showCoinsSheet = true
             } else if appState.coinsRemaining <= 0 {
-                log("Presenting onboarding paywall: GroovePaywallScreen (0 coins)")
-                showPaywall = true
+                log("Presenting Superwall onboarding_paywall placement (0 coins)")
+                Superwall.shared.register(placement: "onboarding_paywall") {}
             } else {
                 log("Presenting coin purchase sheet (has coins but not subscribed)")
                 showCoinsSheet = true
@@ -228,29 +228,8 @@ struct AppHeaderCoinPill: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(.black)
         }
-        .fullScreenCover(isPresented: $showPaywall) {
-            GroovePaywallScreen(
-                onPurchaseSuccess: {
-                    log("GroovePaywallScreen purchase succeeded from coin button")
-                    appState.isSubscribed = true
-                    appState.selectedTab = .home
-                    showPaywall = false
-                },
-                onDismiss: {
-                    log("GroovePaywallScreen dismissed from coin button")
-                    appState.selectedTab = .home
-                    showPaywall = false
-                }
-            )
-                .onAppear {
-                    log("GroovePaywallScreen appeared from coin button")
-                }
-        }
         .onChange(of: showCoinsSheet) { _, isPresented in
             log("showCoinsSheet changed -> \(isPresented)")
-        }
-        .onChange(of: showPaywall) { _, isPresented in
-            log("showPaywall changed -> \(isPresented)")
         }
     }
 }

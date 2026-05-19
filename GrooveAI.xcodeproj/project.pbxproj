@@ -91,6 +91,8 @@
 		BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */; };
 		BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_REVENUECATSERVICE /* RevenueCatService.swift */; };
 		BF_REVENUECAT_PKG /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = PR_REVENUECAT /* RevenueCat */; };
+		BF_SUPERWALL_PKG /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = PR_SUPERWALL /* SuperwallKit */; };
+		BF_RCPURCHASECONTROLLER /* RCPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_RCPURCHASECONTROLLER /* RCPurchaseController.swift */; };
 		BF_SETTINGSROW /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSROW /* SettingsRow.swift */; };
 		BF_SETTINGSVIEW /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SETTINGSVIEW /* SettingsView.swift */; };
 		BF_SIMULATEDRESULTVIEW /* SimulatedResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SIMULATEDRESULTVIEW /* SimulatedResultView.swift */; };
@@ -198,6 +200,7 @@
 		FR_PRIVACYINFO /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FR_R2SERVICE /* R2Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Service.swift; sourceTree = "<group>"; };
 		FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptService.swift; sourceTree = "<group>"; };
+		FR_RCPURCHASECONTROLLER /* RCPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCPurchaseController.swift; sourceTree = "<group>"; };
 		FR_REVENUECATSERVICE /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 		FR_SETTINGSROW /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		FR_SETTINGSVIEW /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -231,6 +234,7 @@
 			files = (
 				BF_REVENUECAT_PKG /* RevenueCat in Frameworks */,
 				BF_FBSDKCOREKIT_PKG /* FacebookCore in Frameworks */,
+				BF_SUPERWALL_PKG /* SuperwallKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -441,6 +445,7 @@
 				FR_R2SERVICE /* R2Service.swift */,
 				FR_RATINGPROMPTSERVICE /* RatingPromptService.swift */,
 				FR_METATRACKER /* MetaTracker.swift */,
+				FR_RCPURCHASECONTROLLER /* RCPurchaseController.swift */,
 				FR_REVENUECATSERVICE /* RevenueCatService.swift */,
 				FR_SUPABASESERVICE /* SupabaseService.swift */,
 			);
@@ -544,6 +549,7 @@
 			packageProductDependencies = (
 				PR_REVENUECAT /* RevenueCat */,
 				PR_FBSDKCOREKIT /* FacebookCore */,
+				PR_SUPERWALL /* SuperwallKit */,
 			);
 			productName = GrooveAI;
 			productReference = PRODUCT_REF /* GrooveAI.app */;
@@ -746,6 +752,7 @@
 				BF_RATINGPROMPTSERVICE /* RatingPromptService.swift in Sources */,
 				BF_METATRACKER /* MetaTracker.swift in Sources */,
 				BF_REVENUECATSERVICE /* RevenueCatService.swift in Sources */,
+				BF_RCPURCHASECONTROLLER /* RCPurchaseController.swift in Sources */,
 				BF_SETTINGSROW /* SettingsRow.swift in Sources */,
 				BF_SETTINGSVIEW /* SettingsView.swift in Sources */,
 				BF_MANAGEPLANVIEW /* ManagePlanView.swift in Sources */,
@@ -1039,7 +1046,7 @@
 			repositoryURL = "https://github.com/superwall/Superwall-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.15.3;
+				minimumVersion = 4.0.0;
 			};
 		};
 		BBCC02FE2F77834B0070317C /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
@@ -1070,6 +1077,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BBCC02FE2F77834B0070317C /* XCRemoteSwiftPackageReference "purchases-ios" */;
 			productName = RevenueCat;
+		};
+		PR_SUPERWALL /* SuperwallKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBC39CEC2FBBE289009DEE4F /* XCRemoteSwiftPackageReference "Superwall-iOS" */;
+			productName = SuperwallKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

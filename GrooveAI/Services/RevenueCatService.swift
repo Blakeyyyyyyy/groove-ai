@@ -79,7 +79,7 @@ final class RevenueCatService: ObservableObject {
     }
 
     @MainActor
-    private func applyCustomerInfo(_ customerInfo: CustomerInfo) {
+    func applyCustomerInfo(_ customerInfo: CustomerInfo) {
         let entitlement = premiumEntitlement(from: customerInfo)
         let premiumIsActive = entitlement?.isActive == true
         isSubscribed = premiumIsActive
