@@ -37,7 +37,11 @@ final class RCPurchaseController: PurchaseController {
             guard !customerInfo.entitlements.active.isEmpty else {
                 return .failed(SuperwallPurchaseError.unknown)
             }
-            NotificationCenter.default.post(name: .purchaseCompleted, object: nil)
+            NotificationCenter.default.post(
+                name: .revenueCatPurchaseCompleted,
+                object: nil,
+                userInfo: ["productId": sk2Product.productIdentifier]
+            )
             return .purchased
         } catch {
             return .failed(error)
@@ -51,16 +55,12 @@ final class RCPurchaseController: PurchaseController {
             guard !customerInfo.entitlements.active.isEmpty else {
                 return .failed(SuperwallPurchaseError.unknown)
             }
-            NotificationCenter.default.post(name: .purchaseCompleted, object: nil)
+            NotificationCenter.default.post(name: .revenueCatPurchaseCompleted, object: nil)
             return .restored
         } catch {
             return .failed(error)
         }
     }
-}
-
-extension Notification.Name {
-    static let purchaseCompleted = Notification.Name("GrooveAI.purchaseCompleted")
 }
 
 enum SuperwallPurchaseError: Error {
