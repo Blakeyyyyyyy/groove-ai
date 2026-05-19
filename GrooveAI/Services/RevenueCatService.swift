@@ -451,6 +451,11 @@ final class RevenueCatService: ObservableObject {
         print("[RevenueCat] restorePurchases activeEntitlements=\(activeEntitlementKeys) premiumActive=\(premiumIsActive)")
         #endif
         applyCustomerInfo(customerInfo)
+        // Only notify AppState when the restore actually found entitlements —
+        // an empty restore must not trigger the post-purchase sync path.
+        if premiumIsActive {
+            NotificationCenter.default.post(name: .revenueCatPurchaseCompleted, object: nil)
+        }
         return isSubscribed
     }
     

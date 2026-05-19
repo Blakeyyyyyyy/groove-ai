@@ -5,6 +5,7 @@
 
 import SwiftUI
 import RevenueCat
+import FBSDKCoreKit
 
 struct GrooveCoinPurchaseSheet: View {
     @Environment(AppState.self) private var appState
@@ -22,6 +23,7 @@ struct GrooveCoinPurchaseSheet: View {
     @State private var selectedCoinPackage: CoinPackage = .medium
     @State private var selectedPlanTier: PlanTier = .weeklyPro550
     @State private var isPurchasing = false
+    @State private var isRestoring = false
     @State private var purchaseError: String?
     @State private var showCoinsInfo = false
 
@@ -538,12 +540,11 @@ struct GrooveCoinPurchaseSheet: View {
                 Text("·")
                     .foregroundStyle(textTertiary)
                 Button("Restore Purchases") {
-                    Task {
-                        let _ = await rcService.restorePurchasesAsync()
-                    }
+                    handleRestore()
                 }
                 .font(.system(size: 13))
                 .foregroundStyle(textTertiary)
+                .disabled(isRestoring)
             }
         }
         .padding(.horizontal, 16)
@@ -580,6 +581,29 @@ struct GrooveCoinPurchaseSheet: View {
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.white)
+        }
+    }
+
+    // MARK: - Restore
+
+    private func handleRestore() {
+        guard !isRestoring else { return }
+        isRestoring = true
+        purchaseError = nil
+
+        Task {
+            let restored = await RevenueCatService.shared.restorePurchasesAsync()
+            await MainActor.run {
+                isRestoring = false
+                if restored {
+                    appState.isSubscribed = true
+                    purchaseError = nil
+                    onPurchaseComplete?()
+                    dismiss()
+                } else {
+                    purchaseError = "No active subscription found to restore."
+                }
+            }
         }
     }
 
@@ -620,6 +644,20 @@ struct GrooveCoinPurchaseSheet: View {
                         )
                         // Server confirmed — now safe to finish the StoreKit transaction
                         await finishTransaction()
+                        // Fire Meta CAPI purchase event for coin consumables. Subscription
+                        // purchases already log via RCPurchaseController; coin packs go
+                        // through StoreKit2 directly and would otherwise be invisible.
+                        if let product = RevenueCatService.shared.coinProducts[selectedCoinPackage.productID] {
+                            let amount = Double(truncating: product.price as NSDecimalNumber)
+                            AppEvents.shared.logPurchase(
+                                amount: amount,
+                                currency: product.priceFormatStyle.currencyCode,
+                                parameters: [
+                                    .contentID: selectedCoinPackage.productID,
+                                    .contentType: "consumable"
+                                ]
+                            )
+                        }
                         let updatedCoins = result["coins"] as? Int
                         await MainActor.run {
                             if let coins = updatedCoins {

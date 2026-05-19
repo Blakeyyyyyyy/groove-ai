@@ -42,6 +42,9 @@ struct GrooveAIApp: App {
     // Guards against the first scenePhase → .active firing on launch (same sync
     // already runs in .task below — without this flag, syncWithServer fires twice).
     @State private var hasCompletedInitialLaunch = false
+    // Stored as @State so the controller survives past .task completion.
+    // Superwall holds this weakly; if it deallocates, all purchases silently fail.
+    @State private var purchaseController = RCPurchaseController()
 
     init() {
         Self.configureTabBarAppearance()
@@ -91,7 +94,6 @@ struct GrooveAIApp: App {
                     // internally no-ops if called more than once, and the .task modifier
                     // only fires once per ContentView lifetime, so this is safe on
                     // scene re-creation.
-                    let purchaseController = RCPurchaseController()
                     Superwall.configure(apiKey: "pk_ECkhs6Rv0polCPRF03SbD", purchaseController: purchaseController)
                     purchaseController.syncSubscriptionStatus()
                     if let userId = appState.userId {

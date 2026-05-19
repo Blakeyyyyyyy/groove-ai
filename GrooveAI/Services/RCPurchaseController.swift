@@ -6,7 +6,7 @@ final class RCPurchaseController: PurchaseController {
 
     /// Map RevenueCat's active entitlement IDs into the Set<Entitlement>
     /// SuperwallKit 4.x requires on `SubscriptionStatus.active`.
-    private func subscriptionStatus(from customerInfo: RevenueCat.CustomerInfo) -> SubscriptionStatus {
+    private func subscriptionStatus(from customerInfo: RevenueCat.CustomerInfo) -> SuperwallKit.SubscriptionStatus {
         let activeIds = customerInfo.entitlements.active.keys
         guard !activeIds.isEmpty else { return .inactive }
         let entitlements = Set(activeIds.map { Entitlement(id: $0) })
@@ -39,19 +39,19 @@ final class RCPurchaseController: PurchaseController {
                 return .failed(SuperwallPurchaseError.unknown)
             }
             let amount = NSDecimalNumber(decimal: sk2Product.price).doubleValue
-            let currency = sk2Product.currencyCode ?? "USD"
+            let currency = sk2Product.priceFormatStyle.currencyCode
             AppEvents.shared.logPurchase(
                 amount: amount,
                 currency: currency,
                 parameters: [
-                    .contentID: sk2Product.productIdentifier,
+                    .contentID: sk2Product.id,
                     .contentType: "subscription"
                 ]
             )
             NotificationCenter.default.post(
                 name: .revenueCatPurchaseCompleted,
                 object: nil,
-                userInfo: ["productId": sk2Product.productIdentifier]
+                userInfo: ["productId": sk2Product.id]
             )
             return .purchased
         } catch {

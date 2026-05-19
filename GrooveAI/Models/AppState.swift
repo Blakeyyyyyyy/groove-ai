@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Security
 import RevenueCat
+import SuperwallKit
 
 // MARK: - API Response Models
 
@@ -214,6 +215,12 @@ final class AppState {
         do {
             let (newUserId, initialCoins) = try await SupabaseService.shared.register()
             KeychainHelper.save(newUserId, forKey: "userId")
+            // Identify this user to Superwall the moment the ID exists, so first-launch
+            // users (who land in performRegistration before any other identify call)
+            // are attributed correctly on their first paywall view.
+            await MainActor.run {
+                Superwall.shared.identify(userId: newUserId)
+            }
             await MainActor.run {
                 self.serverCoins = initialCoins
                 self.isRegistering = false
@@ -325,6 +332,11 @@ final class AppState {
         NotificationCenter.default.addObserver(forName: .revenueCatPurchaseCompleted, object: nil, queue: nil) { [weak self] notification in
             guard let self else { return }
             Task {
+                // Flip the routing flag immediately so the user isn't bounced
+                // back to the onboarding paywall during the 3s webhook delay.
+                await MainActor.run {
+                    self.hasHadSubscription = true
+                }
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
                 for _ in 0..<10 {
                     if KeychainHelper.get(forKey: "userId") != nil { break }
