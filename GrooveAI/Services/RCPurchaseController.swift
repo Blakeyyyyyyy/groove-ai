@@ -1,5 +1,6 @@
 import SuperwallKit
 import RevenueCat
+import FBSDKCoreKit
 
 final class RCPurchaseController: PurchaseController {
 
@@ -37,6 +38,16 @@ final class RCPurchaseController: PurchaseController {
             guard !customerInfo.entitlements.active.isEmpty else {
                 return .failed(SuperwallPurchaseError.unknown)
             }
+            let amount = NSDecimalNumber(decimal: sk2Product.price).doubleValue
+            let currency = sk2Product.currencyCode ?? "USD"
+            AppEvents.shared.logPurchase(
+                amount: amount,
+                currency: currency,
+                parameters: [
+                    .contentID: sk2Product.productIdentifier,
+                    .contentType: "subscription"
+                ]
+            )
             NotificationCenter.default.post(
                 name: .revenueCatPurchaseCompleted,
                 object: nil,
