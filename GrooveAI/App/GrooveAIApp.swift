@@ -134,6 +134,15 @@ struct GrooveAIApp: App {
                         }
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .purchaseCompleted)) { _ in
+                    Task {
+                        await appState.syncWithServer()
+                        let isPremium = await RevenueCatService.shared.checkPremium()
+                        await MainActor.run {
+                            appState.isSubscribed = isPremium
+                        }
+                    }
+                }
         }
         .modelContainer(for: [GeneratedVideo.self])
     }

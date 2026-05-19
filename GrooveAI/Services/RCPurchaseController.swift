@@ -34,9 +34,11 @@ final class RCPurchaseController: PurchaseController {
                 product: RevenueCat.StoreProduct(sk2Product: sk2Product)
             )
             if userCancelled { return .cancelled }
-            return customerInfo.entitlements.active.isEmpty
-                ? .failed(SuperwallPurchaseError.unknown)
-                : .purchased
+            guard !customerInfo.entitlements.active.isEmpty else {
+                return .failed(SuperwallPurchaseError.unknown)
+            }
+            NotificationCenter.default.post(name: .purchaseCompleted, object: nil)
+            return .purchased
         } catch {
             return .failed(error)
         }
@@ -46,13 +48,19 @@ final class RCPurchaseController: PurchaseController {
     func restorePurchases() async -> RestorationResult {
         do {
             let customerInfo = try await Purchases.shared.restorePurchases()
-            return customerInfo.entitlements.active.isEmpty
-                ? .failed(SuperwallPurchaseError.unknown)
-                : .restored
+            guard !customerInfo.entitlements.active.isEmpty else {
+                return .failed(SuperwallPurchaseError.unknown)
+            }
+            NotificationCenter.default.post(name: .purchaseCompleted, object: nil)
+            return .restored
         } catch {
             return .failed(error)
         }
     }
+}
+
+extension Notification.Name {
+    static let purchaseCompleted = Notification.Name("GrooveAI.purchaseCompleted")
 }
 
 enum SuperwallPurchaseError: Error {
