@@ -1,5 +1,5 @@
 {
-  "originHash" : "fbdec518f66720abc9cceef1ea36ee3229c4faa09fdcfd36f45e77839c989f98",
+  "originHash" : "03170133fa08c5fc417dd5cf601502cfa8917db51db587a0c0ebfe3100d06dd4",
   "pins" : [
     {
       "identity" : "facebook-ios-sdk",
@@ -17,6 +17,24 @@
       "state" : {
         "revision" : "a78d10e43fd32e636cef073b8fede9a24a0b2d0b",
         "version" : "5.67.2"
+      }
+    },
+    {
+      "identity" : "superscript-ios-next",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superwall/superscript-ios-next",
+      "state" : {
+        "revision" : "abb2c8c96e958aabe11a84df67860ad7bbef3b68",
+        "version" : "1.0.14"
+      }
+    },
+    {
+      "identity" : "superwall-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superwall/Superwall-iOS",
+      "state" : {
+        "revision" : "f738aeb3d55f326f96279fb803ebfa3cac39e3e0",
+        "version" : "4.15.3"
       }
     }
   ],
