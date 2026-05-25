@@ -110,14 +110,13 @@ struct GrooveHeroScrollView: View {
                 Text("Continue →")
                     .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
                     .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
+                    .frame(width: 220)
                     .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
                     .background(GrooveOnboardingTheme.blueAccent)
                     .clipShape(Capsule())
                     .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
             }
             .buttonStyle(CTAPressStyle())
-            .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
             .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
             .opacity(contentVisible ? 1 : 0)
         }
