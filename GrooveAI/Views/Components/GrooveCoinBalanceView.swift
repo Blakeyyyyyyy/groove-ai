@@ -207,7 +207,6 @@ struct AppHeaderCoinPill: View {
     @Environment(AppState.self) private var appState
     @ObservedObject private var rcService = RevenueCatService.shared
     @State private var showCoinsSheet = false
-    @State private var showTrialUsedAlert = false
 
     private func log(_ message: String) {
         #if DEBUG
@@ -218,11 +217,6 @@ struct AppHeaderCoinPill: View {
     var body: some View {
         Button {
             log("Coin button tapped. isSubscribed=\(appState.isSubscribed), coinsRemaining=\(appState.coinsRemaining), isInFreeTrial=\(rcService.isInFreeTrial)")
-            if rcService.isInFreeTrial && appState.coinsRemaining == 0 {
-                log("In free trial with 0 coins — showing trial-used alert")
-                showTrialUsedAlert = true
-                return
-            }
             if appState.isSubscribed {
                 log("Presenting upgrade paywall: GrooveCoinPurchaseSheet")
                 showCoinsSheet = true
@@ -260,11 +254,6 @@ struct AppHeaderCoinPill: View {
         }
         .onChange(of: showCoinsSheet) { _, isPresented in
             log("showCoinsSheet changed -> \(isPresented)")
-        }
-        .alert("Trial Credits Used", isPresented: $showTrialUsedAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("You've used your 2 trial videos. Your free trial is still active — when it ends, you'll get 250 coins/month on your annual plan.")
         }
     }
 }
