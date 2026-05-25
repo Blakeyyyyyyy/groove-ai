@@ -7,7 +7,7 @@ import FBSDKCoreKit
 import RevenueCat
 import SuperwallKit
 
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -30,6 +30,30 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             sourceApplication: options[.sourceApplication] as? String,
             annotation: options[.annotation] as Any
         )
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let action = response.notification.request.content.userInfo["action"] as? String
+        if action == "openCreate" {
+            // Post to NotificationCenter so ContentView can route to home tab
+            NotificationCenter.default.post(
+                name: Notification.Name("GrooveOpenCreateTab"),
+                object: nil
+            )
+        }
+        completionHandler()
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
     }
 }
 
@@ -95,6 +119,10 @@ struct GrooveAIApp: App {
                     // only fires once per ContentView lifetime, so this is safe on
                     // scene re-creation.
                     Superwall.configure(apiKey: "pk_ECkhs6Rv0polCPRF03SbD", purchaseController: purchaseController)
+
+                    // Register AppDelegate as notification delegate so taps route correctly
+                    UNUserNotificationCenter.current().delegate = appDelegate
+
                     purchaseController.syncSubscriptionStatus()
                     if let userId = appState.userId {
                         Superwall.shared.identify(userId: userId)
@@ -105,6 +133,7 @@ struct GrooveAIApp: App {
                     async let premiumCheck = RevenueCatService.shared.checkPremium()
                     let (_, isPremium) = await (serverSync, premiumCheck)
                     appState.isSubscribed = isPremium
+                    if isPremium { NotificationService.cancelTrialReminder() }
 
                     // Check weekly coin reset
                     CoinsService.checkWeeklyReset()
@@ -133,6 +162,7 @@ struct GrooveAIApp: App {
                         let isPremium = await RevenueCatService.shared.checkPremium()
                         await MainActor.run {
                             appState.isSubscribed = isPremium
+                            if isPremium { NotificationService.cancelTrialReminder() }
                         }
                     }
                 }

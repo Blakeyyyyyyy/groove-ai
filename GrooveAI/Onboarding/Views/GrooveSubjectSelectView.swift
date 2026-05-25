@@ -17,6 +17,7 @@ struct GrooveSubjectSelectView: View {
     @State private var tapped = false
     @State private var showTapHint = false
     @State private var borderPulse = false
+    @State private var showNoSelectionError = false
 
     var body: some View {
         ZStack {
@@ -26,16 +27,16 @@ struct GrooveSubjectSelectView: View {
                 Spacer().frame(height: 96)
 
                 VStack(spacing: 8) {
-                    Text("Who's dancing?")
+                    Text("Let's try one together")
                         .font(.system(size: 34, weight: .bold))
                         .tracking(-0.5)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .opacity(cardsAppeared ? 1 : 0)
 
-                    Text("Choose your subject")
+                    Text("Pick a subject to see them dance")
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(GrooveOnboardingTheme.textSecondary)
+                        .foregroundColor(Color.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .opacity(cardsAppeared ? 1 : 0)
                 }
@@ -71,14 +72,38 @@ struct GrooveSubjectSelectView: View {
                 .frame(height: 352)
                 .padding(.horizontal, 20)
 
+                // Inline error message — shown when Continue tapped with no selection
+                Text("Tap a photo above to get started")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: 0xFF4D4D))
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 16)
+                    .opacity(showNoSelectionError ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: showNoSelectionError)
+
                 // Tap hint — appears after 1.5s, disappears on tap
                 TapHintView()
                     .opacity(showTapHint && !tapped ? 1 : 0)
                     .animation(.easeInOut(duration: 0.35), value: tapped)
-                    .padding(.top, 20)
+                    .padding(.top, 12)
 
                 Spacer()
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button(action: handleContinue) {
+                Text("Continue →")
+                    .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
+                    .background(GrooveOnboardingTheme.blueAccent)
+                    .clipShape(Capsule())
+                    .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
+            }
+            .buttonStyle(SubjectCTAPressStyle())
+            .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
+            .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
         }
         .onAppear {
             MetaTracker.subjectSelected()
@@ -107,6 +132,19 @@ struct GrooveSubjectSelectView: View {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             startBorderPulseLoop()
+        }
+    }
+
+    private func handleContinue() {
+        if state.selectedSubjectId.isEmpty {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            showNoSelectionError = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                showNoSelectionError = false
+            }
+        } else {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            onNext()
         }
     }
 
@@ -193,5 +231,13 @@ private struct SubjectCard: View {
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.01 : 1.0)
         .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isSelected)
+    }
+}
+
+private struct SubjectCTAPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

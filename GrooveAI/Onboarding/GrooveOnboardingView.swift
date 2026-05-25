@@ -55,7 +55,7 @@ struct GrooveOnboardingView: View {
 
             case 4:
                 if GrooveOnboardingFeatureFlags.usePremiumMagicResultFlow {
-                    GroovePremiumMagicResultFlowView(state: state, onNext: { advance(by: 2) })
+                    GroovePremiumMagicResultFlowView(state: state, onNext: { advance() })
                         .transition(.asymmetric(
                             insertion: .opacity,
                             removal: .move(edge: .leading).combined(with: .opacity)
@@ -71,29 +71,9 @@ struct GrooveOnboardingView: View {
                 }
 
             case 5:
-                if GrooveOnboardingFeatureFlags.usePremiumMagicResultFlow {
-                    EmptyView()
-                } else {
-                    #if DEBUG
-                    GrooveResultCTAView(state: state, onNext: { advance() })
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .leading)
-                        ))
-                    #endif
-                }
-
-            case 6:
-                TrialEnabledScreen(onNext: { advance() })
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .opacity
-                    ))
-
-            case 7:
                 Color.black.ignoresSafeArea()
                     .task {
-                        Superwall.shared.register(placement: "onboarding_paywall") {
+                        Superwall.shared.register(placement: "onboarding_trial") {
                             // Feature block — runs when user has access (purchased,
                             // restored, or paywall configured to fire on dismiss).
                             onComplete()

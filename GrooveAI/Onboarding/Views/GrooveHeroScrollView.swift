@@ -52,36 +52,32 @@ struct GrooveHeroScrollView: View {
                         }
                         .allowsHitTesting(false)
                     }
-                    .frame(height: min(geo.size.height * 0.58, 500))
+                    .frame(height: min(geo.size.height * 0.68, 580))
                     .clipped()
 
-                    Spacer().frame(height: 22)
+                    Spacer().frame(height: 20)
 
-                    VStack(spacing: 12) {
-                        Text("Make Anyone Drop the Beat")
-                            .font(.system(size: 36, weight: .heavy))
-                            .tracking(-0.5)
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(-4)
+                    Text("Make Anyone Dance")
+                        .font(.system(size: 36, weight: .heavy))
+                        .tracking(-0.5)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(-4)
+                        .padding(.horizontal, 24)
+                        .opacity(contentVisible ? 1 : 0)
+                        .offset(y: contentVisible ? 0 : 16)
 
-                        Text("Upload a photo. Pick a dance. Watch it come alive.")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(GrooveOnboardingTheme.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: 300)
-                    }
-                    .padding(.horizontal, 24)
-                    .opacity(contentVisible ? 1 : 0)
-                    .offset(y: contentVisible ? 0 : 16)
-
-                    Spacer().frame(height: 28)
-
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 12) {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         onNext()
                     }) {
-                        Text("Make yours →")
+                        Text("Continue →")
                             .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -94,8 +90,6 @@ struct GrooveHeroScrollView: View {
                     .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
                     .opacity(contentVisible ? 1 : 0)
                     .offset(y: contentVisible ? 0 : 18)
-
-                    Spacer().frame(height: 12)
 
                     HStack(spacing: 4) {
                         Text("By continuing, you agree to our")
@@ -121,14 +115,12 @@ struct GrooveHeroScrollView: View {
                         .font(.caption)
                         .underline()
                     }
-                    .padding(.bottom, 16)
                     .opacity(contentVisible ? 1 : 0)
-
-                    Spacer().frame(height: GrooveOnboardingTheme.ctaBottomPadding)
                 }
+                .padding(.bottom, 8)
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(edges: .top)
         .onAppear {
             MetaTracker.onboardingStarted()
             withAnimation(.easeOut(duration: 0.35).delay(0.08)) {

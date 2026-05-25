@@ -30,13 +30,129 @@ struct DancePreset: Identifiable, Hashable {
 
     // MARK: - All Presets (matches backend IDs)
 
+    private static let r2Output = "https://videos.trygrooveai.com/preset-tests/output"
+
     static let allPresets: [DancePreset] = [
-        // TRENDING (5)
+        // MJ DANCES (2)
+        DancePreset(
+            id: "mj-thriller",
+            name: "Pretty Young Thing",
+            shortDescription: "The King of Pop's most iconic dance",
+            category: "MJ Dances",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🎤 MJ Classic", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.20, green: 0.04, blue: 0.04),
+            videoURL: "\(r2Output)/mj-klingtest-1777888999457.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/mj-thriller-poster.jpg"
+        ),
+        DancePreset(
+            id: "beat-it",
+            name: "Beat It",
+            shortDescription: "MJ's legendary street style moves",
+            category: "MJ Dances",
+            badge: .hot,
+            coinCost: 60,
+            pillTags: ["🎤 MJ Classic", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.18, green: 0.08, blue: 0.02),
+            videoURL: "\(r2Output)/gemini-michael-trimmed-1778546590784.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/beat-it-poster.jpg"
+        ),
+
+        // TRENDING (7 — includes new presets)
+        DancePreset(
+            id: "pop-lock",
+            name: "Pop Lock",
+            shortDescription: "The classic street style pop & lock",
+            category: "Trending Now",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.04, green: 0.10, blue: 0.20),
+            videoURL: "\(r2Output)/snaptik-v3-test-1777873850368.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/pop-lock-poster.jpg"
+        ),
+        DancePreset(
+            id: "sahur-dance",
+            name: "Sahur Dance",
+            shortDescription: "The viral TikTok Tung Tung Tung trend",
+            category: "Trending Now",
+            badge: .newDance,
+            coinCost: 60,
+            pillTags: ["✨ New", "🐾 Pets Welcome"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.12, green: 0.06, blue: 0.18),
+            videoURL: "\(r2Output)/dog-snaptik-dance-1778549183486.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/sahur-dance-poster.jpg"
+        ),
+        DancePreset(
+            id: "buttons",
+            name: "Buttons",
+            shortDescription: "The viral PCD TikTok dance",
+            category: "Trending Now",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.12),
+            videoURL: "https://videos.trygrooveai.com/preset-tests/output/buttons-p3-blonde-1779678155466.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/buttons-poster.jpg"
+        ),
+        DancePreset(
+            id: "rasputin",
+            name: "Rasputin",
+            shortDescription: "The legendary Boney M dance",
+            category: "Trending Now",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.14, green: 0.04, blue: 0.18),
+            videoURL: "https://videos.trygrooveai.com/preset-tests/output/rasputin-p4-muscular-1779678155470.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/rasputin-poster.jpg"
+        ),
+        DancePreset(
+            id: "bangara",
+            name: "Bangaranga",
+            shortDescription: "Eurovision 2026's biggest hit",
+            category: "Trending Now",
+            badge: .newDance,
+            coinCost: 60,
+            pillTags: ["✨ New", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
+            videoURL: "https://videos.trygrooveai.com/preset-tests/output/bangara-p5-latina-1779678155471.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/bangara-poster.jpg"
+        ),
+        DancePreset(
+            id: "beauty-and-a-beat",
+            name: "Beauty And A Beat",
+            shortDescription: "Justin Bieber's iconic body roll",
+            category: "Trending Now",
+            badge: .hot,
+            coinCost: 60,
+            pillTags: ["🔥 Trending", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.04, green: 0.12, blue: 0.20),
+            videoURL: "https://videos.trygrooveai.com/preset-tests/output/beauty-beat-p1-olderman-1779678155472.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/beauty-beat-poster.jpg"
+        ),
         DancePreset(
             id: "big-guy",
             name: "Big Guy",
             shortDescription: "The big guy dance",
-            category: "Trending",
+            category: "Fan Favorites",
             badge: .trending,
             coinCost: 60,
             pillTags: ["🔥 Trending", "👤 All Faces"],
@@ -50,7 +166,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "coco-channel",
             name: "Coco Channel",
             shortDescription: "Iconic moves",
-            category: "Trending",
+            category: "Fan Favorites",
             badge: .trending,
             coinCost: 60,
             pillTags: ["🔥 Trending", "👤 All Faces"],
@@ -64,7 +180,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "trag",
             name: "Trag",
             shortDescription: "Trag dance vibes",
-            category: "Trending",
+            category: "Fan Favorites",
             badge: .hot,
             coinCost: 60,
             pillTags: ["🔥 Trending", "👤 All Faces"],
@@ -78,7 +194,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "ophelia",
             name: "Ophelia",
             shortDescription: "Ophelia dance",
-            category: "Trending",
+            category: "Fan Favorites",
             badge: .trending,
             coinCost: 60,
             pillTags: ["🔥 Trending", "👤 All Faces"],
@@ -92,7 +208,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "jenny",
             name: "Jenny",
             shortDescription: "Jenny dance groove",
-            category: "Trending",
+            category: "Fan Favorites",
             badge: .hot,
             coinCost: 60,
             pillTags: ["🔥 Trending", "👤 All Faces"],
@@ -108,7 +224,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "macarena",
             name: "Macarena",
             shortDescription: "The classic everyone knows",
-            category: "Classic",
+            category: "Classics",
             badge: .fanFave,
             coinCost: 60,
             pillTags: ["🎵 Classic", "👤 All Faces"],
@@ -122,7 +238,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "milkshake",
             name: "Milkshake",
             shortDescription: "Smooth moves only",
-            category: "Classic",
+            category: "Classics",
             badge: nil,
             coinCost: 60,
             pillTags: ["🎵 Classic", "👤 All Faces"],
@@ -136,7 +252,7 @@ struct DancePreset: Identifiable, Hashable {
             id: "c-walk",
             name: "C Walk",
             shortDescription: "West Coast classic",
-            category: "Classic",
+            category: "Classics",
             badge: nil,
             coinCost: 60,
             pillTags: ["🎵 Classic", "👤 All Faces"],
@@ -201,7 +317,7 @@ struct DancePreset: Identifiable, Hashable {
     }
 
     static var categories: [CategoryGroup] {
-        let order = ["Trending", "Classic", "Face Dance"]
+        let order = ["MJ Dances", "Trending Now", "Fan Favorites", "Classics", "Face Dance"]
         var grouped: [String: [DancePreset]] = [:]
         for preset in allPresets {
             grouped[preset.category, default: []].append(preset)

@@ -46,6 +46,14 @@ struct ContentView: View {
                     #if DEBUG
                     print("[ContentView] GrooveOnboardingView.onComplete fired — before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
                     #endif
+                    // Request notification permission and schedule trial reminder
+                    // This fires once when user accepts the Superwall trial offer.
+                    Task {
+                        let granted = await NotificationService.requestPermission()
+                        if granted {
+                            NotificationService.scheduleTrialReminder()
+                        }
+                    }
                     appState.hasCompletedOnboarding = true
                     appState.selectedTab = .home
                     #if DEBUG
@@ -60,6 +68,10 @@ struct ContentView: View {
             #if DEBUG
             print("[ContentView] hasCompletedOnboarding changed -> \(newValue)")
             #endif
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("GrooveOpenCreateTab"))) { _ in
+            appState.hasCompletedOnboarding = true
+            appState.selectedTab = .home
         }
         .onChange(of: appState.showPaywall) { _, newValue in
             #if DEBUG

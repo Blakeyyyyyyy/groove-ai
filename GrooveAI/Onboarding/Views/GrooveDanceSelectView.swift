@@ -21,11 +21,11 @@ struct GrooveDanceSelectView: View {
     @ObservedObject var state: GrooveOnboardingState
     let onNext: () -> Void
 
-    @State private var selectedIndex: Int = 0
-    @State private var hasSelected = false
+    @State private var selectedIndex: Int = 1
     @State private var contentAppeared = false
     @State private var tapped = false
     @State private var showTapHint = false
+    @State private var scrollPositionId: String? = nil
 
     var body: some View {
         GeometryReader { geo in
@@ -35,13 +35,14 @@ struct GrooveDanceSelectView: View {
                 VStack(spacing: 0) {
                     Spacer().frame(height: 96)
 
+                    // Header + subtitle
                     VStack(spacing: 8) {
                         Text("Now pick a dance")
                             .font(.system(size: 32, weight: .bold))
                             .tracking(-0.5)
                             .foregroundColor(.white)
 
-                        Text("Tap any dance below to watch it in motion")
+                        Text("Tap a dance to make your image Groove.")
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(GrooveOnboardingTheme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -49,31 +50,53 @@ struct GrooveDanceSelectView: View {
                     .padding(.horizontal, 24)
                     .opacity(contentAppeared ? 1 : 0)
 
-                    Spacer().frame(height: 18)
+                    Spacer().frame(height: 20)
 
-                    dancePreviewPane(in: geo)
+                    // Peeking horizontal carousel
+                    danceCardSlider(in: geo)
                         .opacity(contentAppeared ? 1 : 0)
                         .offset(y: contentAppeared ? 0 : 12)
 
-                    Spacer().frame(height: 20)
+                    Spacer().frame(height: 16)
 
-                    danceOptionsSection
-                        .opacity(contentAppeared ? 1 : 0)
-                        .offset(y: contentAppeared ? 0 : 18)
-
+                    // Floating hint text (above subject image)
                     DanceTapHintView()
-                        .opacity(showTapHint && !tapped ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.35), value: tapped)
-                        .padding(.top, 16)
+                        .opacity(showTapHint ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.35), value: showTapHint)
 
-                    Spacer()
+                    // Subject thumbnail strip (below hint text)
+                    subjectThumbnailStrip
+                        .opacity(contentAppeared ? 1 : 0)
+                        .padding(.top, 12)
+
+                    Spacer(minLength: 0)
+
+                    // Continue button
+                    Button(action: handleContinue) {
+                        Text("See the dance →")
+                            .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
+                            .background(GrooveOnboardingTheme.blueAccent)
+                            .clipShape(Capsule())
+                            .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
+                    }
+                    .buttonStyle(DanceCTAPressStyle())
+                    .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
+                    .opacity(contentAppeared ? 1 : 0)
+                    .offset(y: contentAppeared ? 0 : 18)
+
+                    Spacer().frame(height: GrooveOnboardingTheme.ctaBottomPadding)
                 }
             }
         }
         .onAppear {
             MetaTracker.danceSelected()
+            // Start centred on coco-channel (middle card, index 1)
+            selectedIndex = 1
             if state.selectedDanceId.isEmpty {
-                state.selectedDanceId = onboardingDanceOptions[0].id
+                state.selectedDanceId = onboardingDanceOptions[1].id
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
@@ -89,69 +112,76 @@ struct GrooveDanceSelectView: View {
     }
 
     @ViewBuilder
-    private func dancePreviewPane(in geo: GeometryProxy) -> some View {
-        let previewHeight = min(geo.size.height * 0.42, 360)
+    private func danceCardSlider(in geo: GeometryProxy) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        let cardWidth = screenWidth * 0.72 - 35
+        let cardHeight = screenHeight * 0.46
+        let horizontalMargin = screenWidth * 0.14
 
-        ZStack {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 12) {
+                    ForEach(Array(onboardingDanceOptions.enumerated()), id: \.element.id) { index, option in
+                        DanceSliderCard(
+                            option: option,
+                            isSelected: selectedIndex == index
+                        )
+                        .frame(width: cardWidth, height: cardHeight)
+                        .id(option.id)
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedIndex = index
+                            }
+                            proxy.scrollTo(option.id, anchor: .center)
+                        }
+                    }
+                }
+                .scrollTargetLayout()
+            }
+            .scrollPosition(id: $scrollPositionId)
+            .contentMargins(.horizontal, horizontalMargin, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
+            .frame(height: cardHeight)
+            .onChange(of: scrollPositionId) { _, newId in
+                if let newId, let idx = onboardingDanceOptions.firstIndex(where: { $0.id == newId }) {
+                    selectedIndex = idx
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    proxy.scrollTo("coco-channel", anchor: .center)
+                }
+            }
+        }
+    }
+
+    private var subjectThumbnailStrip: some View {
+        VStack(spacing: 6) {
             if let previewImage = resolvedSubjectImage {
                 Image(uiImage: previewImage)
                     .resizable()
                     .scaledToFill()
+                    .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             } else {
-                GrooveOnboardingTheme.surfaceL1
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(GrooveOnboardingTheme.surfaceL1)
+                    .frame(width: 96, height: 96)
             }
 
-            LinearGradient(
-                colors: [
-                    Color.clear,
-                    GrooveOnboardingTheme.background.opacity(0.12),
-                    GrooveOnboardingTheme.background.opacity(0.45)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            Text("Your subject")
+                .font(.caption)
+                .foregroundColor(GrooveOnboardingTheme.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: previewHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.white.opacity(0.08), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.22), radius: 22, y: 12)
-        .padding(.horizontal, 24)
     }
 
-    private var danceOptionsSection: some View {
-        HStack(spacing: 12) {
-            ForEach(Array(onboardingDanceOptions.enumerated()), id: \.element.id) { index, option in
-                DanceLoopCard(
-                    option: option,
-                    isSelected: selectedIndex == index,
-                    showPopularBadge: index == 0
-                ) {
-                    handleDanceTap(index: index, option: option)
-                }
-            }
-        }
-        .padding(.horizontal, 24)
-    }
-
-    private func handleDanceTap(index: Int, option: OnboardingDanceOption) {
-        guard !hasSelected else { return }
-
-        tapped = true
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.74)) {
-            selectedIndex = index
-        }
-
+    private func handleContinue() {
+        let option = onboardingDanceOptions[selectedIndex]
         state.selectedDanceId = option.id
-        UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
-
-        hasSelected = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-            onNext()
-        }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        onNext()
     }
 
     private var resolvedSubjectImage: UIImage? {
@@ -175,7 +205,7 @@ private struct DanceTapHintView: View {
         HStack(spacing: 6) {
             Text("👆")
                 .font(.system(size: 18))
-            Text("Tap a dance to continue")
+            Text("Choose a dance to continue")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white.opacity(0.6))
         }
@@ -191,53 +221,65 @@ private struct DanceTapHintView: View {
     }
 }
 
-private struct DanceLoopCard: View {
+private struct DanceSliderCard: View {
     let option: OnboardingDanceOption
     let isSelected: Bool
-    let showPopularBadge: Bool
-    let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 10) {
-                ZStack(alignment: .topLeading) {
-                    if let url = option.videoURL {
-                        LoopingVideoView(url: url, gravity: .resizeAspectFill, isMuted: true)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 168)
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    } else {
-                        GrooveOnboardingTheme.surfaceL1
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 168)
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    }
-
-                    if showPopularBadge {
-                        Text("🔥 Popular")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(GrooveOnboardingTheme.badgeTrending)
-                            .clipShape(Capsule())
-                            .padding(8)
-                    }
+        ZStack(alignment: .topLeading) {
+            // Video (or fallback) fills the card
+            Group {
+                if let url = option.videoURL {
+                    LoopingVideoView(url: url, gravity: .resizeAspectFill, isMuted: true)
+                } else {
+                    GrooveOnboardingTheme.surfaceL1
                 }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.08), lineWidth: isSelected ? 2 : 1)
-                )
-
-                Text(option.label)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+
+            // Dark gradient at bottom behind label
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.55)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 90)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .allowsHitTesting(false)
+
+            // Dance label overlay at bottom
+            VStack {
+                Spacer()
+                HStack {
+                    Text(option.label)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 16)
+            }
+            .allowsHitTesting(false)
         }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(
+                    isSelected ? GrooveOnboardingTheme.blueAccent : Color.white.opacity(0.10),
+                    lineWidth: isSelected ? 2 : 1
+                )
+        )
+        .shadow(color: Color.black.opacity(0.25), radius: 18, y: 10)
+    }
+}
+
+private struct DanceCTAPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

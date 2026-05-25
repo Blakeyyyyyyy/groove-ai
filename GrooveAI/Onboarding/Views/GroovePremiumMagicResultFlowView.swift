@@ -3,6 +3,7 @@
 
 import SwiftUI
 import AVKit
+import StoreKit
 
 struct GroovePremiumMagicResultFlowView: View {
     @ObservedObject var state: GrooveOnboardingState
@@ -11,7 +12,6 @@ struct GroovePremiumMagicResultFlowView: View {
     @State private var progress: Double = 0.02
     @State private var displayPercent: Int = 0
     @State private var statusIndex: Int = 0
-    @State private var decorationRotation: Double = 0
     @State private var loaderOpacity: Double = 1
     @State private var loaderScale: CGFloat = 1
 
@@ -23,6 +23,7 @@ struct GroovePremiumMagicResultFlowView: View {
     @State private var player: AVPlayer?
     @State private var playerEndObserver: NSObjectProtocol?
     @State private var hasStarted = false
+    @State private var showReviewPrompt = false
 
     private let statusMessages = [
         "Preparing your result",
@@ -45,6 +46,16 @@ struct GroovePremiumMagicResultFlowView: View {
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .ignoresSafeArea()
+        }
+        .alert("Enjoying Groove AI so far?", isPresented: $showReviewPrompt) {
+            Button("Love it! ⭐") {
+                if let scene = UIApplication.shared.connectedScenes
+                    .compactMap({ $0 as? UIWindowScene })
+                    .first {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
+            }
+            Button("Not yet", role: .cancel) { }
         }
         .onAppear {
             guard !hasStarted else { return }
@@ -124,13 +135,6 @@ struct GroovePremiumMagicResultFlowView: View {
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-
-            Circle()
-                .fill(Color.white)
-                .frame(width: 8, height: 8)
-                .shadow(color: GrooveOnboardingTheme.blueAccent.opacity(0.5), radius: 8)
-                .offset(y: -62)
-                .rotationEffect(.degrees(decorationRotation))
         }
         .frame(width: 124, height: 124)
     }
@@ -186,7 +190,8 @@ struct GroovePremiumMagicResultFlowView: View {
             .padding(.horizontal, 28)
 
             Spacer(minLength: 0)
-
+        }
+        .safeAreaInset(edge: .bottom) {
             Button(action: {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 onNext()
@@ -202,44 +207,31 @@ struct GroovePremiumMagicResultFlowView: View {
             }
             .buttonStyle(CTAPressStyle())
             .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
+            .padding(.bottom, 8)
             .opacity(primaryCTAVisible ? 1 : 0)
             .offset(y: primaryCTAVisible ? 0 : 16)
-
-            Spacer().frame(height: GrooveOnboardingTheme.ctaBottomPadding)
         }
     }
 
     private func startLoadingSequence() {
-        withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
-            decorationRotation = 360
-        }
-
-        let totalDuration: Double = 2.0
-        let impactGenerator = UIImpactFeedbackGenerator(style: .rigid)
+        let totalDuration: Double = 3.5
+        let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
         impactGenerator.prepare()
 
         let startTime = CACurrentMediaTime()
-        let hapticThresholds = [12, 26, 40, 56, 72, 88]
+        // Evenly-spaced haptic ticks at 20/40/60/80/100% with increasing intensity
+        let hapticThresholds: [Int] = [20, 40, 60, 80, 100]
+        let hapticIntensities: [CGFloat] = [0.4, 0.6, 0.7, 0.85, 1.0]
         var lastHapticIndex = -1
 
         let progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { timer in
             let elapsed = CACurrentMediaTime() - startTime
-            let clamped = min(max(elapsed / totalDuration, 0), 1)
+            let t = min(max(elapsed / totalDuration, 0), 1)
 
-            let currentValue: Double
-            if clamped < 0.45 {
-                let t = clamped / 0.45
-                let eased = 1 - pow(1 - t, 1.8)
-                currentValue = 62 * eased
-            } else if clamped < 0.80 {
-                let t = (clamped - 0.45) / 0.35
-                let eased = t * t * (3 - 2 * t)
-                currentValue = 62 + (24 * eased)
-            } else {
-                let t = (clamped - 0.80) / 0.20
-                let eased = 1 - pow(1 - t, 2.3)
-                currentValue = 86 + (14 * eased)
-            }
+            // Single smooth ease curve: progress = sin(t * π/2)
+            // Natural slow-start, fast-middle, slow-finish feel.
+            let eased = sin(t * .pi / 2)
+            let currentValue = eased * 100
 
             let wholePercent = min(Int(currentValue.rounded(.down)), 100)
             progress = max(currentValue / 100, 0.02)
@@ -248,10 +240,11 @@ struct GroovePremiumMagicResultFlowView: View {
                 displayPercent = wholePercent
             }
 
+            // Status messages transition at 33% and 66%
             let newStatusIndex: Int
             switch currentValue {
-            case ..<38: newStatusIndex = 0
-            case ..<78: newStatusIndex = 1
+            case ..<33: newStatusIndex = 0
+            case ..<66: newStatusIndex = 1
             default: newStatusIndex = 2
             }
             if newStatusIndex != statusIndex {
@@ -262,9 +255,10 @@ struct GroovePremiumMagicResultFlowView: View {
 
             if lastHapticIndex + 1 < hapticThresholds.count,
                wholePercent >= hapticThresholds[lastHapticIndex + 1] {
-                impactGenerator.impactOccurred(intensity: 0.85)
+                let nextIndex = lastHapticIndex + 1
+                impactGenerator.impactOccurred(intensity: hapticIntensities[nextIndex])
                 impactGenerator.prepare()
-                lastHapticIndex += 1
+                lastHapticIndex = nextIndex
             }
 
             if elapsed >= totalDuration {
@@ -313,6 +307,10 @@ struct GroovePremiumMagicResultFlowView: View {
             withAnimation(.easeOut(duration: 0.3)) {
                 primaryCTAVisible = true
             }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            showReviewPrompt = true
         }
     }
 
