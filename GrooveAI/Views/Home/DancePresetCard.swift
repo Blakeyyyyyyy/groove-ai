@@ -53,7 +53,8 @@ struct DancePresetCard: View {
 
     @ViewBuilder
     private var mediaContent: some View {
-        if let videoURLString = preset.videoURL, let videoURL = URL(string: videoURLString) {
+        let resolvedVideoURLString = preset.cardVideoURL ?? preset.videoURL
+        if let videoURLString = resolvedVideoURLString, let videoURL = URL(string: videoURLString) {
             let posterURL = preset.posterURL.flatMap { URL(string: $0) }
             // Color.clear anchors the layout size to the proposed space.
             // .overlay constrains LoopingVideoView to that same frame,

@@ -14,6 +14,7 @@ struct DancePreset: Identifiable, Hashable {
     let thumbnailURL: String?
     let posterURL: String?
     var isNew: Bool = false
+    var cardVideoURL: String? = nil
 
     /// True when this preset uses Kling's face-tracking model.
     /// Pet photos are rejected by Kling for these presets.
@@ -48,7 +49,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "\(r2Output)/moonwalk-mj-1779680815653.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/moonwalk-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/moonwalk-preview.mp4"
         ),
         DancePreset(
             id: "mj-thriller",
@@ -63,7 +65,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "\(r2Output)/mj-klingtest-1777888999457.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/mj-thriller-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/mj-thriller-preview.mp4"
         ),
         DancePreset(
             id: "beat-it",
@@ -78,7 +81,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "\(r2Output)/gemini-michael-trimmed-1778546590784.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/beat-it-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/beat-it-preview.mp4"
         ),
 
         // TRENDING (7 — includes new presets)
@@ -95,7 +99,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "\(r2Output)/snaptik-v3-test-1777873850368.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/pop-lock-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/pop-lock-preview.mp4"
         ),
         DancePreset(
             id: "sahur-dance",
@@ -110,7 +115,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "\(r2Output)/dog-snaptik-dance-1778549183486.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/sahur-dance-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/sahur-dance-preview.mp4"
         ),
         DancePreset(
             id: "buttons",
@@ -125,7 +131,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/buttons-p3-blonde-1779678155466.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/buttons-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/buttons-preview.mp4"
         ),
         DancePreset(
             id: "rasputin",
@@ -140,7 +147,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/rasputin-p4-muscular-1779678155470.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/rasputin-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/rasputin-preview.mp4"
         ),
         DancePreset(
             id: "bangara",
@@ -155,7 +163,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/bangara-p5-latina-1779678155471.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/bangara-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/bangara-preview.mp4"
         ),
         DancePreset(
             id: "beauty-and-a-beat",
@@ -170,7 +179,8 @@ struct DancePreset: Identifiable, Hashable {
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/beauty-beat-p1-olderman-1779678155472.mp4",
             thumbnailURL: nil,
             posterURL: "\(r2Base)/posters/beauty-beat-poster.jpg",
-            isNew: true
+            isNew: true,
+            cardVideoURL: "https://videos.trygrooveai.com/presets/previews/beauty-and-a-beat-preview.mp4"
         ),
         DancePreset(
             id: "big-guy",
