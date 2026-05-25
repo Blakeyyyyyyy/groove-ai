@@ -33,7 +33,7 @@ struct GrooveDanceSelectView: View {
                 GrooveOnboardingTheme.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 96)
+                    Spacer().frame(height: 56)
 
                     // Header + subtitle
                     VStack(spacing: 8) {
@@ -70,25 +70,25 @@ struct GrooveDanceSelectView: View {
                         .padding(.top, 12)
 
                     Spacer(minLength: 0)
-
-                    // Continue button
-                    Button(action: handleContinue) {
-                        Text("See the dance →")
-                            .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
-                            .background(GrooveOnboardingTheme.blueAccent)
-                            .clipShape(Capsule())
-                            .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
-                    }
-                    .buttonStyle(DanceCTAPressStyle())
-                    .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
-                    .opacity(contentAppeared ? 1 : 0)
-                    .offset(y: contentAppeared ? 0 : 18)
-
-                    Spacer().frame(height: GrooveOnboardingTheme.ctaBottomPadding)
                 }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) {
+                Button(action: handleContinue) {
+                    Text("See the dance →")
+                        .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
+                        .background(GrooveOnboardingTheme.blueAccent)
+                        .clipShape(Capsule())
+                        .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
+                }
+                .buttonStyle(DanceCTAPressStyle())
+                .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
+                .padding(.bottom, 8)
+                .opacity(contentAppeared ? 1 : 0)
+                .offset(y: contentAppeared ? 0 : 18)
             }
         }
         .onAppear {
@@ -116,7 +116,7 @@ struct GrooveDanceSelectView: View {
         let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
         let cardWidth = screenWidth * 0.72 - 35
-        let cardHeight = screenHeight * 0.46
+        let cardHeight = screenHeight * 0.40
         let horizontalMargin = screenWidth * 0.14
 
         ScrollViewReader { proxy in

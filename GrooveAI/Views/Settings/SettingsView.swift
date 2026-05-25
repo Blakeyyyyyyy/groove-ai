@@ -1,5 +1,6 @@
 import SwiftUI
 import RevenueCat
+import SuperwallKit
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
@@ -73,14 +74,11 @@ struct SettingsView: View {
             } message: {
                 Text("Something went wrong. Check your connection and try again.")
             }
-            .fullScreenCover(isPresented: $showPaywall) {
-                GroovePaywallScreen(
-                    onPurchaseSuccess: {
-                        appState.isSubscribed = true
-                        showPaywall = false
-                    },
-                    onDismiss: { showPaywall = false }
-                )
+            .onChange(of: showPaywall) { _, newValue in
+                if newValue {
+                    showPaywall = false
+                    Superwall.shared.register(placement: "onboarding_trial") {}
+                }
             }
         }
     }

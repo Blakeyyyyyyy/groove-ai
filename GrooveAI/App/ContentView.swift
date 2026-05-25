@@ -1,8 +1,10 @@
 import SwiftUI
+import RevenueCat
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @State private var showSplash = true
+    @State private var showNotificationPrimer = false
 
     var body: some View {
         ZStack {
@@ -46,16 +48,20 @@ struct ContentView: View {
                     #if DEBUG
                     print("[ContentView] GrooveOnboardingView.onComplete fired — before: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
                     #endif
-                    // Request notification permission and schedule trial reminder
-                    // This fires once when user accepts the Superwall trial offer.
-                    Task {
-                        let granted = await NotificationService.requestPermission()
-                        if granted {
-                            NotificationService.scheduleTrialReminder()
-                        }
-                    }
                     appState.hasCompletedOnboarding = true
                     appState.selectedTab = .home
+                    // Conditionally show notification primer ONLY for annual free trial users.
+                    // Weekly buyers and paywall-dismissers get no primer and no permission request.
+                    Task {
+                        guard let customerInfo = try? await Purchases.shared.customerInfo() else { return }
+                        let isAnnualTrial = customerInfo.entitlements.active.values
+                            .first(where: { $0.productIdentifier == "grooveai_annual_9999" })?
+                            .periodType == .trial
+                        if isAnnualTrial {
+                            try? await Task.sleep(for: .seconds(1.5))
+                            await MainActor.run { showNotificationPrimer = true }
+                        }
+                    }
                     #if DEBUG
                     print("[ContentView] GrooveOnboardingView.onComplete finished — after: hasCompletedOnboarding=\(appState.hasCompletedOnboarding), selectedTab=\(appState.selectedTab)")
                     #endif
@@ -82,6 +88,22 @@ struct ContentView: View {
             #if DEBUG
             print("[ContentView] selectedTab changed -> \(newValue)")
             #endif
+        }
+        .sheet(isPresented: $showNotificationPrimer) {
+            NotificationPrimerView(onAccept: {
+                showNotificationPrimer = false
+                Task {
+                    let granted = await NotificationService.requestPermission()
+                    if granted {
+                        NotificationService.scheduleTrialReminder()
+                    }
+                }
+            }, onDecline: {
+                showNotificationPrimer = false
+            })
+            .presentationDetents([.height(320)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color(red: 0.09, green: 0.09, blue: 0.12))
         }
         .alert("Image Issue", isPresented: Binding(
             get: { appState.errorAlertMessage != nil },
@@ -181,6 +203,59 @@ struct ContentView: View {
                 .zIndex(100)
             }
         }
+    }
+}
+
+private struct NotificationPrimerView: View {
+    let onAccept: () -> Void
+    let onDecline: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: 32)
+
+            Text("🔔")
+                .font(.system(size: 44))
+
+            Spacer().frame(height: 16)
+
+            Text("Want a heads-up?")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+
+            Spacer().frame(height: 10)
+
+            Text("We'll send you one reminder the day\nbefore your trial ends — so you don't miss it.")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(.white.opacity(0.65))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            Spacer().frame(height: 32)
+
+            Button(action: onAccept) {
+                Text("Remind me")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(Color(red: 0.22, green: 0.49, blue: 1.0))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 24)
+
+            Button(action: onDecline) {
+                Text("No thanks")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(.white.opacity(0.45))
+                    .frame(height: 44)
+            }
+            .padding(.top, 4)
+
+            Spacer().frame(height: 16)
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color(red: 0.09, green: 0.09, blue: 0.12))
     }
 }
 

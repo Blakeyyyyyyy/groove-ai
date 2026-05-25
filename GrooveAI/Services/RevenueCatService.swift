@@ -20,6 +20,7 @@ final class RevenueCatService: ObservableObject {
     @Published var activeSubscriptionProductID: String?
     @Published var subscriptionRenewalDate: Date?
     @Published var subscriptionOriginalPurchaseDate: Date?
+    @Published var subscriptionPeriodType: PeriodType? = nil
     @Published var coinProducts: [String: Product] = [:]
     private var configuredAppUserId: String?
     private var hasConfigured = false
@@ -88,8 +89,10 @@ final class RevenueCatService: ObservableObject {
 
         if premiumIsActive {
             subscriptionOriginalPurchaseDate = entitlement?.originalPurchaseDate
+            subscriptionPeriodType = entitlement?.periodType
         } else {
             subscriptionOriginalPurchaseDate = nil
+            subscriptionPeriodType = nil
         }
 
         // Push the expiry to the server so the lazy-expiry check in get-user
@@ -590,7 +593,12 @@ final class RevenueCatService: ObservableObject {
         isSubscribed
     }
 
+    var isInFreeTrial: Bool {
+        subscriptionPeriodType == .trial
+    }
+
     var subscriptionPlanName: String {
+        if isInFreeTrial { return "Annual (Free Trial)" }
         switch activeSubscriptionProductID {
         case ProductID.annual:
             return "Annual"
@@ -603,11 +611,22 @@ final class RevenueCatService: ObservableObject {
 
     var subscriptionStatusLine: String {
         guard isSubscribed else { return "Inactive" }
+        if isInFreeTrial {
+            guard let end = subscriptionRenewalDate else { return "Free trial active" }
+            return "Free trial • Ends \(Self.subscriptionDateFormatter.string(from: end))"
+        }
         guard let renewalDate = subscriptionRenewalDate else { return "Active" }
         return "Active • Renews \(Self.subscriptionDateFormatter.string(from: renewalDate))"
     }
 
     var refillStatusLine: String {
+        if isInFreeTrial {
+            guard let end = subscriptionRenewalDate else { return "Trial coins available" }
+            let days = Self.daysUntil(end)
+            if days <= 0 { return "Your trial ends today" }
+            if days == 1 { return "Trial ends tomorrow • coins expire then" }
+            return "Trial ends in \(days) days • coins expire then"
+        }
         guard let refillDate = nextCoinRefillDate() else { return "Refill date unavailable" }
         let days = Self.daysUntil(refillDate)
 
@@ -617,6 +636,11 @@ final class RevenueCatService: ObservableObject {
     }
 
     var refillCountdownLabel: String? {
+        if isInFreeTrial {
+            guard let end = subscriptionRenewalDate else { return nil }
+            let days = Self.daysUntil(end)
+            return days <= 0 ? "Ends today" : "\(days)d left"
+        }
         guard let refillDate = nextCoinRefillDate() else { return nil }
         let days = Self.daysUntil(refillDate)
         return days <= 0 ? "Today" : "\(days)d"

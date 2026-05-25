@@ -53,6 +53,17 @@ struct GrooveCoinBalanceView: View {
                 }
             }
 
+            if rcService.isInFreeTrial {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "hourglass")
+                        .font(.caption)
+                        .foregroundStyle(Color.accentStart)
+                    Text(rcService.refillStatusLine)
+                        .font(.caption)
+                        .foregroundStyle(Color.accentStart)
+                }
+            }
+
             // Action button
             if !appState.isSubscribed {
                 Button {
@@ -95,12 +106,12 @@ struct GrooveCoinBalanceView: View {
 
     private var premiumBadge: some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: "crown.fill")
+            Image(systemName: rcService.isInFreeTrial ? "hourglass" : "crown.fill")
                 .font(.caption2)
-            Text("Premium")
+            Text(rcService.isInFreeTrial ? "Free Trial" : "Premium")
                 .font(.caption.weight(.semibold))
         }
-        .foregroundStyle(Color.accentStart)
+        .foregroundStyle(rcService.isInFreeTrial ? Color.accentStart.opacity(0.8) : Color.accentStart)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(Color.accentStart.opacity(0.12))
@@ -165,7 +176,19 @@ struct GrooveCoinBalanceView: View {
     }
 
     private var coinProgressFraction: CGFloat {
-        let maxCoins = max(150, coinBalance)
+        let maxCoins: Int
+        if rcService.isInFreeTrial {
+            maxCoins = 150
+        } else if appState.isSubscribed {
+            // Use the plan's coin allocation as max
+            if let tier = PlanTier.tier(forProductID: rcService.activeSubscriptionProductID) {
+                maxCoins = tier.coinAmount
+            } else {
+                maxCoins = max(150, coinBalance)
+            }
+        } else {
+            maxCoins = max(150, coinBalance)
+        }
         return min(1.0, CGFloat(coinBalance) / CGFloat(maxCoins))
     }
 

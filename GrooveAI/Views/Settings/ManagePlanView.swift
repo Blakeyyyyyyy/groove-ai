@@ -1,4 +1,5 @@
 import SwiftUI
+import SuperwallKit
 
 struct ManagePlanView: View {
     @Environment(AppState.self) private var appState
@@ -30,14 +31,11 @@ struct ManagePlanView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(.black)
         }
-        .fullScreenCover(isPresented: $showPaywall) {
-            GroovePaywallScreen(
-                onPurchaseSuccess: {
-                    appState.isSubscribed = true
-                    showPaywall = false
-                },
-                onDismiss: { showPaywall = false }
-            )
+        .onChange(of: showPaywall) { _, newValue in
+            if newValue {
+                showPaywall = false
+                Superwall.shared.register(placement: "onboarding_trial") {}
+            }
         }
     }
 
@@ -129,7 +127,11 @@ struct ManagePlanView: View {
 
     private var ctaButton: some View {
         Button {
-            if appState.isSubscribed {
+            if rcService.isInFreeTrial {
+                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                    UIApplication.shared.open(url)
+                }
+            } else if appState.isSubscribed {
                 showCoinSheet = true
             } else {
                 showPaywall = true
@@ -166,11 +168,15 @@ struct ManagePlanView: View {
         guard appState.isSubscribed else {
             return "Subscribe to get weekly coins and unlimited access to all dances."
         }
+        if rcService.isInFreeTrial {
+            return "You're on a 3-day free trial. Your 150 trial coins expire when the trial ends. If you keep your subscription, you'll get 250 coins every month."
+        }
         return rcService.refillStatusLine
     }
 
     private var ctaLabel: String {
-        appState.isSubscribed ? "Get more coins" : "Get started"
+        if rcService.isInFreeTrial { return "Manage subscription" }
+        return appState.isSubscribed ? "Get more coins" : "Get started"
     }
 }
 

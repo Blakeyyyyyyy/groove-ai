@@ -71,6 +71,7 @@ struct GrooveHeroScrollView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 12) {
                     Button(action: {
@@ -117,6 +118,7 @@ struct GrooveHeroScrollView: View {
                     }
                     .opacity(contentVisible ? 1 : 0)
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.bottom, 8)
             }
         }

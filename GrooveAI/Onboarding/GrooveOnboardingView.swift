@@ -73,6 +73,7 @@ struct GrooveOnboardingView: View {
             case 5:
                 Color.black.ignoresSafeArea()
                     .task {
+                        MetaTracker.paywallShown()
                         Superwall.shared.register(placement: "onboarding_trial") {
                             // Feature block — runs when user has access (purchased,
                             // restored, or paywall configured to fire on dismiss).
