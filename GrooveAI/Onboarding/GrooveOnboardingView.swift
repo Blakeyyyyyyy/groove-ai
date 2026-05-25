@@ -7,6 +7,7 @@ import SuperwallKit
 struct GrooveOnboardingView: View {
     let onComplete: () -> Void
 
+    @Environment(AppState.self) private var appState
     @StateObject private var state = GrooveOnboardingState()
     @State private var currentPage: Int = 1
 
@@ -74,10 +75,21 @@ struct GrooveOnboardingView: View {
                 Color.black.ignoresSafeArea()
                     .task {
                         MetaTracker.paywallShown()
-                        Superwall.shared.register(placement: "onboarding_trial") {
-                            // Feature block — runs when user has access (purchased,
-                            // restored, or paywall configured to fire on dismiss).
+                        if appState.isSubscribed {
+                            // Already subscribed (e.g. re-ran onboarding mid-trial) — skip paywall
                             onComplete()
+                        } else if appState.hasHadTrial {
+                            // Had a trial before — show regular subscription paywall, not trial offer
+                            Superwall.shared.register(placement: "onboarding_paywall") {
+                                onComplete()
+                            }
+                        } else {
+                            // First time — show free trial paywall
+                            Superwall.shared.register(placement: "onboarding_trial") {
+                                // Feature block — runs when user has access (purchased,
+                                // restored, or paywall configured to fire on dismiss).
+                                onComplete()
+                            }
                         }
                     }
 

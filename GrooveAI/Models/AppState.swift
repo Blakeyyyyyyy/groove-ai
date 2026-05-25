@@ -103,6 +103,13 @@ final class AppState {
         didSet { UserDefaults.standard.set(hasHadSubscription, forKey: "hasHadSubscription") }
     }
 
+    /// True once the user has ever started a free trial. Server-authoritative —
+    /// survives reinstall so a churned trial user can't re-trigger the free
+    /// trial paywall by deleting and reinstalling the app.
+    var hasHadTrial: Bool = false {
+        didSet { UserDefaults.standard.set(hasHadTrial, forKey: "hasHadTrial") }
+    }
+
     // MARK: - Server-Synced Coins
 
     /// Server-authoritative coin balance. Falls back to local if not synced yet.
@@ -319,6 +326,7 @@ final class AppState {
         isSubscribed = storedIsSubscribed
         // If we already know they're subscribed locally, they've had a subscription.
         hasHadSubscription = defaults.bool(forKey: "hasHadSubscription") || storedIsSubscribed
+        hasHadTrial = defaults.bool(forKey: "hasHadTrial")
         hasRequestedNotificationPermission = defaults.bool(forKey: "hasRequestedNotificationPermission")
 
         #if DEBUG
@@ -445,6 +453,11 @@ final class AppState {
                     self.hasHadSubscription = true
                 }
 
+                // Server is authoritative for trial history — survives reinstall
+                if let serverHasHadTrial = profile["has_had_trial"] as? Bool, serverHasHadTrial {
+                    self.hasHadTrial = true
+                }
+
                 #if DEBUG
                 print("[AppState] ✅ Server sync complete — coins: \(self.serverCoins ?? -1), subscribed: \(self.isSubscribed) (server=\(serverSaysSubscribed), rc=\(revenueCatSaysSubscribed), status=\(subscriptionStatus), hasHadSubscription=\(self.hasHadSubscription))")
                 #endif
@@ -554,7 +567,7 @@ final class AppState {
         KeychainHelper.delete(forKey: "authToken")
 
         let defaults = UserDefaults.standard
-        for key in ["userId", "isSubscribed", "hasHadSubscription", "hasCompletedOnboarding",
+        for key in ["userId", "isSubscribed", "hasHadSubscription", "hasHadTrial", "hasCompletedOnboarding",
                     "hasRequestedNotificationPermission", "creditsUsed", "groove_coins"] {
             defaults.removeObject(forKey: key)
         }
@@ -571,6 +584,7 @@ final class AppState {
 
         isSubscribed = false
         hasHadSubscription = false
+        hasHadTrial = false
         hasCompletedOnboarding = false
         hasRequestedNotificationPermission = false
         serverCoins = 0

@@ -44,6 +44,26 @@ struct GrooveCoinPurchaseSheet: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Trial-active banner — reassures trial users that any coins they
+                // buy carry over after the trial ends.
+                if rcService.isInFreeTrial {
+                    HStack(spacing: 8) {
+                        Image(systemName: "hourglass")
+                            .font(.caption)
+                            .foregroundStyle(Color.accentStart)
+                        Text("Your free trial continues — any coins you buy are yours to keep after your trial ends.")
+                            .font(.caption)
+                            .foregroundStyle(Color.accentStart)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.accentStart.opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                }
+
                 // Nav bar
                 navBar
 
