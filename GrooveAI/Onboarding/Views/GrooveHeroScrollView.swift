@@ -71,57 +71,56 @@ struct GrooveHeroScrollView: View {
 
                 Spacer(minLength: 12)
 
-                VStack(spacing: 10) {
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        onNext()
-                    }) {
-                        Text("Continue →")
-                            .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
-                            .background(GrooveOnboardingTheme.blueAccent)
-                            .clipShape(Capsule())
-                            .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
-                    }
-                    .buttonStyle(CTAPressStyle())
-                    .opacity(contentVisible ? 1 : 0)
-                    .offset(y: contentVisible ? 0 : 18)
-
-                    HStack(spacing: 4) {
-                        Text("By continuing, you agree to our")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                        Button("Terms") {
-                            if let url = URL(string: "https://trygrooveai.com/terms") {
-                                UIApplication.shared.open(url)
-                            }
-                        }
+                HStack(spacing: 4) {
+                    Text("By continuing, you agree to our")
                         .foregroundColor(.gray)
                         .font(.caption)
-                        .underline()
-                        Text("and")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                        Button("Privacy Policy") {
-                            if let url = URL(string: "https://trygrooveai.com/privacy") {
-                                UIApplication.shared.open(url)
-                            }
+                    Button("Terms") {
+                        if let url = URL(string: "https://trygrooveai.com/terms") {
+                            UIApplication.shared.open(url)
                         }
+                    }
+                    .foregroundColor(.gray)
+                    .font(.caption)
+                    .underline()
+                    Text("and")
                         .foregroundColor(.gray)
                         .font(.caption)
-                        .underline()
+                    Button("Privacy Policy") {
+                        if let url = URL(string: "https://trygrooveai.com/privacy") {
+                            UIApplication.shared.open(url)
+                        }
                     }
-                    .opacity(contentVisible ? 1 : 0)
+                    .foregroundColor(.gray)
+                    .font(.caption)
+                    .underline()
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 50)
+                .opacity(contentVisible ? 1 : 0)
+                .padding(.bottom, 16)
             }
             .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
+        .safeAreaInset(edge: .bottom) {
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                onNext()
+            }) {
+                Text("Continue →")
+                    .font(.system(size: GrooveOnboardingTheme.ctaFontSize, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: GrooveOnboardingTheme.ctaButtonHeight)
+                    .background(GrooveOnboardingTheme.blueAccent)
+                    .clipShape(Capsule())
+                    .shadow(color: GrooveOnboardingTheme.ctaShadow, radius: 12, y: 4)
+            }
+            .buttonStyle(CTAPressStyle())
+            .padding(.horizontal, GrooveOnboardingTheme.ctaHorizontalPadding)
+            .padding(.bottom, GrooveOnboardingTheme.ctaBottomPadding)
+            .opacity(contentVisible ? 1 : 0)
+        }
         .onAppear {
             MetaTracker.onboardingStarted()
             withAnimation(.easeOut(duration: 0.35).delay(0.08)) {
