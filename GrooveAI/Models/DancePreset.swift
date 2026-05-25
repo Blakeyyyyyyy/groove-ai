@@ -33,13 +33,27 @@ struct DancePreset: Identifiable, Hashable {
     private static let r2Output = "https://videos.trygrooveai.com/preset-tests/output"
 
     static let allPresets: [DancePreset] = [
-        // MJ DANCES (2)
+        // MICHAEL JACKSON DANCES (3)
+        DancePreset(
+            id: "moonwalk",
+            name: "Moonwalk",
+            shortDescription: "Michael Jackson's most iconic move",
+            category: "Michael Jackson Dances",
+            badge: .trending,
+            coinCost: 60,
+            pillTags: ["🎤 MJ Classic", "👤 All Faces"],
+            placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
+            placeholderGradientBottom: Color(red: 0.04, green: 0.04, blue: 0.20),
+            videoURL: "\(r2Output)/moonwalk-mj-1779680815653.mp4",
+            thumbnailURL: nil,
+            posterURL: "\(r2Base)/posters/moonwalk-poster.jpg"
+        ),
         DancePreset(
             id: "mj-thriller",
-            name: "Pretty Young Thing",
+            name: "PYT Dance",
             shortDescription: "The King of Pop's most iconic dance",
-            category: "MJ Dances",
-            badge: .trending,
+            category: "Michael Jackson Dances",
+            badge: .hot,
             coinCost: 60,
             pillTags: ["🎤 MJ Classic", "👤 All Faces"],
             placeholderGradientTop: Color(red: 0.04, green: 0.04, blue: 0.04),
@@ -51,8 +65,8 @@ struct DancePreset: Identifiable, Hashable {
         DancePreset(
             id: "beat-it",
             name: "Beat It",
-            shortDescription: "MJ's legendary street style moves",
-            category: "MJ Dances",
+            shortDescription: "Michael Jackson's legendary street style moves",
+            category: "Michael Jackson Dances",
             badge: .hot,
             coinCost: 60,
             pillTags: ["🎤 MJ Classic", "👤 All Faces"],
@@ -317,7 +331,7 @@ struct DancePreset: Identifiable, Hashable {
     }
 
     static var categories: [CategoryGroup] {
-        let order = ["MJ Dances", "Trending Now", "Fan Favorites", "Classics", "Face Dance"]
+        let order = ["Michael Jackson Dances", "Trending Now", "Fan Favorites", "Classics", "Face Dance"]
         var grouped: [String: [DancePreset]] = [:]
         for preset in allPresets {
             grouped[preset.category, default: []].append(preset)
