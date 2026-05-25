@@ -16,9 +16,12 @@ struct HomeView: View {
                         HStack {
                             Spacer()
                             HeroBannerView {
-                                // Navigate to first trending preset
-                                if let first = DancePreset.allPresets.first {
-                                    navigateToPreset = first
+                                if let newCategory = DancePreset.categories.first(where: { $0.id == "New" }),
+                                   let first = newCategory.presets.first {
+                                    navigateToCategory = CategoryNavItem(
+                                        category: newCategory,
+                                        initialPreset: first
+                                    )
                                 }
                             }
                             Spacer()

@@ -13,6 +13,7 @@ struct DancePreset: Identifiable, Hashable {
     let videoURL: String?
     let thumbnailURL: String?
     let posterURL: String?
+    var isNew: Bool = false
 
     /// True when this preset uses Kling's face-tracking model.
     /// Pet photos are rejected by Kling for these presets.
@@ -46,7 +47,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.04, green: 0.04, blue: 0.20),
             videoURL: "\(r2Output)/moonwalk-mj-1779680815653.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/moonwalk-poster.jpg"
+            posterURL: "\(r2Base)/posters/moonwalk-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "mj-thriller",
@@ -60,7 +62,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.20, green: 0.04, blue: 0.04),
             videoURL: "\(r2Output)/mj-klingtest-1777888999457.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/mj-thriller-poster.jpg"
+            posterURL: "\(r2Base)/posters/mj-thriller-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "beat-it",
@@ -74,7 +77,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.18, green: 0.08, blue: 0.02),
             videoURL: "\(r2Output)/gemini-michael-trimmed-1778546590784.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/beat-it-poster.jpg"
+            posterURL: "\(r2Base)/posters/beat-it-poster.jpg",
+            isNew: true
         ),
 
         // TRENDING (7 — includes new presets)
@@ -90,7 +94,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.04, green: 0.10, blue: 0.20),
             videoURL: "\(r2Output)/snaptik-v3-test-1777873850368.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/pop-lock-poster.jpg"
+            posterURL: "\(r2Base)/posters/pop-lock-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "sahur-dance",
@@ -104,7 +109,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.12, green: 0.06, blue: 0.18),
             videoURL: "\(r2Output)/dog-snaptik-dance-1778549183486.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/sahur-dance-poster.jpg"
+            posterURL: "\(r2Base)/posters/sahur-dance-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "buttons",
@@ -118,7 +124,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.18, green: 0.04, blue: 0.12),
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/buttons-p3-blonde-1779678155466.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/buttons-poster.jpg"
+            posterURL: "\(r2Base)/posters/buttons-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "rasputin",
@@ -132,7 +139,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.14, green: 0.04, blue: 0.18),
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/rasputin-p4-muscular-1779678155470.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/rasputin-poster.jpg"
+            posterURL: "\(r2Base)/posters/rasputin-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "bangara",
@@ -146,7 +154,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.18, green: 0.10, blue: 0.04),
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/bangara-p5-latina-1779678155471.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/bangara-poster.jpg"
+            posterURL: "\(r2Base)/posters/bangara-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "beauty-and-a-beat",
@@ -160,7 +169,8 @@ struct DancePreset: Identifiable, Hashable {
             placeholderGradientBottom: Color(red: 0.04, green: 0.12, blue: 0.20),
             videoURL: "https://videos.trygrooveai.com/preset-tests/output/beauty-beat-p1-olderman-1779678155472.mp4",
             thumbnailURL: nil,
-            posterURL: "\(r2Base)/posters/beauty-beat-poster.jpg"
+            posterURL: "\(r2Base)/posters/beauty-beat-poster.jpg",
+            isNew: true
         ),
         DancePreset(
             id: "big-guy",
@@ -336,10 +346,15 @@ struct DancePreset: Identifiable, Hashable {
         for preset in allPresets {
             grouped[preset.category, default: []].append(preset)
         }
-        return order.compactMap { name in
+        var result = order.compactMap { name -> CategoryGroup? in
             guard let presets = grouped[name], !presets.isEmpty else { return nil }
             return CategoryGroup(id: name, name: name, presets: presets)
         }
+        let newPresets = allPresets.filter { $0.isNew }
+        if !newPresets.isEmpty {
+            result.append(CategoryGroup(id: "New", name: "✨ New", presets: newPresets))
+        }
+        return result
     }
 
     // MARK: - Dog Demo Videos (mapped to presets for PET subjects)
